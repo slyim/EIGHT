@@ -13,7 +13,7 @@ Temporary placeholders, including audio, are allowed for prototyping only when t
 - Record their source, creator/tool where applicable, license, and what needs replacing. Do not use a sound of unknown provenance or assume familiar audio is free to redistribute.
 - Never promote a placeholder to production without checking that it meets the human-created asset policy.
 
-The current prototype uses code-drawn debug geometry, marked in its scripts and on-screen. It contains no audio or newly imported art. The existing Godot project icon is editor/template material, not final game art.
+The current prototype uses code-drawn debug geometry, marked in its scripts and on-screen. It contains no audio and does not yet display imported game art. Owner-supplied sprites are stored under `art/`, with provenance recorded in `art/CREDITS.md`; importing a sprite does not replace the graybox visuals. The existing Godot project icon is editor/template material, not final game art.
 
 ## Files and credits
 

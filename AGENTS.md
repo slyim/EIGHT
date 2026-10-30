@@ -5,8 +5,9 @@
 - Godot 4.7.2 Standard project: `eight/project.godot`; `res://` means `eight/`.
 - Use GDScript for new game code unless the owner explicitly chooses another language.
 - Preserve the existing renderer, physics backend, and engine version unless a requested change requires otherwise.
-- The owner directs the game and creates assets. Do not invent genre, mechanics, story, placeholder content, or a roadmap.
-- This is setup-only until a concrete feature is requested. Do not generate gameplay to make the repository look complete.
+- The owner directs the game. Production art, audio, VFX assets, and other creative content must be human-created; AI-assisted code is allowed. Do not invent unrequested mechanics, story, or a roadmap.
+- Temporary placeholders, including audio, are allowed only when unmistakably identified as placeholders in the prototype and documented as temporary. Verify source and redistribution rights for any imported placeholder; never present it as production content.
+- Implement only requested features. The current prototype tests mounted movement and a melee spear against a practice target; it does not establish final art, enemy designs, progression, or a campaign.
 
 ## Implementation
 

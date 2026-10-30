@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/mounted_player.gd" id="1_player"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mount"]
+radius = 22.0
+
+[node name="MountedPlayer" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 5
+motion_mode = 1
+script = ExtResource("1_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_mount")
+
+[node name="SpearCast" type="RayCast2D" parent="."]
+enabled = false
+target_position = Vector2(112, 0)
+collision_mask = 5
+hit_from_inside = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+limit_left = -960
+limit_top = -600
+limit_right = 960
+limit_bottom = 600

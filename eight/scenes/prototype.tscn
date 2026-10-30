@@ -1,0 +1,85 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/prototype.gd" id="1_world"]
+[ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/practice_target.tscn" id="3_target"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
+size = Vector2(2016, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_wall"]
+size = Vector2(48, 1200)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_block"]
+size = Vector2(160, 160)
+
+[node name="Prototype" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="NorthWall" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(0, -624)
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="SouthWall" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(0, 624)
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="WestWall" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-984, 0)
+shape = SubResource("RectangleShape2D_vertical_wall")
+
+[node name="EastWall" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(984, 0)
+shape = SubResource("RectangleShape2D_vertical_wall")
+
+[node name="Block" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-320, -120)
+shape = SubResource("RectangleShape2D_block")
+
+[node name="MountedPlayer" parent="." instance=ExtResource("2_player")]
+
+[node name="PracticeTarget" parent="." instance=ExtResource("3_target")]
+position = Vector2(220, 0)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="PlaceholderNotice" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 760.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 24
+text = "EIGHT / MOUNTED SPEAR TEST"
+
+[node name="AssetNotice" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 57.0
+offset_right = 760.0
+offset_bottom = 84.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 0.9, 0.91, 1)
+theme_override_font_sizes/font_size = 16
+text = "ALL VISUALS ARE PLACEHOLDERS. NO AUDIO. NOT FINAL GAME ART."
+
+[node name="Controls" type="Label" parent="HUD"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -84.0
+offset_right = -24.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "WASD / Arrows: move    |    Mouse: aim    |    Hold LMB / Space: thrust
+R: reset player and target    |    Close window: exit"

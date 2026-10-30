@@ -1,0 +1,24 @@
+# Godot-generated data and Android build output.
+.godot/
+/eight/android/
+
+# Export builds, not source assets.
+/build/
+/exports/
+/eight/build/
+/eight/exports/
+export_credentials.cfg
+
+# Local editor, OS, and secret files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+.env
+.env.*
+!.env.example
+*.tmp
+*.bak
+*.blend1
+*.blend2

@@ -7,7 +7,7 @@
 - Preserve the existing renderer, physics backend, and engine version unless a requested change requires otherwise.
 - The owner directs the game. Production art, audio, VFX assets, and other creative content must be human-created; AI-assisted code is allowed. Do not invent unrequested mechanics, story, or a roadmap.
 - Temporary placeholders, including audio, are allowed only when unmistakably identified as placeholders in the prototype and documented as temporary. Verify source and redistribution rights for any imported placeholder; never present it as production content.
-- Implement only requested features. The current prototype tests mounted movement and a melee spear against a practice target; it does not establish final art, enemy designs, progression, or a campaign.
+- Implement only requested features. The owner's requested loop is a top-down survival run (hordes, life, experience, level-ups, collectible items) against seven sin bosses and a final boss, Satan. The current graybox (`scenes/run.tscn`) implements that loop with placeholder visuals, stats, and boss patterns; it does not establish final art, enemy or boss designs, balance, or a campaign.
 
 ## Implementation
 

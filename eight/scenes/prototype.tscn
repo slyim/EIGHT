@@ -81,5 +81,5 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
 theme_override_font_sizes/font_size = 18
-text = "WASD / Arrows: move    |    Mouse: aim    |    Hold LMB / Space: thrust
+text = "WASD / Arrows: move    |    Mouse: aim    |    Hold LMB / J: spear combo    |    Space: jump    |    Shift / RMB: dash
 R: reset player and target    |    Close window: exit"

@@ -4,6 +4,8 @@
 
 All production art, animation, textures, VFX assets, music, sound effects, voices, and other creative assets must be human-created. AI-assisted game code is allowed; this does not permit AI-generated production assets.
 
+The owner specifically requested the AI-assisted pixel adaptation of their supplied `Eight.pdf` logo on 2026-11-06. That scoped exception is recorded in `art/CREDITS.md`; the adapted logo is used in the run HUD. Other production assets remain subject to the human-created rule.
+
 ## Temporary placeholders
 
 Temporary placeholders, including audio, are allowed for prototyping only when their temporary status is unmistakable:

@@ -123,6 +123,9 @@ func _physics_process(delta: float) -> void:
 		_update_visuals(Vector2.ZERO, delta)
 		return
 	invulnerable_left = maxf(0.0, invulnerable_left - delta)
+	# Expire the dash before choosing this tick's movement, so every dash-speed
+	# movement tick also retains its dash invulnerability.
+	dash_time_left = maxf(0.0, dash_time_left - delta)
 	dash_cooldown_left = maxf(0.0, dash_cooldown_left - delta)
 	jump_cooldown_left = maxf(0.0, jump_cooldown_left - delta)
 
@@ -141,7 +144,6 @@ func _physics_process(delta: float) -> void:
 		dashed.emit()
 
 	if dash_time_left > 0.0:
-		dash_time_left = maxf(0.0, dash_time_left - delta)
 		velocity = dash_direction * dash_speed
 	else:
 		velocity = movement * movement_speed

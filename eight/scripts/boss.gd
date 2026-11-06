@@ -77,10 +77,10 @@ func _attack(pattern: int) -> void:
 
 func _fire(direction: Vector2) -> void:
 	var projectile: EnemyProjectile = EnemyProjectile.new()
-	projectile.position = global_position + direction * radius
 	projectile.velocity = direction * PROJECTILE_SPEED
 	projectile.target = target
 	get_parent().add_child(projectile)
+	projectile.global_position = global_position + direction * radius
 
 
 func _draw() -> void:

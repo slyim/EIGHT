@@ -1,9 +1,10 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/run.gd" id="1_run"]
 [ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="3_hud"]
 [ext_resource type="AudioStream" path="res://assets/audio/placeholder/placeholder_music_loop.ogg" id="4_music"]
+[ext_resource type="Texture2D" path="res://assets/art/eight_logo_pixel.png" id="5_logo"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(4096, 48)
@@ -49,6 +50,51 @@ content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ability_fill"]
+bg_color = Color(0.2549, 0.4196, 0.4588, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notice"]
+bg_color = Color(0.902, 0.886, 0.6196, 0.96)
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_choice"]
+bg_color = Color(0.1176, 0.0941, 0.1804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4314, 0.2471, 0.3725, 1)
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 36.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_choice_hover"]
+bg_color = Color(0.2275, 0.1294, 0.251, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.886, 0.6196, 1)
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 36.0
+
+[sub_resource type="Theme" id="Theme_hud"]
+Button/colors/font_color = Color(0.902, 0.886, 0.6196, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(1, 1, 1, 1)
+Button/styles/hover = SubResource("StyleBoxFlat_choice_hover")
+Button/styles/normal = SubResource("StyleBoxFlat_choice")
+Button/styles/pressed = SubResource("StyleBoxFlat_choice_hover")
+Label/colors/font_color = Color(0.7922, 0.9216, 0.8784, 1)
+Label/colors/font_outline_color = Color(0.0275, 0.0039, 0.0353, 1)
+Label/constants/outline_size = 5
 
 [node name="Run" type="Node2D"]
 script = ExtResource("1_run")
@@ -121,13 +167,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = SubResource("Theme_hud")
 script = ExtResource("3_hud")
 
 [node name="XPBar" type="ProgressBar" parent="HUD/Hud"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 10.0
+offset_bottom = 20.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
@@ -135,88 +182,170 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_xp_fill")
 max_value = 7.0
 show_percentage = false
 
-[node name="Title" type="Label" parent="HUD/Hud"]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 18.0
-offset_right = 640.0
-offset_bottom = 50.0
+[node name="XPLabel" type="Label" parent="HUD/Hud/XPBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.7922, 0.9216, 0.8784, 1)
-theme_override_font_sizes/font_size = 24
-text = "EIGHT / SURVIVAL RUN PROTOTYPE"
+theme_override_font_sizes/font_size = 14
+text = "LEVEL 1    XP 0 / 7"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="AssetNotice" type="Label" parent="HUD/Hud"]
+[node name="StatusPanel" type="Panel" parent="HUD/Hud"]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 52.0
-offset_right = 640.0
-offset_bottom = 76.0
+offset_left = 16.0
+offset_top = 28.0
+offset_right = 364.0
+offset_bottom = 106.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.4471, 0.6039, 0.6314, 1)
-theme_override_font_sizes/font_size = 15
-text = "PLACEHOLDER ART + PLACEHOLDER AUDIO (CODE-GENERATED). NOT FINAL."
+theme_override_styles/panel = SubResource("StyleBoxFlat_stats")
+
+[node name="LifeHearts" type="Control" parent="HUD/Hud"]
+anchors_preset = 0
+offset_left = 26.0
+offset_top = 34.0
+offset_right = 256.0
+offset_bottom = 66.0
+mouse_filter = 2
+
+[node name="LifeLabel" type="Label" parent="HUD/Hud"]
+layout_mode = 0
+offset_left = 260.0
+offset_top = 36.0
+offset_right = 354.0
+offset_bottom = 64.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = "LIFE 5/5"
+horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="Stats" type="Label" parent="HUD/Hud"]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 118.0
-offset_right = 700.0
-offset_bottom = 166.0
+offset_left = 28.0
+offset_top = 72.0
+offset_right = 352.0
+offset_bottom = 98.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.7922, 0.9216, 0.8784, 1)
 theme_override_font_sizes/font_size = 16
+vertical_alignment = 1
 
-[node name="Items" type="Label" parent="HUD/Hud"]
+[node name="BossStatus" type="Label" parent="HUD/Hud"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 30.0
+offset_right = 250.0
+offset_bottom = 60.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Title" type="Label" parent="HUD/Hud"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -420.0
-offset_top = 300.0
-offset_right = -24.0
-offset_bottom = 520.0
+offset_left = -356.0
+offset_top = 128.0
+offset_right = -16.0
+offset_bottom = 148.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 13
+text = "SURVIVAL RUN PROTOTYPE"
+horizontal_alignment = 2
+
+[node name="Logo" type="TextureRect" parent="HUD/Hud"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -208.0
+offset_top = 28.0
+offset_right = -16.0
+offset_bottom = 124.0
+grow_horizontal = 0
+mouse_filter = 2
+texture_filter = 1
+texture = ExtResource("5_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AssetNotice" type="Label" parent="HUD/Hud"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -356.0
+offset_top = 152.0
+offset_right = -16.0
+offset_bottom = 204.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.0275, 0.0039, 0.0353, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_notice")
+text = "PLACEHOLDER ART + PLACEHOLDER AUDIO
+WORLD + AUDIO ONLY. NOT FINAL."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Items" type="Label" parent="HUD/Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -356.0
+offset_top = 212.0
+offset_right = -16.0
+offset_bottom = 352.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.8627, 0.8039, 0.5765, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "ITEMS (0)"
 horizontal_alignment = 2
 
 [node name="StatsPanel" type="PanelContainer" parent="HUD/Hud"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -372.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = 60.0
-grow_horizontal = 0
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 114.0
+offset_right = 364.0
+offset_bottom = 154.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_stats")
 
 [node name="Stats" type="Label" parent="HUD/Hud/StatsPanel"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7922, 0.9216, 0.8784, 1)
+theme_override_constants/outline_size = 0
 theme_override_fonts/font = SubResource("SystemFont_mono")
 theme_override_font_sizes/font_size = 13
 text = "STATS"
 
 [node name="BossPanel" type="VBoxContainer" parent="HUD/Hud"]
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -320.0
-offset_top = -150.0
-offset_right = 320.0
-offset_bottom = -96.0
+offset_left = -250.0
+offset_top = 28.0
+offset_right = 250.0
+offset_bottom = 82.0
 grow_horizontal = 2
-grow_vertical = 0
 mouse_filter = 2
+theme_override_constants/separation = 2
 
 [node name="BossName" type="Label" parent="HUD/Hud/BossPanel"]
 layout_mode = 2
@@ -226,12 +355,74 @@ text = "BOSS"
 horizontal_alignment = 1
 
 [node name="BossBar" type="ProgressBar" parent="HUD/Hud/BossPanel"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
 theme_override_styles/fill = SubResource("StyleBoxFlat_boss_fill")
 show_percentage = false
+
+[node name="Abilities" type="HBoxContainer" parent="HUD/Hud"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -166.0
+offset_top = -66.0
+offset_right = 166.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="DashBar" type="ProgressBar" parent="HUD/Hud/Abilities"]
+custom_minimum_size = Vector2(160, 30)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_ability_fill")
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="HUD/Hud/Abilities/DashBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+text = "DASH READY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JumpBar" type="ProgressBar" parent="HUD/Hud/Abilities"]
+custom_minimum_size = Vector2(160, 30)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_ability_fill")
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="HUD/Hud/Abilities/JumpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+text = "JUMP READY"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Controls" type="Label" parent="HUD/Hud"]
 layout_mode = 1
@@ -239,17 +430,18 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -64.0
-offset_right = -24.0
-offset_bottom = -16.0
+offset_left = 16.0
+offset_top = -30.0
+offset_right = -16.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.4471, 0.6039, 0.6314, 1)
-theme_override_font_sizes/font_size = 15
-text = "WASD / Arrows: move    |    Mouse: aim    |    Hold LMB / J: spear combo    |    Space: jump    |    Shift / RMB: dash
-Level up: click or press 1-3    |    F3: stats    |    R: restart run"
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 13
+text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J combo   |   Space jump   |   Shift / RMB dash   |   F3 stats   |   R restart"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="LevelUp" type="PanelContainer" parent="HUD/Hud"]
 layout_mode = 1
@@ -258,41 +450,100 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -170.0
-offset_right = 260.0
-offset_bottom = 170.0
+offset_left = -270.0
+offset_top = -176.0
+offset_right = 270.0
+offset_bottom = 176.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Box" type="VBoxContainer" parent="HUD/Hud/LevelUp"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Heading" type="Label" parent="HUD/Hud/LevelUp/Box"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.902, 0.886, 0.6196, 1)
 theme_override_font_sizes/font_size = 24
 text = "LEVEL UP - CHOOSE ONE"
 horizontal_alignment = 1
 
+[node name="Hint" type="Label" parent="HUD/Hud/LevelUp/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 14
+text = "Click a choice or press 1-3"
+horizontal_alignment = 1
+
 [node name="Choice1" type="Button" parent="HUD/Hud/LevelUp/Box"]
-custom_minimum_size = Vector2(0, 68)
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 20
+alignment = 0
+
+[node name="Detail" type="Label" parent="HUD/Hud/LevelUp/Box/Choice1"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 44.0
+offset_top = -34.0
+offset_right = -16.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+vertical_alignment = 1
 
 [node name="Choice2" type="Button" parent="HUD/Hud/LevelUp/Box"]
-custom_minimum_size = Vector2(0, 68)
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 20
+alignment = 0
+
+[node name="Detail" type="Label" parent="HUD/Hud/LevelUp/Box/Choice2"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 44.0
+offset_top = -34.0
+offset_right = -16.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+vertical_alignment = 1
 
 [node name="Choice3" type="Button" parent="HUD/Hud/LevelUp/Box"]
-custom_minimum_size = Vector2(0, 68)
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 20
+alignment = 0
+
+[node name="Detail" type="Label" parent="HUD/Hud/LevelUp/Box/Choice3"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 44.0
+offset_top = -34.0
+offset_right = -16.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+vertical_alignment = 1
 
 [node name="EndLabel" type="Label" parent="HUD/Hud"]
 layout_mode = 1

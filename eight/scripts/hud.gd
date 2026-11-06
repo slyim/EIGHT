@@ -6,19 +6,39 @@ extends Control
 const LIFE_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_pickup_life.aseprite")
 
 const STATS_REFRESH: float = 0.25
+const ITEMS_SHOWN: int = 6
+const HEART_SIZE: float = 32.0
+const HEART_PITCH: float = 30.0
+const EMPTY_HEART_TINT: Color = Color(0.3, 0.22, 0.34, 1.0)
+const LOW_LIFE_TINT: Color = Color(1.0, 0.45, 0.42, 1.0)
+const BOSS_WARNING_SECONDS: float = 10.0
+const BOSS_WARNING_TINT: Color = Color(1.0, 0.8, 0.45, 1.0)
+const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
 
 var run: Run
 var stats_refresh_left: float = 0.0
 
 @onready var stats_label: Label = $Stats
 @onready var xp_bar: ProgressBar = $XPBar
+@onready var xp_label: Label = $XPBar/XPLabel
+@onready var life_hearts: Control = $LifeHearts
+@onready var life_label: Label = $LifeLabel
+@onready var boss_status_label: Label = $BossStatus
+@onready var dash_bar: ProgressBar = $Abilities/DashBar
+@onready var dash_label: Label = $Abilities/DashBar/Label
+@onready var jump_bar: ProgressBar = $Abilities/JumpBar
+@onready var jump_label: Label = $Abilities/JumpBar/Label
 @onready var items_label: Label = $Items
 @onready var boss_panel: Control = $BossPanel
 @onready var boss_name_label: Label = $BossPanel/BossName
 @onready var boss_bar: ProgressBar = $BossPanel/BossBar
 @onready var level_up_panel: Control = $LevelUp
+@onready var level_up_heading: Label = $LevelUp/Box/Heading
 @onready var choice_buttons: Array[Button] = [
 	$LevelUp/Box/Choice1 as Button, $LevelUp/Box/Choice2 as Button, $LevelUp/Box/Choice3 as Button,
+]
+@onready var choice_details: Array[Label] = [
+	$LevelUp/Box/Choice1/Detail as Label, $LevelUp/Box/Choice2/Detail as Label, $LevelUp/Box/Choice3/Detail as Label,
 ]
 @onready var end_label: Label = $EndLabel
 @onready var stats_panel: Control = $StatsPanel
@@ -28,6 +48,7 @@ var stats_refresh_left: float = 0.0
 func _ready() -> void:
 	for index: int in range(choice_buttons.size()):
 		choice_buttons[index].pressed.connect(_on_choice.bind(index))
+	life_hearts.draw.connect(_draw_life)
 	level_up_panel.hide()
 	boss_panel.hide()
 	end_label.hide()
@@ -42,39 +63,85 @@ func _process(_delta: float) -> void:
 		debug_label.text = _stats_text()
 	var minutes: int = int(run.elapsed) / 60
 	var seconds: int = int(run.elapsed) % 60
-	var boss_text: String = "FINAL BOSS SLAIN"
-	if run.boss_index < Run.BOSSES.size():
-		boss_text = "BOSS ACTIVE" if run.current_boss != null else "NEXT BOSS IN %ds" % ceili(run.boss_left)
-	stats_label.text = "LEVEL %d    TIME %02d:%02d    KILLS %d    SINS SLAIN %d / 7\n%s" % [
-		run.level, minutes, seconds, run.kills, mini(run.boss_index, 7), boss_text,
-	]
+	stats_label.text = "TIME %02d:%02d    KILLS %d    SINS %d / 7" % [minutes, seconds, run.kills, mini(run.boss_index, 7)]
 	xp_bar.max_value = run.xp_needed()
 	xp_bar.value = run.xp
+	xp_label.text = "LEVEL %d    XP %d / %d" % [run.level, run.xp, run.xp_needed()]
 
-	var lines: PackedStringArray = PackedStringArray(["ITEMS (%d)" % run.items.size()])
-	for item: Dictionary in run.items.slice(-8):
-		lines.append("%s  %s" % [item["name"], item["text"]])
-	items_label.text = "\n".join(lines)
+	var player: MountedPlayer = run.player
+	life_label.text = "LIFE %d/%d" % [player.health, player.max_health]
+	life_label.self_modulate = LOW_LIFE_TINT if player.health <= 1 else Color.WHITE
+	life_hearts.queue_redraw()
+	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
+	_update_ability(jump_bar, jump_label, "JUMP", _jump_wait(), player.jump_duration + player.jump_cooldown)
+
+	items_label.visible = not run.items.is_empty()
+	if items_label.visible:
+		var lines: PackedStringArray = PackedStringArray(["ITEMS (%d)" % run.items.size()])
+		for item: Dictionary in run.items.slice(-ITEMS_SHOWN):
+			lines.append("%s  %s" % [(item["name"] as String).trim_prefix("Item: "), item["text"]])
+		items_label.text = "\n".join(lines)
 
 	var boss: Boss = run.current_boss
 	boss_panel.visible = is_instance_valid(boss)
+	boss_status_label.visible = not boss_panel.visible
 	if boss_panel.visible:
-		boss_name_label.text = boss.boss_name
+		boss_name_label.text = "%s  %d%%" % [boss.boss_name, ceili(100.0 * boss.health / boss.max_health)]
 		boss_bar.max_value = boss.max_health
 		boss_bar.value = boss.health
-	queue_redraw()
+	else:
+		_update_boss_status()
 
 
-func _draw() -> void:
-	# PLACEHOLDER life display: one heart sprite per point of life.
+func _update_boss_status() -> void:
+	if run.boss_index >= Run.BOSSES.size():
+		boss_status_label.text = "FINAL BOSS SLAIN"
+		boss_status_label.self_modulate = Color.WHITE
+		return
+	boss_status_label.text = "NEXT BOSS: %s IN %ds" % [Run.BOSSES[run.boss_index]["name"], ceili(run.boss_left)]
+	boss_status_label.self_modulate = BOSS_WARNING_TINT if run.boss_left <= BOSS_WARNING_SECONDS else Color.WHITE
+
+
+## Seconds until a dash can start.
+func _dash_wait() -> float:
+	return maxf(run.player.dash_cooldown_left, run.player.dash_time_left)
+
+
+## Seconds until a jump can start: the rest of any jump in progress, then its cooldown.
+func _jump_wait() -> float:
+	var player: MountedPlayer = run.player
+	var wait: float = player.jump_cooldown_left
+	if player.jump_time >= 0.0:
+		wait = player.jump_duration - player.jump_time + player.jump_cooldown
+	return maxf(wait, player.dash_time_left)
+
+
+func _update_ability(bar: ProgressBar, label: Label, ability: String, wait: float, total: float) -> void:
+	var locked: bool = run.player.is_dead or run.player.is_descending()
+	var usable: bool = wait <= 0.0 and not locked
+	bar.value = 0.0 if locked else 1.0 - clampf(wait / total, 0.0, 1.0)
+	bar.self_modulate = Color.WHITE if usable else ABILITY_WAIT_TINT
+	if usable:
+		label.text = "%s READY" % ability
+	elif locked:
+		label.text = "%s --" % ability
+	else:
+		label.text = "%s %.1fs" % [ability, ceilf(wait * 10.0) / 10.0]
+
+
+func _draw_life() -> void:
+	# PLACEHOLDER life display: one heart sprite per point of life, tighter as max life grows.
 	if run == null:
 		return
 	var player: MountedPlayer = run.player
 	var heart: Texture2D = LIFE_FRAMES.get_frame_texture(&"idle", 0)
+	var pitch: float = HEART_PITCH
+	if player.max_health > 1:
+		pitch = minf(pitch, (life_hearts.size.x - HEART_SIZE) / (player.max_health - 1))
 	for index: int in range(player.max_health):
-		var bounds: Rect2 = Rect2(20.0 + index * 30.0, 82.0, 32.0, 32.0)
-		var tint: Color = Color.WHITE if index < player.health else Color(0.22, 0.16, 0.26, 1.0)
-		draw_texture_rect(heart, bounds, false, tint)
+		var bounds: Rect2 = Rect2(index * pitch, 0.0, HEART_SIZE, HEART_SIZE)
+		var tint: Color = Color.WHITE if index < player.health else EMPTY_HEART_TINT
+		life_hearts.draw_texture_rect(heart, bounds, false, tint)
 
 
 func _stats_text() -> String:
@@ -109,8 +176,8 @@ func _stats_text() -> String:
 		"COMBO %d/%d  DASH %s  JUMP %s" % [
 			player.attack_step + 1 if player.combo_window_left > 0.0 or player.attack_time_left > 0.0 else 0,
 			MountedPlayer.COMBO_LENGTH,
-			"ok" if player.dash_cooldown_left <= 0.0 else "--",
-			"ok" if player.jump_time < 0.0 and player.jump_cooldown_left <= 0.0 else "--",
+			"ok" if _dash_wait() <= 0.0 else "--",
+			"ok" if _jump_wait() <= 0.0 else "--",
 		],
 	])
 	return "\n".join(lines)
@@ -138,8 +205,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_level_up(options: Array[Dictionary]) -> void:
 	for index: int in range(choice_buttons.size()):
 		var option: Dictionary = options[index]
-		choice_buttons[index].text = "%d.  %s\n%s" % [index + 1, option["name"], option["text"]]
-	# No focus grab: Space is also the attack key and must not pick a choice by accident.
+		choice_buttons[index].text = "%d   %s" % [index + 1, option["name"]]
+		choice_details[index].text = option["text"]
+	var more: int = run.pending_level_ups - 1
+	level_up_heading.text = "LEVEL UP - CHOOSE ONE" if more <= 0 else "LEVEL UP - CHOOSE ONE (+%d MORE)" % more
+	# No focus grab: Space is the jump key and must not pick a choice by accident.
 	level_up_panel.show()
 
 

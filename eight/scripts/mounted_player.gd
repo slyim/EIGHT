@@ -585,3 +585,23 @@ func _draw_bow() -> void:
 		bow.draw_line(nock, nock + Vector2(Arrow.LENGTH, 0.0), color, 2.0)
 		if charge >= 1.0:
 			bow.draw_circle(nock + Vector2(Arrow.LENGTH, 0.0), 3.0, Color.WHITE)
+
+
+## PLACEHOLDER lava burn: ground damage on the lava's own rhythm. Guards and death
+## handling mirror take_damage, but burn never starts or extends hurt invulnerability:
+## its ticks cannot be swallowed by their own window, lava cannot shield from enemies,
+## and an in-progress hurt-blink delays a tick instead.
+func apply_burn(amount: int) -> bool:
+	if is_dead or amount <= 0 or is_descending() or invulnerable_left > 0.0 or dash_time_left > 0.0 or is_airborne():
+		return false
+	health = maxi(0, health - amount)
+	health_changed.emit(health, max_health)
+	hurt.emit()
+	if health == 0:
+		is_dead = true
+		modulate = Color(0.45, 0.45, 0.45, 1.0)
+		sprite.stop()
+		spear.visible = false
+		bow.visible = false
+		died.emit()
+	return true

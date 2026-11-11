@@ -20,6 +20,22 @@ const LANDING_CLEARANCE: float = 260.0
 const DESCENT_HEIGHT: float = 420.0
 const DESCENT_TIME: float = 1.6
 
+## PLACEHOLDER lava hazard: pool count and blob sizes per stage (burn rates live on the
+## Lava node). Layouts are deterministic per stage and rebuilt on stage advance.
+const LAVA_COUNT_MIN: int = 6
+const LAVA_COUNT_MAX: int = 11
+const LAVA_RADIUS_MIN: float = 70.0
+const LAVA_RADIUS_MAX: float = 150.0
+const LAVA_BLOBS_MAX: int = 3
+## Keep-out between pools and from walls and pillars.
+const LAVA_SPACING: float = 72.0
+## Extra keep-out beyond LANDING_CLEARANCE, so a pool rim never nears the landing sigil.
+const LAVA_LANDING_MARGIN: float = 80.0
+## Deterministic per-stage seed; the step differs from the decor seed's.
+const LAVA_SEED: int = 5501
+const LAVA_SEED_STEP: int = 104729
+const LAVA_ATTEMPTS: int = 600
+
 ## PLACEHOLDER AUDIO, synthesized by tools/placeholder_audio.py.
 const SFX: Dictionary[StringName, AudioStream] = {
 	&"spear_thrust": preload("res://assets/audio/placeholder/placeholder_spear_thrust.wav"),
@@ -158,6 +174,7 @@ var has_landed: bool = false
 @onready var hud: Hud = $HUD/Hud
 @onready var effects: Node2D = $Effects
 @onready var music: AudioStreamPlayer = $Music
+@onready var lava: LavaPools = $Lava
 
 
 func _ready() -> void:
@@ -185,6 +202,7 @@ func _ready() -> void:
 		add_child(voice)
 		sfx_players.append(voice)
 	(music.stream as AudioStreamOggVorbis).loop = true
+	_scatter_lava()
 	_scatter_decor()
 	if intro_enabled:
 		player.begin_descent(DESCENT_HEIGHT, DESCENT_TIME)
@@ -245,11 +263,54 @@ func _scatter_decor() -> void:
 			rng.randf_range(ARENA_RECT.position.x + 48.0, ARENA_RECT.end.x - 48.0),
 			rng.randf_range(ARENA_RECT.position.y + 48.0, ARENA_RECT.end.y - 48.0)
 		)
-		if _blocked_rect(at.x, at.y, 40.0) or at.length() < LANDING_CLEARANCE:
+		if _blocked_rect(at.x, at.y, 40.0) or at.length() < LANDING_CLEARANCE or lava.point_in_lava(at, 24.0):
 			continue
 		var animation: StringName = StringName(animations[rng.randi() % animations.size()])
 		decor_props.append([DECOR_FRAMES.get_frame_texture(animation, 0), at, rng.randf() < 0.5])
 	queue_redraw()
+
+
+## PLACEHOLDER lava: irregular pools of one to three overlapping blobs, deterministic
+## per stage, clear of the landing site, walls and pillars, and spaced from each other.
+func _scatter_lava() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = LAVA_SEED + stage_index * LAVA_SEED_STEP
+	lava.player = player
+	var target: int = rng.randi_range(LAVA_COUNT_MIN, LAVA_COUNT_MAX)
+	var pool_blobs: Array = []
+	var accepted: Array = [] # [center, extent] of the pools placed so far.
+	for attempt: int in range(LAVA_ATTEMPTS):
+		if pool_blobs.size() >= target:
+			break
+		var base: float = rng.randf_range(LAVA_RADIUS_MIN, LAVA_RADIUS_MAX)
+		var blobs: Array = [[Vector2.ZERO, base]]
+		var extent: float = base
+		for extra: int in range(rng.randi_range(0, LAVA_BLOBS_MAX - 1)):
+			var offset: Vector2 = Vector2.from_angle(rng.randf() * TAU) * base * rng.randf_range(0.15, 0.5)
+			var radius: float = base * rng.randf_range(0.45, 0.7)
+			blobs.append([offset, radius])
+			extent = maxf(extent, offset.length() + radius)
+		var room: Rect2 = ARENA_RECT.grow(-(extent + LAVA_SPACING))
+		var at: Vector2 = Vector2(
+			rng.randf_range(room.position.x, room.end.x),
+			rng.randf_range(room.position.y, room.end.y)
+		)
+		if at.length() - extent < LANDING_CLEARANCE + LAVA_LANDING_MARGIN:
+			continue
+		if _blocked_rect(at.x, at.y, extent + LAVA_SPACING):
+			continue
+		var clear: bool = true
+		for other: Array in accepted:
+			if at.distance_to(other[0]) <= extent + (other[1] as float) + LAVA_SPACING:
+				clear = false
+				break
+		if not clear:
+			continue
+		accepted.append([at, extent])
+		for blob: Array in blobs:
+			blob[0] = (blob[0] as Vector2) + at
+		pool_blobs.append(blobs)
+	lava.set_pools(pool_blobs)
 
 
 func _blocked_rect(x: float, y: float, margin: float) -> bool:
@@ -261,6 +322,12 @@ func _blocked_rect(x: float, y: float, margin: float) -> bool:
 		if Rect2(collision.position - size * 0.5, size).has_point(Vector2(x, y)):
 			return true
 	return false
+
+
+## True when the point sits in molten lava (see LavaPools.point_in_lava). Lets hazards and
+## placement, e.g. the exit portal, keep clear of the pools.
+func point_in_lava(point: Vector2, inset: float = 0.0) -> bool:
+	return lava.point_in_lava(point, inset)
 
 
 func _physics_process(delta: float) -> void:
@@ -329,6 +396,7 @@ func _advance_stage() -> void:
 	player.position = Vector2.ZERO
 	player.velocity = Vector2.ZERO
 	(player.get_node("Camera2D") as Camera2D).reset_smoothing()
+	_scatter_lava()
 	_scatter_decor()
 	play_sfx(&"holy_land", 0.0)
 

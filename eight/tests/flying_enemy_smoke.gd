@@ -75,7 +75,8 @@ func _run() -> void:
 	# its preferred distance instead of piling onto the player.
 	player.global_position = Vector2(-100.0, -400.0)
 	var approach: Enemy = run.spawn_enemy(flyer_type, Vector2(-760.0, -400.0))
-	# Pillar1 spans x in [-680, -520] at y in [-480, -320]; sample its shrunk core.
+	# The first structure (the old Pillar1) spans x in [-680, -520] at y in [-480, -320];
+	# sample its shrunk core.
 	var pillar_core: Rect2 = Rect2(-660.0, -460.0, 120.0, 120.0)
 	var over_pillar: bool = false
 	var ticks: int = 0

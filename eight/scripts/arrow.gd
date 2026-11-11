@@ -1,7 +1,8 @@
 class_name Arrow
 extends Node2D
 ## Player arrow: a swept projectile that damages through take_hit, pierces up to
-## `pierce` targets, stops at walls, and is freed at the end of its range.
+## `pierce` targets, stops at walls (damaging a breakable obstacle it stops at), and is
+## freed at the end of its range.
 ## The drawn shaft and head are PLACEHOLDER art. The visual is drawn on this node,
 ## so a later glow shader can be set as its `material`.
 
@@ -53,7 +54,13 @@ func _physics_process(delta: float) -> void:
 			return
 	global_position = stop
 	range_left -= travel
-	if not wall_hit.is_empty() or range_left <= 0.0:
+	if not wall_hit.is_empty():
+		# A breakable obstacle takes the arrow's damage; the arrow is spent on it, pierce or not.
+		var obstacle: Breakable = wall_hit["collider"] as Breakable
+		if obstacle != null:
+			obstacle.take_blow(damage)
+		queue_free()
+	elif range_left <= 0.0:
 		queue_free()
 
 

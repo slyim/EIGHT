@@ -17,6 +17,9 @@ const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
 
 var run: Run: set = _set_run
 var stats_refresh_left: float = 0.0
+## Active weapon and bow draw, built from the jump gauge so it matches the other gauges.
+var weapon_bar: ProgressBar
+var weapon_label: Label
 
 @onready var stats_label: Label = $Stats
 @onready var xp_bar: ProgressBar = $XPBar
@@ -49,6 +52,10 @@ func _ready() -> void:
 	for index: int in range(choice_buttons.size()):
 		choice_buttons[index].pressed.connect(_on_choice.bind(index))
 	health_orb.draw.connect(_draw_health_orb)
+	weapon_bar = jump_bar.duplicate() as ProgressBar
+	weapon_bar.name = &"WeaponBar"
+	jump_bar.get_parent().add_child(weapon_bar)
+	weapon_label = weapon_bar.get_node(^"Label") as Label
 	level_up_panel.hide()
 	boss_panel.hide()
 	end_label.hide()
@@ -79,6 +86,7 @@ func _process(_delta: float) -> void:
 	_update_life(player.health, player.max_health)
 	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
 	_update_ability(jump_bar, jump_label, "JUMP", _jump_wait(), player.jump_duration + player.jump_cooldown)
+	_update_weapon(player)
 
 	items_label.visible = not run.items.is_empty()
 	if items_label.visible:
@@ -119,6 +127,20 @@ func _jump_wait() -> float:
 	if player.jump_time >= 0.0:
 		wait = player.jump_duration - player.jump_time + player.jump_cooldown
 	return maxf(wait, player.dash_time_left)
+
+
+func _update_weapon(player: MountedPlayer) -> void:
+	var charge: float = player.draw_charge()
+	if player.weapon == MountedPlayer.Weapon.SPEAR:
+		weapon_label.text = "SPEAR  [Q]"
+		weapon_bar.value = 1.0
+	elif charge < 0.0:
+		weapon_label.text = "BOW  [Q]"
+		weapon_bar.value = 0.0
+	else:
+		weapon_label.text = "BOW FULL" if charge >= 1.0 else "BOW DRAW %d%%" % roundi(charge * 100.0)
+		weapon_bar.value = charge
+	weapon_bar.self_modulate = Color.WHITE if charge < 0.0 or charge >= 1.0 else ABILITY_WAIT_TINT
 
 
 func _update_ability(bar: ProgressBar, label: Label, ability: String, wait: float, total: float) -> void:

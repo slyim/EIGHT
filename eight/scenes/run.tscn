@@ -439,7 +439,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
 theme_override_font_sizes/font_size = 13
-text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J combo   |   Space jump   |   Shift / RMB dash   |   F3 stats   |   R restart"
+text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Space jump   |   Shift / RMB dash   |   F3 stats   |   R restart"
 horizontal_alignment = 1
 vertical_alignment = 1
 

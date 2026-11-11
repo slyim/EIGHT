@@ -24,7 +24,9 @@ Press **F5 / Run Project** to open `eight/scenes/run.tscn`.
 
 The first map is a heavily corrupted plain. The run opens with the angel, fully robed in purple and riding a black ox, descending from the sky in a beam of light and landing on a scorched sigil; enemies only start spawning after touchdown. Hordes then spawn just off-screen and grow denser over time.
 
-- **Light spear combo:** hold attack to chain thrust, thrust, and a sweeping finisher. The finisher swings the light trident through a 140-degree arc, hitting every enemy inside it for double damage (walls still block it). Pausing longer than the combo window restarts the chain.
+- **Light spear combo:** hold attack to chain thrust, thrust, and a sweeping finisher. The finisher swings the light trident through a 140-degree arc, hitting every enemy inside it for double damage (walls still block it). Pausing longer than the combo window restarts the chain. Spear hits land with a brief hit-stop and camera shake (stronger on the finisher) and knock enemies back.
+- **Bow:** press Q or turn the mouse wheel to switch between spear and bow; switching cancels a draw. Hold attack to draw and release to fire one arrow at the mouse. A longer draw (full charge after 0.75 s) gives more damage, range, and pierce; a quick tap still fires a weak, short arrow. Arrows are unlimited and stop at walls and pillars. The bow, its draw, and the arrows are drawn PLACEHOLDER shapes, and the shot reuses the placeholder thrust sound.
+- **Input buffer:** a dash, jump, or attack pressed up to 0.15 s before it is ready still fires when it becomes available.
 - **Jump:** Space triggers a short leap independently of the spear attack. While high in the air the angel clears enemies and projectiles; landing kicks up dust.
 - **Dash:** a fast burst with brief invulnerability.
 
@@ -37,15 +39,16 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 | Input | Action |
 | --- | --- |
 | WASD or arrow keys | Move |
-| Mouse | Aim the spear |
-| Hold left mouse button or J | Spear combo (thrust, thrust, finisher) |
+| Mouse | Aim the spear or bow |
+| Hold left mouse button or J | Spear combo (thrust, thrust, finisher); with the bow, hold to draw and release to fire |
+| Q or mouse wheel | Switch between spear and bow |
 | Space | Jump |
 | Shift or right mouse button | Dash |
 | 1 / 2 / 3 or click | Choose a level-up upgrade |
 | F3 | Show or hide the stats overlay |
 | R | Restart the run |
 
-The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown or active boss health at the top centre, and dash/jump readiness gauges at the bottom. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
+The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown or active boss health at the top centre, and dash/jump readiness gauges at the bottom, next to a weapon gauge showing the active weapon and the bow's draw charge. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
 
 The owner's EIGHT logo appears at the top right as a transparent pixel-art adaptation of the supplied `Eight.pdf`, recolored in the game's mint, steel, and purple palette. This specific AI-assisted adaptation was requested by the owner; its provenance and generation prompt are recorded in `eight/assets/art/CREDITS.md` and `eight_logo_pixel.md`. The original design and other authored assets are preserved.
 
@@ -112,9 +115,12 @@ godot --headless --path eight --script res://tests/run_smoke.gd
 godot --headless --path eight --script res://tests/player_controls_smoke.gd
 godot --headless --path eight --script res://tests/projectile_smoke.gd
 godot --headless --path eight --script res://tests/hud_smoke.gd
+godot --headless --path eight --script res://tests/weapon_smoke.gd
 ```
 
 `prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
+
+`weapon_smoke.gd` checks Q and mouse-wheel weapon switching, draw cancelling, the HUD weapon gauge, charged and tap arrow damage, an arrow stopped by a pillar, arrows expiring at their range, a buffered dash press (and that a stale press is dropped), and that a spear hit starts hit-stop and shake and time recovers afterwards.
 
 `hud_smoke.gd` checks the visible logo, placeholder notice, physical F3 toggle, ability readiness, life/XP text and orb fill, boss status, item list limit, level-up text, and HUD bounds and overlap at the default viewport size.
 

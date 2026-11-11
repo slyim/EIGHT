@@ -32,6 +32,9 @@ autoplay = "idle"
 centered = false
 offset = Vector2(0, -8)
 
+[node name="Bow" type="Node2D" parent="."]
+visible = false
+
 [node name="SpearCast" type="RayCast2D" parent="."]
 enabled = false
 target_position = Vector2(112, 0)

@@ -82,6 +82,9 @@ const UPGRADES: Array[Dictionary] = [
 	{"name": "Wider pull", "text": "+40 pickup radius", "stat": "magnet", "amount": 40.0},
 	{"name": "Piercing spear", "text": "Thrust hits +1 more enemy", "stat": "pierce", "amount": 1.0},
 	{"name": "Quicker dash", "text": "Dash cooldown -15%", "stat": "dash", "amount": 0.85},
+	{"name": "Heavier arrows", "text": "+1 arrow damage", "stat": "bow_damage", "amount": 1.0},
+	{"name": "Quicker draw", "text": "Bow draws 15% faster", "stat": "draw_speed", "amount": 0.85},
+	{"name": "Piercing arrows", "text": "Full-draw arrows hit +1 more enemy", "stat": "bow_pierce", "amount": 1.0},
 ]
 
 ## Collectible items found in the arena. PLACEHOLDER names and values.
@@ -147,6 +150,8 @@ func _ready() -> void:
 	player.jumped.connect(play_sfx.bind(&"jump"))
 	player.landed.connect(_on_player_landed)
 	player.dashed.connect(play_sfx.bind(&"dash"))
+	# PLACEHOLDER AUDIO: the bow reuses the spear thrust sound.
+	player.arrow_fired.connect(play_sfx.bind(&"spear_thrust", 0.12).unbind(1))
 	hud.run = self
 	for index: int in range(SFX_VOICES):
 		var voice: AudioStreamPlayer = AudioStreamPlayer.new()
@@ -435,6 +440,13 @@ func _apply_bonus(stat: String, amount: float) -> void:
 			player.spear_pierce += int(amount)
 		"dash":
 			player.dash_cooldown = maxf(0.1, player.dash_cooldown * amount)
+		"bow_damage":
+			player.bow_min_damage += int(amount)
+			player.bow_max_damage += int(amount)
+		"draw_speed":
+			player.bow_draw_time = maxf(0.1, player.bow_draw_time * amount)
+		"bow_pierce":
+			player.bow_max_pierce += int(amount)
 		"heal":
 			player.heal(player.max_health)
 		_:

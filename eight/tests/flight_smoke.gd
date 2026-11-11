@@ -181,7 +181,8 @@ func _run() -> void:
 	await _wait_ticks(_ticks(player.flight_descend_time) + 4)
 	_check(player.height == 0.0 and landings[0] == 3, "A tap must land after a short hop.")
 
-	# 9. Walls and pillars still block the angel in flight. Pillar1 spans x -680..-520 at y -400.
+	# 9. Walls and obstacles still block the angel in flight. The first structure (the old
+	# Pillar1) spans x -680..-520 at y -400.
 	player.global_position = Vector2(-460.0, -400.0)
 	await _take_off(player)
 	Input.action_press(&"move_left")

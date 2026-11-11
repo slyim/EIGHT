@@ -51,8 +51,9 @@ func _run() -> void:
 	_check(not is_instance_valid(fast), "Projectile must free itself after damaging the player.")
 	await _clear_projectiles()
 
-	# 2. World wall (pillar) blocks projectile before reaching the player behind it.
-	# Pillar1 in run.tscn sits at (-600, -400) with size (160, 160), spanning x in [-680, -520].
+	# 2. World geometry (a structure) blocks projectile before reaching the player behind it.
+	# The first structure (Run.STRUCTURE_SPOTS[0]) sits at (-600, -400) with size (160, 160),
+	# spanning x in [-680, -520].
 	player.global_position = Vector2(-460.0, -400.0)
 	player.health = player.max_health
 	player.invulnerable_left = 0.0

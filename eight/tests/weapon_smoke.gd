@@ -121,7 +121,7 @@ func _run() -> void:
 	enemy.queue_free()
 	run.enemy_count = 0
 
-	# A pillar (World layer) stops the arrow before an enemy behind it.
+	# A structure (World layer, the old Pillar2) stops the arrow before an enemy behind it.
 	player.global_position = Vector2(480.0, 300.0)
 	var hidden: Enemy = _still_enemy(run, Vector2(900.0, 300.0))
 	await _wait_ticks(3)

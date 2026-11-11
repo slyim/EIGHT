@@ -9,7 +9,7 @@ const ENEMY_SCENE: PackedScene = preload("res://scenes/enemy.tscn")
 const PORTAL_SCENE: PackedScene = preload("res://scenes/exit_portal.tscn")
 const BOSS_SCENE: PackedScene = preload("res://scenes/boss.tscn")
 const FLOOR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_floor.aseprite")
-const PILLAR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_pillar.aseprite")
+const BREAKABLE_SCENE: PackedScene = preload("res://scenes/breakable.tscn")
 const DECOR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_decor.aseprite")
 const POOF_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_vfx_poof.aseprite")
 const PIXEL_SCALE: float = 2.0
@@ -19,6 +19,14 @@ const DECOR_COUNT: int = 460
 const LANDING_CLEARANCE: float = 260.0
 const DESCENT_HEIGHT: float = 420.0
 const DESCENT_TIME: float = 1.6
+## PLACEHOLDER obstacle layout. Structures stand where the old pillars stood on every stage;
+## wall segments and trees are scattered per stage.
+const STRUCTURE_SPOTS: Array[Vector2] = [Vector2(-600, -400), Vector2(700, 300), Vector2(-300, 900),
+	Vector2(1200, -1000), Vector2(-1300, 700), Vector2(400, -1300)]
+const WALL_COUNT: int = 8
+const TREE_COUNT: int = 40
+## Open ground kept between obstacles and from the arena walls, wider than the largest boss.
+const OBSTACLE_LANE: float = 140.0
 
 ## PLACEHOLDER lava hazard: pool count and blob sizes per stage (burn rates live on the
 ## Lava node). Layouts are deterministic per stage and rebuilt on stage advance.
@@ -168,6 +176,7 @@ var decor_props: Array[Array] = []
 var has_landed: bool = false
 
 @onready var geometry: StaticBody2D = $Geometry
+@onready var obstacles: Node2D = $Obstacles
 @onready var pickups: Node2D = $Pickups
 @onready var actors: Node2D = $Actors
 @onready var player: MountedPlayer = $MountedPlayer
@@ -202,6 +211,7 @@ func _ready() -> void:
 		add_child(voice)
 		sfx_players.append(voice)
 	(music.stream as AudioStreamOggVorbis).loop = true
+	_place_obstacles()
 	_scatter_lava()
 	_scatter_decor()
 	if intro_enabled:
@@ -258,6 +268,8 @@ func _scatter_decor() -> void:
 	decor_props.clear()
 	rng.seed = 8 + stage_index * 7919
 	var animations: PackedStringArray = DECOR_FRAMES.get_animation_names()
+	# Trees are breakable obstacles now; a dead-tree floor prop would read as one.
+	animations.erase("deadtree")
 	while decor_props.size() < DECOR_COUNT:
 		var at: Vector2 = Vector2(
 			rng.randf_range(ARENA_RECT.position.x + 48.0, ARENA_RECT.end.x - 48.0),
@@ -313,6 +325,8 @@ func _scatter_lava() -> void:
 	lava.set_pools(pool_blobs)
 
 
+## True when (x, y) lies within margin of an arena wall or a standing obstacle. Anything
+## placed on the floor can ask this; a broken obstacle no longer counts.
 func _blocked_rect(x: float, y: float, margin: float) -> bool:
 	for child: Node in geometry.get_children():
 		var collision: CollisionShape2D = child as CollisionShape2D
@@ -321,6 +335,10 @@ func _blocked_rect(x: float, y: float, margin: float) -> bool:
 		var size: Vector2 = (collision.shape as RectangleShape2D).size + Vector2(margin, margin) * 2.0
 		if Rect2(collision.position - size * 0.5, size).has_point(Vector2(x, y)):
 			return true
+	for child: Node in obstacles.get_children():
+		var obstacle: Breakable = child as Breakable
+		if obstacle != null and obstacle.is_standing() and obstacle.footprint().grow(margin).has_point(Vector2(x, y)):
+			return true
 	return false
 
 
@@ -328,6 +346,52 @@ func _blocked_rect(x: float, y: float, margin: float) -> bool:
 ## placement, e.g. the exit portal, keep clear of the pools.
 func point_in_lava(point: Vector2, inset: float = 0.0) -> bool:
 	return lava.point_in_lava(point, inset)
+## PLACEHOLDER obstacles, rebuilt fresh for each stage from a fixed seed: the structures, then
+## wall segments and trees wherever they keep open lanes and the landing site clear.
+func _place_obstacles() -> void:
+	for child: Node in obstacles.get_children():
+		child.free()
+	for spot: Vector2 in STRUCTURE_SPOTS:
+		_add_obstacle(Breakable.Kind.STRUCTURE, spot, false)
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 88 + stage_index * 6113
+	var room: Rect2 = ARENA_RECT.grow(-OBSTACLE_LANE)
+	for index: int in range(WALL_COUNT + TREE_COUNT):
+		var kind: Breakable.Kind = Breakable.Kind.WALL if index < WALL_COUNT else Breakable.Kind.TREE
+		# shortcut: a crowded stage may get fewer than the counts; fine at these densities.
+		for attempt: int in range(40):
+			var vertical: bool = rng.randf() < 0.5
+			var size: Vector2 = Breakable.footprint_size(kind, vertical)
+			var at: Vector2 = Vector2(rng.randf_range(room.position.x, room.end.x), rng.randf_range(room.position.y, room.end.y))
+			var spot: Rect2 = Rect2(at - size * 0.5, size)
+			if room.encloses(spot) and not spot.grow(LANDING_CLEARANCE).has_point(Vector2.ZERO) and not _crowds_obstacle(spot):
+				_add_obstacle(kind, at, vertical)
+				break
+
+
+func _crowds_obstacle(spot: Rect2) -> bool:
+	for child: Node in obstacles.get_children():
+		if spot.grow(OBSTACLE_LANE).intersects((child as Breakable).footprint()):
+			return true
+	return false
+
+
+func _add_obstacle(kind: Breakable.Kind, at: Vector2, vertical: bool) -> Breakable:
+	var obstacle: Breakable = BREAKABLE_SCENE.instantiate() as Breakable
+	obstacle.kind = kind
+	obstacle.vertical = vertical
+	obstacle.position = at
+	obstacle.hit.connect(play_sfx.bind(&"enemy_hit").unbind(1))
+	obstacle.broken.connect(_on_obstacle_broken)
+	obstacles.add_child(obstacle)
+	return obstacle
+
+
+func _on_obstacle_broken(obstacle: Breakable) -> void:
+	# PLACEHOLDER AUDIO: the landing thud doubles as the break sound.
+	play_sfx(&"land")
+	var size: Vector2 = obstacle.footprint().size
+	_spawn_poof(obstacle.position, PIXEL_SCALE * clampf(size.length() / 70.0, 1.2, 3.0))
 
 
 func _physics_process(delta: float) -> void:
@@ -365,14 +429,20 @@ func spawn_batch() -> int:
 	return mini(MAX_SPAWN_BATCH, 1 + int(difficulty() / 1.5))
 
 
-## Search outward from the death site, keeping the whole portal clear of walls/pillars.
+## Search outward from the death site, keeping the whole portal clear of walls and obstacles.
 func _portal_position(at: Vector2) -> Vector2:
-	var safe: Rect2 = ARENA_RECT.grow(-ExitPortal.RADIUS - 24.0)
+	return _open_spot(at, ExitPortal.RADIUS + 24.0)
+
+
+## The nearest point to `at`, searching outward in rings, with `clearance` around it free of
+## walls, standing obstacles and lava.
+func _open_spot(at: Vector2, clearance: float) -> Vector2:
+	var safe: Rect2 = ARENA_RECT.grow(-clearance)
 	var origin: Vector2 = at.clamp(safe.position, safe.end)
 	for ring: int in range(12):
-		for step: int in range(16):
+		for step: int in range(16 if ring > 0 else 1):
 			var candidate: Vector2 = origin + Vector2.from_angle(TAU * step / 16.0) * ring * 40.0
-			if safe.has_point(candidate) and not _blocked_rect(candidate.x, candidate.y, ExitPortal.RADIUS + 24.0):
+			if safe.has_point(candidate) and not _blocked_rect(candidate.x, candidate.y, clearance) \n					and not lava.point_in_lava(candidate, -clearance):
 				return candidate
 	return Vector2.ZERO # Landing site is always clear.
 
@@ -396,6 +466,7 @@ func _advance_stage() -> void:
 	player.position = Vector2.ZERO
 	player.velocity = Vector2.ZERO
 	(player.get_node("Camera2D") as Camera2D).reset_smoothing()
+	_place_obstacles()
 	_scatter_lava()
 	_scatter_decor()
 	play_sfx(&"holy_land", 0.0)
@@ -419,7 +490,8 @@ func _pick_enemy_type() -> int:
 
 func _random_offscreen_point() -> Vector2:
 	var point: Vector2 = player.global_position + Vector2.RIGHT.rotated(randf() * TAU) * randf_range(720.0, 820.0)
-	return point.clamp(ARENA_RECT.position + Vector2(60.0, 60.0), ARENA_RECT.end - Vector2(60.0, 60.0))
+	# Clear of the largest horde enemy's radius, so nothing spawns inside an obstacle.
+	return _open_spot(point.clamp(ARENA_RECT.position + Vector2(60.0, 60.0), ARENA_RECT.end - Vector2(60.0, 60.0)), 30.0)
 
 
 func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
@@ -458,9 +530,9 @@ func spawn_next_boss() -> Boss:
 	boss.xp_value = 20 + boss_index * 5
 	boss.knockback_strength = 0.0
 	boss.target = player
-	boss.position = (player.global_position + Vector2.RIGHT.rotated(randf() * TAU) * 520.0).clamp(
+	boss.position = _open_spot((player.global_position + Vector2.RIGHT.rotated(randf() * TAU) * 520.0).clamp(
 		ARENA_RECT.position + Vector2(120.0, 120.0), ARENA_RECT.end - Vector2(120.0, 120.0)
-	)
+	), boss.radius + 8.0)
 	boss.died.connect(_on_boss_died)
 	boss.hit.connect(_on_enemy_hit)
 	boss.summon_requested.connect(_on_boss_summon)
@@ -474,7 +546,7 @@ func spawn_next_boss() -> Boss:
 func _on_boss_summon(boss: Boss, count: int) -> void:
 	for index: int in range(count):
 		if enemy_count < max_enemies:
-			spawn_enemy(0, boss.global_position + Vector2.RIGHT.rotated(TAU * index / count) * (boss.radius + 30.0))
+			spawn_enemy(0, _open_spot(boss.global_position + Vector2.RIGHT.rotated(TAU * index / count) * (boss.radius + 30.0), 20.0))
 
 
 func _on_enemy_hit(_enemy: Enemy) -> void:
@@ -626,7 +698,8 @@ func _end_run(won: bool) -> void:
 
 
 func _draw() -> void:
-	# PLACEHOLDER arena art: the corrupted plain, its static props, the landing site, and pillars.
+	# PLACEHOLDER arena art: the corrupted plain, its static props, the landing site, and the
+	# arena walls. Breakable obstacles draw themselves.
 	draw_rect(ARENA_RECT.grow(400.0), Color("070109"))
 	var tile: float = 32.0 * PIXEL_SCALE
 	var variants: int = FLOOR_FRAMES.get_frame_count(&"tiles")
@@ -648,15 +721,11 @@ func _draw() -> void:
 		if prop[2]:
 			bounds = Rect2(bounds.position + Vector2(size.x, 0.0), Vector2(-size.x, size.y))
 		draw_texture_rect(texture, bounds, false)
-	var pillar: Texture2D = PILLAR_FRAMES.get_frame_texture(&"idle", 0)
 	for child: Node in geometry.get_children():
 		var collision: CollisionShape2D = child as CollisionShape2D
 		if collision == null or not collision.shape is RectangleShape2D:
 			continue
 		var size: Vector2 = (collision.shape as RectangleShape2D).size
 		var bounds: Rect2 = Rect2(collision.position - size * 0.5, size)
-		if size.x == size.y:
-			draw_texture_rect(pillar, bounds, false)
-		else:
-			draw_rect(bounds, Color("1e182e"))
-			draw_rect(bounds, Color("070109"), false, 4.0)
+		draw_rect(bounds, Color("1e182e"))
+		draw_rect(bounds, Color("070109"), false, 4.0)

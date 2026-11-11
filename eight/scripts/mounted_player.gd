@@ -34,6 +34,8 @@ const FLIGHT_BOB_PERIOD: float = 1.0
 ## flying enemies on layer 5). Walls stop it either way.
 const SPEAR_GROUND_MASK: int = 1 | 4 | 8
 const SPEAR_AIR_MASK: int = 1 | 16
+## Widest gap, at the spear tip, between the rays that find obstacles in the finisher's sweep.
+const FINISHER_RAY_SPACING: float = 24.0
 const SLASH_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_vfx_slash.aseprite")
 const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 
@@ -432,13 +434,18 @@ func fire_arrow(charge: float) -> Arrow:
 	return arrow
 
 
-## Each target is hit at most once per thrust; walls stop the spear.
+## Each target is hit at most once per thrust; walls stop the spear. A breakable obstacle
+## takes one blow and stops it too, which spends the thrust.
 func _resolve_spear_hits() -> void:
 	# ponytail: centerline hits only; use ShapeCast2D if spear width is needed.
 	spear_cast.force_raycast_update()
 	while thrust_hits_left > 0 and spear_cast.is_colliding():
 		var collider: Object = spear_cast.get_collider()
 		if not collider.has_method(&"take_hit"):
+			if collider is Breakable:
+				(collider as Breakable).take_blow(spear_damage)
+				_on_attack_connected(false)
+				thrust_hits_left = 0
 			return
 		collider.call(&"take_hit", spear_damage)
 		_push(collider, spear_knockback_scale)
@@ -448,7 +455,9 @@ func _resolve_spear_hits() -> void:
 		spear_cast.force_raycast_update()
 
 
-## The finisher strikes every target inside its arc once, unless a wall is in the way.
+## The finisher strikes every target inside its arc once, unless a wall or obstacle is in
+## the way, then deals one blow to each breakable obstacle its sweep touches. Targets are
+## struck first, so the blow that breaks an obstacle does not reach what it was shielding.
 func _resolve_finisher() -> void:
 	var space: PhysicsDirectSpaceState2D = get_world_2d().direct_space_state
 	var circle: CircleShape2D = CircleShape2D.new()
@@ -474,6 +483,18 @@ func _resolve_finisher() -> void:
 			continue
 		collider.call(&"take_hit", damage)
 		_push(collider, finisher_knockback_scale)
+		_on_attack_connected(true)
+	# Sample the sweep with rays no further apart at the tip than FINISHER_RAY_SPACING.
+	var rays: int = 2 + ceili(spear_reach * half * 2.0 / FINISHER_RAY_SPACING)
+	var struck: Array[Breakable] = []
+	for index: int in range(rays):
+		var reach: Vector2 = thrust_direction.rotated(lerpf(-half, half, float(index) / (rays - 1))) * spear_reach
+		var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters2D.create(global_position, global_position + reach, 1))
+		var obstacle: Breakable = hit.get("collider") as Breakable
+		if obstacle != null and not struck.has(obstacle):
+			struck.append(obstacle)
+	for obstacle: Breakable in struck:
+		obstacle.take_blow(damage)
 		_on_attack_connected(true)
 
 

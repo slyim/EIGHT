@@ -26,6 +26,8 @@ var weapon_label: Label
 @onready var xp_label: Label = $XPBar/XPLabel
 @onready var health_orb: Control = $HealthOrb
 @onready var life_label: Label = $LifeLabel
+@onready var stage_label: Label = $StageStatus
+@onready var difficulty_label: Label = $Difficulty
 @onready var boss_status_label: Label = $BossStatus
 @onready var dash_bar: ProgressBar = $Abilities/DashBar
 @onready var dash_label: Label = $Abilities/DashBar/Label
@@ -77,7 +79,9 @@ func _process(_delta: float) -> void:
 		debug_label.text = _stats_text()
 	var minutes: int = int(run.elapsed) / 60
 	var seconds: int = int(run.elapsed) % 60
-	stats_label.text = "TIME %02d:%02d    KILLS %d    SINS %d / 7" % [minutes, seconds, run.kills, mini(run.boss_index, 7)]
+	stats_label.text = "KILLS %d    SINS %d / 7" % [run.kills, mini(run.boss_index, 7)]
+	difficulty_label.text = "TIME %02d:%02d   DIFFICULTY %d" % [minutes, seconds, run.difficulty_tier()]
+	stage_label.text = "STAGE %d / 8 - %s" % [run.stage_index + 1, Run.BOSSES[run.stage_index]["name"]]
 	xp_bar.max_value = run.xp_needed()
 	xp_bar.value = run.xp
 	xp_label.text = "LEVEL %d    XP %d / %d" % [run.level, run.xp, run.xp_needed()]
@@ -110,6 +114,10 @@ func _update_boss_status() -> void:
 	if run.boss_index >= Run.BOSSES.size():
 		boss_status_label.text = "FINAL BOSS SLAIN"
 		boss_status_label.self_modulate = Color.WHITE
+		return
+	if is_instance_valid(run.exit_portal):
+		boss_status_label.text = "EXIT OPEN - HOLD E IN PORTAL (1s)\nStay to farm; ground loot is left behind"
+		boss_status_label.self_modulate = BOSS_WARNING_TINT
 		return
 	boss_status_label.text = "NEXT BOSS: %s IN %ds" % [Run.BOSSES[run.boss_index]["name"], ceili(run.boss_left)]
 	boss_status_label.self_modulate = BOSS_WARNING_TINT if run.boss_left <= BOSS_WARNING_SECONDS else Color.WHITE

@@ -170,6 +170,11 @@ func _run() -> void:
 		_check(boss.boss_name.begins_with(Run.BOSSES[index]["name"] as String), "Bosses must appear in roster order.")
 		boss.take_hit(boss.max_health)
 		await _wait_ticks(2)
+		if index < Run.BOSSES.size() - 1:
+			_check(is_instance_valid(run.exit_portal), "Each sin must open an exit.")
+			_check(run.spawn_next_boss() == null, "A portal must gate the next boss.")
+			run._advance_stage()
+	_check(run.exit_portal == null, "Satan must not open a portal.")
 	_check(run.boss_index == 8, "All eight bosses must be counted.")
 	_check(run.ended and run.victory and paused, "Defeating Satan must end the run in victory.")
 	paused = false

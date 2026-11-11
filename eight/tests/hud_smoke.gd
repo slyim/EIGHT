@@ -41,6 +41,8 @@ func _toggle_stats(hud: Hud) -> void:
 func _check_layout(hud: Hud, names: PackedStringArray) -> void:
 	names.append("Logo")
 	names.append("Title")
+	names.append("StageStatus")
+	names.append("Difficulty")
 	var screen: Rect2 = hud.get_global_rect()
 	_check(screen.size.x >= 1280.0 and screen.size.y >= 720.0, "The HUD must fill the viewport.")
 	var rects: Array[Rect2] = []
@@ -117,6 +119,8 @@ func _run() -> void:
 	player.max_health = 100
 	player.health = player.max_health
 
+	_check(hud.difficulty_label.text.contains("TIME") and hud.difficulty_label.text.contains("DIFFICULTY 1"), "Clock and difficulty must stay visible.")
+	_check(hud.stage_label.text == "STAGE 1 / 8 - PRIDE", "Stage and sin must show.")
 	# The countdown and the boss bar share a slot, so exactly one shows.
 	_check(hud.boss_status_label.visible and hud.boss_status_label.text.begins_with("NEXT BOSS: PRIDE IN"), "The next boss must be named.")
 	run.boss_left = 5.0
@@ -128,8 +132,10 @@ func _run() -> void:
 	_check(hud.boss_name_label.text.ends_with("100%"), "The boss bar must show health, got %s." % hud.boss_name_label.text)
 	_check_layout(hud, PackedStringArray(["StatusPanel", "BossPanel", "AssetNotice", "Abilities", "Controls", "LevelUp"]))
 	var boss: Boss = run.current_boss
-	run.current_boss = null
-	boss.queue_free()
+	boss.take_hit(boss.max_health)
+	await process_frame
+	_check(hud.boss_status_label.text.contains("EXIT OPEN") and hud.boss_status_label.text.contains("HOLD E"), "The exit prompt must explain confirmation.")
+	run._advance_stage()
 	await process_frame
 
 	# Items stay out of the way until there is something to list.

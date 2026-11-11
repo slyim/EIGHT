@@ -6,6 +6,7 @@ extends Node2D
 
 const ARENA_RECT: Rect2 = Rect2(-2000.0, -2000.0, 4000.0, 4000.0)
 const ENEMY_SCENE: PackedScene = preload("res://scenes/enemy.tscn")
+const PORTAL_SCENE: PackedScene = preload("res://scenes/exit_portal.tscn")
 const BOSS_SCENE: PackedScene = preload("res://scenes/boss.tscn")
 const FLOOR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_floor.aseprite")
 const PILLAR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_pillar.aseprite")
@@ -99,6 +100,23 @@ const ITEMS: Array[Dictionary] = [
 	{"name": "Item: Phial", "text": "Restore all life", "stat": "heal", "amount": 0.0},
 ]
 
+## One difficulty unit per minute; tiers step every two units.
+const DIFFICULTY_SECONDS: float = 60.0
+const TIER_UNITS: float = 2.0
+const HORDE_SPEED_GAIN: float = 0.15
+const HORDE_HEALTH_GAIN: float = 0.6
+const HORDE_DAMAGE_GAIN: float = 0.18
+const BOSS_SPEED_GAIN: float = 0.04
+const BOSS_HEALTH_GAIN: float = 0.15
+const BOSS_DAMAGE_GAIN: float = 0.06
+const BASE_SPAWN_INTERVAL: float = 1.1
+const MIN_SPAWN_INTERVAL: float = 0.18
+const SPAWN_PRESSURE_GAIN: float = 0.35
+const MAX_SPAWN_BATCH: int = 12
+## PLACEHOLDER floor tints; stage geometry is shared.
+const STAGE_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6"),
+	Color("9bbfd5"), Color("b6b58a"), Color("d69a91"), Color("aba0cb"), Color("c08bba")]
+
 @export var spawning_enabled: bool = true
 ## Open the run with the angel descending onto the plain.
 @export var intro_enabled: bool = true
@@ -111,6 +129,8 @@ var elapsed: float = 0.0
 var spawn_left: float = 1.0
 var boss_left: float = 0.0
 var boss_index: int = 0
+var stage_index: int = 0
+var exit_portal: ExitPortal
 var current_boss: Boss
 var enemy_count: int = 0
 var level: int = 1
@@ -214,7 +234,8 @@ func _spawn_poof(at: Vector2, size: float) -> void:
 ## PLACEHOLDER decoration: static, non-blocking props scattered with a fixed seed.
 func _scatter_decor() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.seed = 8
+	decor_props.clear()
+	rng.seed = 8 + stage_index * 7919
 	var animations: PackedStringArray = DECOR_FRAMES.get_animation_names()
 	while decor_props.size() < DECOR_COUNT:
 		var at: Vector2 = Vector2(
@@ -247,15 +268,66 @@ func _physics_process(delta: float) -> void:
 		return
 	spawn_left -= delta
 	if spawn_left <= 0.0:
-		var interval: float = maxf(0.18, 1.1 - elapsed * 0.004)
+		var interval: float = spawn_interval()
 		spawn_left = interval * (2.0 if current_boss != null else 1.0)
-		for count: int in range(1 + int(elapsed / 90.0)):
+		for count: int in range(spawn_batch()):
 			if enemy_count < max_enemies:
 				spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
-	if current_boss == null and boss_index < BOSSES.size():
+	if current_boss == null and exit_portal == null and boss_index < BOSSES.size():
 		boss_left -= delta
 		if boss_left <= 0.0:
 			spawn_next_boss()
+
+
+func difficulty() -> float:
+	return elapsed / DIFFICULTY_SECONDS
+
+
+func difficulty_tier() -> int:
+	return 1 + int(difficulty() / TIER_UNITS)
+
+
+func spawn_interval() -> float:
+	return maxf(MIN_SPAWN_INTERVAL, BASE_SPAWN_INTERVAL / (1.0 + difficulty() * SPAWN_PRESSURE_GAIN))
+
+
+func spawn_batch() -> int:
+	return mini(MAX_SPAWN_BATCH, 1 + int(difficulty() / 1.5))
+
+
+## Search outward from the death site, keeping the whole portal clear of walls/pillars.
+func _portal_position(at: Vector2) -> Vector2:
+	var safe: Rect2 = ARENA_RECT.grow(-ExitPortal.RADIUS - 24.0)
+	var origin: Vector2 = at.clamp(safe.position, safe.end)
+	for ring: int in range(12):
+		for step: int in range(16):
+			var candidate: Vector2 = origin + Vector2.from_angle(TAU * step / 16.0) * ring * 40.0
+			if safe.has_point(candidate) and not _blocked_rect(candidate.x, candidate.y, ExitPortal.RADIUS + 24.0):
+				return candidate
+	return Vector2.ZERO # Landing site is always clear.
+
+
+func _advance_stage() -> void:
+	if ended or not is_instance_valid(exit_portal) or current_boss != null:
+		return
+	exit_portal.free()
+	exit_portal = null
+	# Leave uncollected loot behind. Remove without death signals or extra rewards.
+	for child: Node in actors.get_children():
+		child.free()
+	for child: Node in pickups.get_children():
+		child.free()
+	for child: Node in effects.get_children():
+		child.free()
+	enemy_count = 0
+	stage_index = boss_index
+	boss_left = boss_interval
+	spawn_left = 1.0
+	player.position = Vector2.ZERO
+	player.velocity = Vector2.ZERO
+	(player.get_node("Camera2D") as Camera2D).reset_smoothing()
+	_scatter_decor()
+	play_sfx(&"holy_land", 0.0)
 
 
 func xp_needed() -> int:
@@ -264,9 +336,9 @@ func xp_needed() -> int:
 
 func _pick_enemy_type() -> int:
 	var roll: float = randf()
-	if elapsed > 120.0 and roll < 0.15:
+	if difficulty() >= 2.0 and roll < 0.15:
 		return 2
-	if elapsed > 45.0 and roll < 0.4:
+	if difficulty() >= 0.75 and roll < 0.4:
 		return 1
 	return 0
 
@@ -279,11 +351,11 @@ func _random_offscreen_point() -> Vector2:
 func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	var data: Dictionary = ENEMY_TYPES[type_index]
 	var enemy: Enemy = ENEMY_SCENE.instantiate() as Enemy
-	enemy.max_health = int(data["health"]) + int(elapsed / 120.0)
-	enemy.speed = float(data["speed"])
+	enemy.max_health = roundi(float(data["health"]) * (1.0 + difficulty() * HORDE_HEALTH_GAIN))
+	enemy.speed = float(data["speed"]) * (1.0 + difficulty() * HORDE_SPEED_GAIN)
 	enemy.radius = float(data["radius"])
 	enemy.xp_value = int(data["xp"])
-	enemy.contact_damage = int(data["damage"])
+	enemy.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * HORDE_DAMAGE_GAIN))
 	enemy.frames = data["frames"] as SpriteFrames
 	enemy.position = at
 	enemy.target = player
@@ -295,14 +367,16 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 
 
 func spawn_next_boss() -> Boss:
+	if ended or current_boss != null or exit_portal != null or boss_index >= BOSSES.size():
+		return null
 	var data: Dictionary = BOSSES[boss_index]
 	var boss: Boss = BOSS_SCENE.instantiate() as Boss
 	boss.boss_name = "%s (PLACEHOLDER)" % data["name"]
-	boss.max_health = int(data["health"])
-	boss.speed = float(data["speed"])
+	boss.max_health = roundi(float(data["health"]) * (1.0 + difficulty() * BOSS_HEALTH_GAIN))
+	boss.speed = float(data["speed"]) * (1.0 + difficulty() * BOSS_SPEED_GAIN)
 	boss.radius = float(data["radius"])
 	boss.attack_interval = float(data["interval"])
-	boss.contact_damage = int(data["damage"])
+	boss.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * BOSS_DAMAGE_GAIN))
 	boss.frames = data["frames"] as SpriteFrames
 	boss.patterns.assign(data["patterns"])
 	boss.xp_value = 20 + boss_index * 5
@@ -350,10 +424,14 @@ func _on_boss_died(enemy: Enemy) -> void:
 	play_sfx(&"boss_death", 0.0)
 	_spawn_poof(at, PIXEL_SCALE * 3.0)
 	boss_index += 1
-	boss_left = boss_interval
 	if boss_index >= BOSSES.size():
 		_end_run(true)
 		return
+	exit_portal = PORTAL_SCENE.instantiate() as ExitPortal
+	exit_portal.position = _portal_position(at)
+	exit_portal.target = player
+	exit_portal.confirmed.connect(_advance_stage, CONNECT_DEFERRED)
+	add_child(exit_portal)
 	spawn_pickup(Pickup.Kind.XP, at, enemy.xp_value)
 	spawn_pickup(Pickup.Kind.HEART, at + Vector2(-30.0, 20.0), 20)
 	spawn_pickup(Pickup.Kind.HEART, at + Vector2(30.0, 20.0), 20)
@@ -481,10 +559,10 @@ func _draw() -> void:
 	for row: int in range(rows):
 		for column: int in range(columns):
 			# Mostly plain tiles, with rare marked variants.
-			var roll: int = (column * 73856093 ^ row * 19349663) & 0xffff
+			var roll: int = (column * 73856093 ^ row * 19349663 ^ stage_index * 83492791) & 0xffff
 			var variant: int = 0 if roll % 13 != 0 else 1 + (roll / 13) % (variants - 1)
 			var at: Vector2 = ARENA_RECT.position + Vector2(column, row) * tile
-			draw_texture_rect(FLOOR_FRAMES.get_frame_texture(&"tiles", variant), Rect2(at, Vector2(tile, tile)), false)
+			draw_texture_rect(FLOOR_FRAMES.get_frame_texture(&"tiles", variant), Rect2(at, Vector2(tile, tile)), false, STAGE_TINTS[stage_index])
 	var landing: Texture2D = LANDING_FRAMES.get_frame_texture(&"idle", 0)
 	draw_texture_rect(landing, Rect2(-landing.get_size() * PIXEL_SCALE * 0.5 + Vector2(0.0, 12.0), landing.get_size() * PIXEL_SCALE), false)
 	for prop: Array in decor_props:

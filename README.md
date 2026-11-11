@@ -34,7 +34,8 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 - **Experience:** slain enemies drop experience gems, which are pulled in when you come near. Filling the bar at the top raises your level, pauses the game, and offers three upgrades; pick one by clicking or pressing 1-3.
 - **Life pickups:** enemies sometimes drop life, and each boss drops two. Life stays on the ground while you are at full health.
 - **Items:** enemies rarely drop an item, and every sin boss drops one. Walk over it to collect it. The top-right list appears after collecting an item and shows the latest six, with a total count. Every collected bonus remains active for the run.
-- **Bosses:** a boss arrives after each 60 seconds of survival with no boss active, in order: Pride, Greed, Lust, Envy, Gluttony, Wrath, Sloth, then Satan. Horde spawning slows while a boss is up. Defeating Satan wins the run.
+- **Stages and bosses:** each stage starts a 60-second boss countdown, in order: Pride, Greed, Lust, Envy, Gluttony, Wrath, Sloth, then Satan. Horde spawning slows while a boss is up. A slain sin opens a portal near its death site, clear of walls and pillars. Hordes keep spawning while you farm. Stand inside the portal, then press and hold E for one second to leave; releasing or stepping out cancels. Holding E before arriving does not activate it. Leaving clears enemies, projectiles, effects and **all uncollected pickups** without granting rewards. Collected items, upgrades, health, XP, and the run clock carry forward. The mount returns to the landing site, the floor tint and decoration scatter change, and the next countdown starts. Defeating Satan wins immediately, with no portal.
+- **Difficulty:** one continuous difficulty unit per minute after touchdown; the visible tier starts at 1 and rises every two minutes. Pausing for upgrades pauses the clock. New horde enemies gain 15% base speed, 60% base health, and 18% base contact damage per minute (integer stats rounded). At five minutes they have 1.75x speed, 4x health, and 1.9x damage. Spawn interval is `max(0.18, 1.1 / (1 + 0.35 * difficulty))` seconds, doubled during bosses; batch size is `min(12, 1 + floor(difficulty / 1.5))`, subject to the existing enemy cap. Imps unlock at difficulty 0.75, brutes at 2. Bosses gain a gentler 4% speed, 15% health and 6% contact damage per minute. These PLACEHOLDER tuning constants live in `run.gd`; portal hold time is exported in `exit_portal.gd`.
 
 | Input | Action |
 | --- | --- |
@@ -46,9 +47,10 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 | Shift or right mouse button | Dash |
 | 1 / 2 / 3 or click | Choose a level-up upgrade |
 | F3 | Show or hide the stats overlay |
+| Hold E inside an exit portal | Confirm travel to the next stage (1 second) |
 | R | Restart the run |
 
-The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown or active boss health at the top centre, and dash/jump readiness gauges at the bottom, next to a weapon gauge showing the active weapon and the bow's draw charge. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
+The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown, active boss health, or portal prompt at the top centre, plus the current stage/sin and persistent run timer/difficulty tier, and dash/jump readiness gauges at the bottom, next to a weapon gauge showing the active weapon and the bow's draw charge. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
 
 The owner's EIGHT logo appears at the top right as a transparent pixel-art adaptation of the supplied `Eight.pdf`, recolored in the game's mint, steel, and purple palette. This specific AI-assisted adaptation was requested by the owner; its provenance and generation prompt are recorded in `eight/assets/art/CREDITS.md` and `eight_logo_pixel.md`. The original design and other authored assets are preserved.
 
@@ -116,13 +118,18 @@ godot --headless --path eight --script res://tests/player_controls_smoke.gd
 godot --headless --path eight --script res://tests/projectile_smoke.gd
 godot --headless --path eight --script res://tests/hud_smoke.gd
 godot --headless --path eight --script res://tests/weapon_smoke.gd
+godot --headless --path eight --script res://tests/stage_smoke.gd
 ```
 
-`prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
+`prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. On this Windows Godot 4.7.2 setup, `--quit-after 600` and the benchmark can intermittently report audio playback/resource leaks during shutdown (also reproduced on unchanged HEAD); no gameplay script errors were observed. A fresh import may report an unavailable locally configured Aseprite executable before falling back to the committed baked resources.
+
+Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
 
 `weapon_smoke.gd` checks Q and mouse-wheel weapon switching, draw cancelling, the HUD weapon gauge, charged and tap arrow damage, an arrow stopped by a pillar, arrows expiring at their range, a buffered dash press (and that a stale press is dropped), and that a spear hit starts hit-stop and shake and time recovers afterwards.
 
-`hud_smoke.gd` checks the visible logo, placeholder notice, physical F3 toggle, ability readiness, life/XP text and orb fill, boss status, item list limit, level-up text, and HUD bounds and overlap at the default viewport size.
+`stage_smoke.gd` covers clock/tier growth, generic enemy and boss scaling, spawn pressure, safe portal placement, fresh-press/hold/cancel confirmation, farming without the next boss, stage cleanup and retained difficulty, all eight bosses through countdowns and portals, and immediate Satan victory.
+
+`hud_smoke.gd` checks the persistent timer/difficulty, stage/sin, portal instructions, visible logo, placeholder notice, physical F3 toggle, ability readiness, life/XP text and orb fill, boss status, item list limit, level-up text, and HUD bounds and overlap at the default viewport size.
 
 ## Performance benchmark
 

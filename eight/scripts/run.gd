@@ -44,11 +44,14 @@ const SFX: Dictionary[StringName, AudioStream] = {
 const SFX_SPACING: float = 0.045
 const SFX_VOICES: int = 16
 
-## PLACEHOLDER horde types.
+## PLACEHOLDER horde types. An optional "scene" key instantiates a different enemy;
+## the rest spawn the plain Enemy scene.
 const ENEMY_TYPES: Array[Dictionary] = [
 	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
 	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
 	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
+	# Flying: hovers at a distance and fires aimed shots that reach an airborne player.
+	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
 ]
 
 ## Fights in order; the last entry is the final boss. Stats and patterns are PLACEHOLDER.
@@ -268,6 +271,9 @@ func _pick_enemy_type() -> int:
 		return 2
 	if elapsed > 45.0 and roll < 0.4:
 		return 1
+	# Flying enemy (roster index 3): appears after about a minute at a modest share.
+	if elapsed > 60.0 and roll < 0.5:
+		return 3
 	return 0
 
 
@@ -278,7 +284,7 @@ func _random_offscreen_point() -> Vector2:
 
 func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	var data: Dictionary = ENEMY_TYPES[type_index]
-	var enemy: Enemy = ENEMY_SCENE.instantiate() as Enemy
+	var enemy: Enemy = data.get("scene", ENEMY_SCENE).instantiate() as Enemy
 	enemy.max_health = int(data["health"]) + int(elapsed / 120.0)
 	enemy.speed = float(data["speed"])
 	enemy.radius = float(data["radius"])

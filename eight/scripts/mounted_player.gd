@@ -469,9 +469,11 @@ func is_invulnerable() -> bool:
 	return invulnerable_left > 0.0 or dash_time_left > 0.0 or is_airborne() or is_descending()
 
 
-## Returns true when the damage landed.
-func take_damage(amount: int) -> bool:
-	if is_dead or is_invulnerable() or amount <= 0:
+## Ground attacks miss an airborne player; attacks from the air (from_air) reach the player at any height.
+func take_damage(amount: int, from_air: bool = false) -> bool:
+	if is_dead or amount <= 0 or is_descending() or invulnerable_left > 0.0 or dash_time_left > 0.0:
+		return false
+	if is_airborne() and not from_air:
 		return false
 	health = maxi(0, health - amount)
 	invulnerable_left = hurt_invulnerability

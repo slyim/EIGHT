@@ -15,6 +15,9 @@ const FLASH_COLOR: Color = Color(3.0, 3.0, 3.0, 1.0)
 @export_range(0.0, 1000.0, 10.0) var knockback_strength: float = 240.0
 @export var frames: SpriteFrames
 
+## True for flying enemies (physics layer 5): they ignore walls, and their attacks
+## reach an airborne player where ground attacks miss.
+var flying: bool = false
 var target: MountedPlayer
 var health: int = 0
 var hit_flash: float = 0.0

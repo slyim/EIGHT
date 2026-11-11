@@ -38,15 +38,16 @@ func _run() -> void:
 
 	# Exercise physical keys rather than action_press, which bypasses the map.
 	_key(KEY_SPACE, true)
-	await _wait_ticks(12)
-	_check(player.height > MountedPlayer.JUMP_CLEAR_HEIGHT, "Space must jump.")
+	await _wait_ticks(30)
+	_check(player.is_airborne() and player.flying, "Holding Space must take off and stay up.")
 	_check(attacks.is_empty(), "Space must not also attack.")
 	_key(KEY_SPACE, false)
-	await _wait_ticks(40)
+	await _wait_ticks(30)
+	_check(player.height == 0.0 and not player.flying, "Releasing Space must land.")
 	_key(KEY_J, true)
 	await _wait_ticks(3)
 	_check(attacks == [0], "J must start the spear combo.")
-	_check(player.jump_time < 0.0, "J must not also jump.")
+	_check(player.height == 0.0 and not player.flying, "J must not also take off.")
 	_key(KEY_J, false)
 	await _wait_ticks(45)
 
@@ -86,5 +87,5 @@ func _run() -> void:
 	player.queue_free()
 	await _wait_ticks(2)
 	if failures == 0:
-		print("PASS: Space jumps independently, J and LMB attack, dash movement and protection expire together.")
+		print("PASS: holding Space flies independently, J and LMB attack, dash movement and protection expire together.")
 	quit(1 if failures > 0 else 0)

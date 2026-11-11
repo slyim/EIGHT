@@ -110,15 +110,15 @@ func _run() -> void:
 	_check(behind.health == 50, "The finisher must not hit enemies behind the player.")
 	await _clear_actors(run)
 
-	# Jump: the hero rises, clears damage while high, and lands.
+	# Flight: holding Space lifts the hero clear of ground damage; releasing lands.
 	player.invulnerable_left = 0.0
 	Input.action_press(&"jump")
 	await _wait_ticks(12)
+	_check(player.is_airborne(), "Holding Space must lift the hero.")
+	_check(not player.take_damage(1), "Ground damage must miss the airborne hero.")
 	Input.action_release(&"jump")
-	_check(player.height > MountedPlayer.JUMP_CLEAR_HEIGHT, "Jumping must lift the hero.")
-	_check(not player.take_damage(1), "A high jump must clear damage.")
 	await _wait_ticks(40)
-	_check(player.height == 0.0 and player.jump_time < 0.0, "The hero must land after a jump.")
+	_check(player.height == 0.0 and not player.flying, "The hero must land after releasing Space.")
 
 	# Level-up pauses the run and applies the chosen upgrade.
 	run.add_xp(run.xp_needed())

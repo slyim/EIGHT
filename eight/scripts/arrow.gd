@@ -15,9 +15,11 @@ var damage: int = 1
 var pierce: int = 1
 ## Layers that stop the arrow (1 = World).
 var wall_mask: int = 1
-## Layers the arrow damages: practice targets and enemies. Add a layer here to hit flying enemies.
-var hit_mask: int = 12
+## Layers the arrow damages from any height: practice targets, enemies, and flying enemies (layers 3-5).
+var hit_mask: int = 28
 var hit_rids: Array[RID] = []
+## Visual only: how far above its ground track the arrow is drawn (the bow's height when fired).
+var height: float = 0.0
 
 
 func _ready() -> void:
@@ -56,6 +58,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
-	# PLACEHOLDER arrow: a light shaft with a small head.
+	# PLACEHOLDER arrow: a light shaft with a small head, lifted to screen-up by height.
+	draw_set_transform(Vector2(0.0, -height).rotated(-global_rotation))
 	draw_line(Vector2(-LENGTH, 0.0), Vector2.ZERO, COLOR, 2.0)
 	draw_colored_polygon(PackedVector2Array([Vector2(4.0, 0.0), Vector2(-4.0, -3.5), Vector2(-4.0, 3.5)]), COLOR)

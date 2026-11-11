@@ -25,8 +25,8 @@ extends Node2D
 ## Dark solidified rim. PLACEHOLDER colors: the molten channels exceed 1.0, so the pools
 ## glow once the HDR 2D + glow settings land (plain orange until then).
 const CRUST_COLOR: Color = Color(0.11, 0.045, 0.025)
-const MOLTEN_COLOR: Color = Color(2.4, 0.8, 0.25)
-const BUBBLE_COLOR: Color = Color(3.0, 1.5, 0.55)
+const MOLTEN_COLOR: Color = Color(1.02, 0.46, 0.09)
+const BUBBLE_COLOR: Color = Color(1.9, 0.85, 0.25)
 const CRUST_WIDTH: float = 10.0
 const BUBBLES_PER_POOL: int = 3
 const BUBBLE_DISTANCES: Array[float] = [0.35, 0.7, 0.5]

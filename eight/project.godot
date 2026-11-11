@@ -105,6 +105,7 @@ enter_portal={
 2d_physics/layer_2="Mounted player"
 2d_physics/layer_3="Practice targets"
 2d_physics/layer_4="Enemies"
+2d_physics/layer_5="Flying enemies"
 
 [physics]
 

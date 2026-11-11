@@ -117,3 +117,23 @@ godot --headless --path eight --script res://tests/hud_smoke.gd
 `prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
 
 `hud_smoke.gd` checks the visible logo, placeholder notice, physical F3 toggle, ability readiness, life/XP text, boss status, item list limit, level-up text, and HUD bounds and overlap at the default viewport size.
+
+## Performance benchmark
+
+Run `godot --path eight --script res://tests/performance_benchmark.gd --disable-vsync --max-fps 0`
+for a windowed Forward Plus sample; add `--headless` for CPU-only diagnostics.
+The fixed-seed fixture creates the configured enemy cap, 600 pickups, and eight
+poofs per frame, warms up for 120 frames, then measures 600 frames. It prints
+median/p95 wall frame time and mean process/physics seconds, draw calls, objects,
+and nodes. The player is stationary and invulnerable; normal spawning is disabled.
+This is an allocation stress fixture, not a simulation of normal drop frequency.
+Uncapped modes advance different amounts of physics time, so compare like modes;
+headless draw counts are meaningless. Monitor values can lag the sampled frame.
+
+Initial Windows / RTX 3060 / D3D12 Forward Plus sample: median 1.665 ms,
+p95 2.968 ms; process 7.884 ms, physics 2.154 ms, 45 draw calls,
+4625 objects, 2586 nodes (means). Headless: median 6.901 ms, p95 15.984 ms;
+process 1.795 ms, physics 25.812 ms, 3699 objects, 1646 nodes.
+No runtime optimization has been applied: these aggregate samples do not isolate
+movement, pickup processing, or poof allocation costs. Further controlled ablations
+and repeated samples are required before attributing a hotspot.

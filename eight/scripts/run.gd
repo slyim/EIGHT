@@ -431,18 +431,18 @@ func spawn_batch() -> int:
 
 ## Search outward from the death site, keeping the whole portal clear of walls and obstacles.
 func _portal_position(at: Vector2) -> Vector2:
-	return _open_spot(at, ExitPortal.RADIUS + 24.0)
+	return _open_spot(at, ExitPortal.RADIUS + 24.0, true)
 
 
 ## The nearest point to `at`, searching outward in rings, with `clearance` around it free of
-## walls, standing obstacles and lava.
-func _open_spot(at: Vector2, clearance: float) -> Vector2:
+## walls and standing obstacles (and of lava, for the portal; enemies may spawn in lava).
+func _open_spot(at: Vector2, clearance: float, avoid_lava: bool = false) -> Vector2:
 	var safe: Rect2 = ARENA_RECT.grow(-clearance)
 	var origin: Vector2 = at.clamp(safe.position, safe.end)
 	for ring: int in range(12):
 		for step: int in range(16 if ring > 0 else 1):
 			var candidate: Vector2 = origin + Vector2.from_angle(TAU * step / 16.0) * ring * 40.0
-			if safe.has_point(candidate) and not _blocked_rect(candidate.x, candidate.y, clearance) \n					and not lava.point_in_lava(candidate, -clearance):
+			if safe.has_point(candidate) and not _blocked_rect(candidate.x, candidate.y, clearance) and not (avoid_lava and lava.point_in_lava(candidate, -clearance)):
 				return candidate
 	return Vector2.ZERO # Landing site is always clear.
 

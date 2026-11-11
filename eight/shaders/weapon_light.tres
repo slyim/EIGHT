@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/emissive.gdshader" id="1"]
+
+[resource]
+resource_name = "PLACEHOLDER-tunable weapon_light"
+shader = ExtResource("1")
+shader_parameter/mode = 1
+shader_parameter/energy = 3.2

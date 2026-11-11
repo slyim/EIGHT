@@ -115,4 +115,6 @@ enter_portal={
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+viewport/hdr_2d=true
+environment/glow/upscale_mode=0
 environment/defaults/default_clear_color=Color(0.0275, 0.0039, 0.0353, 1)

@@ -5,7 +5,7 @@ extends Enemy
 ## short wind-up tell. Its shots reach an airborne player and pass over walls and
 ## pillars (from_air), and its contact hurts from the air too. Art reuses the imp and
 ## boss-projectile placeholder frames (tinted here and in the scene), so it is not an
-## enemy design; a later wave adds a red-glow shader for enemy shots.
+## enemy design; enemy shots use the shared red emission material.
 
 ## Seconds the aiming tell shows before the shot leaves.
 const WINDUP_TIME: float = 0.5
@@ -13,9 +13,9 @@ const WINDUP_TIME: float = 0.5
 const KEEP_SLACK: float = 24.0
 const BOB_AMPLITUDE: float = 5.0
 const BOB_FREQUENCY: float = 3.0
-## PLACEHOLDER shot look: smaller and tinted so it reads apart from boss shots.
+## PLACEHOLDER shot look: smaller and red-emissive so it reads apart from boss shots.
 const SHOT_SCALE: float = 1.5
-const SHOT_COLOR: Color = Color(0.75, 0.64, 1.0, 1.0)
+const SHOT_COLOR: Color = Color.WHITE
 
 ## Distance it tries to hold from the player.
 @export_range(0.0, 600.0, 10.0) var preferred_distance: float = 170.0

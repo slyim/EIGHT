@@ -5,6 +5,16 @@ extends CharacterBody2D
 signal died(enemy: Enemy)
 signal hit(enemy: Enemy)
 
+# PLACEHOLDER eye regions in untrimmed atlas pixels; all animation poses included.
+const EYE_PROFILES: Dictionary = {
+	"husk": Vector4(19, 15, 22, 17), "imp": Vector4(19, 11, 20, 14),
+	"brute": Vector4(25, 13, 27, 15), "pride": Vector4(30, 25, 35, 27),
+	"greed": Vector4(25, 34, 40, 36), "lust": Vector4(30, 23, 35, 25),
+	"envy": Vector4(24, 20, 40, 55), "gluttony": Vector4(22, 15, 35, 20),
+	"wrath": Vector4(29, 26, 36, 29), "sloth": Vector4(50, 28, 58, 36),
+	"satan": Vector4(29, 22, 36, 24),
+}
+const EYE_MATERIAL: ShaderMaterial = preload("res://shaders/eyes.tres")
 const FLASH_COLOR: Color = Color(3.0, 3.0, 3.0, 1.0)
 
 @export_range(1, 5000, 1) var max_health: int = 2
@@ -32,6 +42,14 @@ func _ready() -> void:
 	(collision_shape.shape as CircleShape2D).radius = radius
 	if frames != null:
 		sprite.sprite_frames = frames
+		# Colour keys use the unmodulated texture, so flashes/tints cannot turn eyes white.
+		sprite.material = EYE_MATERIAL
+		var kind: String = frames.resource_path.get_file().get_basename().get_slice("_", 2)
+		sprite.set_instance_shader_parameter(&"eye_bounds", EYE_PROFILES.get(kind, Vector4.ZERO))
+		sprite.set_instance_shader_parameter(&"frame_size", 64.0 if self is Boss else 32.0)
+		sprite.set_instance_shader_parameter(&"dark_eyes", kind in ["pride", "greed", "sloth"])
+		sprite.set_instance_shader_parameter(&"pale_eyes", kind not in ["greed", "sloth"])
+		sprite.set_instance_shader_parameter(&"mint_eyes", kind == "satan")
 		sprite.play(_base_animation())
 		sprite.frame = randi() % sprite.sprite_frames.get_frame_count(sprite.animation)
 

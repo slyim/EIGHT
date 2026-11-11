@@ -1,8 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/mounted_player.gd" id="1_player"]
 [ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_player.aseprite" id="2_frames"]
 [ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_spear_light.aseprite" id="3_spear"]
+
+[ext_resource type="Material" path="res://shaders/player_light.tres" id="4_light"]
+[ext_resource type="Material" path="res://shaders/weapon_light.tres" id="5_light"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_mount"]
 radius = 22.0
@@ -17,6 +20,7 @@ script = ExtResource("1_player")
 shape = SubResource("CircleShape2D_mount")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
+material = ExtResource("4_light")
 position = Vector2(0, -8)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("2_frames")
@@ -24,6 +28,7 @@ animation = &"idle"
 autoplay = "idle"
 
 [node name="Spear" type="AnimatedSprite2D" parent="."]
+material = ExtResource("5_light")
 position = Vector2(-40, -6)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("3_spear")
@@ -33,6 +38,7 @@ centered = false
 offset = Vector2(0, -8)
 
 [node name="Bow" type="Node2D" parent="."]
+material = ExtResource("5_light")
 visible = false
 
 [node name="SpearCast" type="RayCast2D" parent="."]

@@ -3,7 +3,7 @@ extends Node2D
 ## Player arrow: a swept projectile that damages through take_hit, pierces up to
 ## `pierce` targets, stops at walls, and is freed at the end of its range.
 ## The drawn shaft and head are PLACEHOLDER art. The visual is drawn on this node,
-## so a later glow shader can be set as its `material`.
+## with a shared PLACEHOLDER-tunable cool emission material.
 
 const LENGTH: float = 22.0
 const COLOR: Color = Color(0.792, 0.922, 0.878, 1.0)
@@ -23,6 +23,7 @@ var height: float = 0.0
 
 
 func _ready() -> void:
+	material = preload("res://shaders/weapon_light.tres")
 	global_rotation = direction.angle()
 
 

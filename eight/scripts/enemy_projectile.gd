@@ -20,6 +20,7 @@ var life_left: float = LIFETIME
 
 func _ready() -> void:
 	add_to_group(&"enemy_projectiles")
+	material = preload("res://shaders/enemy_ammo.tres")
 	sprite_frames = FRAMES
 	scale = Vector2(2.0, 2.0)
 	global_rotation = velocity.angle()

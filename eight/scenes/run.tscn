@@ -1,10 +1,31 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/run.gd" id="1_run"]
 [ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="3_hud"]
 [ext_resource type="AudioStream" path="res://assets/audio/placeholder/placeholder_music_loop.ogg" id="4_music"]
 [ext_resource type="Texture2D" path="res://assets/art/eight_logo_pixel.png" id="5_logo"]
+
+[ext_resource type="Shader" path="res://shaders/atmosphere.gdshader" id="6_atmosphere"]
+
+[sub_resource type="Environment" id="Environment_glow"]
+resource_name = "PLACEHOLDER-tunable tight canvas glow"
+background_mode = 3
+background_canvas_max_layer = 0
+glow_enabled = true
+glow_levels/1 = 1.0
+glow_levels/2 = 0.45
+glow_levels/3 = 0.0
+glow_levels/4 = 0.0
+glow_levels/5 = 0.0
+glow_intensity = 0.65
+glow_bloom = 0.0
+glow_blend_mode = 0
+glow_hdr_threshold = 1.0
+
+[sub_resource type="ShaderMaterial" id="Material_atmosphere"]
+resource_name = "PLACEHOLDER-tunable atmosphere"
+shader = ExtResource("6_atmosphere")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(4096, 48)
@@ -99,6 +120,21 @@ Label/constants/outline_size = 5
 [node name="Run" type="Node2D"]
 script = ExtResource("1_run")
 
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_glow")
+
+[node name="Atmosphere" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="Veil" type="ColorRect" parent="Atmosphere"]
+material = SubResource("Material_atmosphere")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="Geometry" type="StaticBody2D" parent="."]
 collision_layer = 1
 collision_mask = 10
@@ -157,6 +193,7 @@ stream = ExtResource("4_music")
 volume_db = -10.0
 
 [node name="HUD" type="CanvasLayer" parent="."]
+layer = 2
 
 [node name="Hud" type="Control" parent="HUD"]
 process_mode = 3

@@ -156,3 +156,14 @@ process 1.795 ms, physics 25.812 ms, 3699 objects, 1646 nodes.
 No runtime optimization has been applied: these aggregate samples do not isolate
 movement, pickup processing, or poof allocation costs. Further controlled ablations
 and repeated samples are required before attributing a hotspot.
+
+## Shaders and glow
+
+All look-development shaders and materials are **PLACEHOLDER-tunable**, pending human art direction. No new art or audio is included. Forward Plus/D3D12 is preserved. HDR 2D and the run's Canvas-mode WorldEnvironment allow colours above 1.0 (including drawn lava) to bloom. Only canvas layer 0 enters glow; Atmosphere is layer 1 and HUD is layer 2. Tight low glow levels and linear upscaling keep pixel edges clear. Tune `glow_intensity`, `glow_hdr_threshold` and `glow_levels` on WorldEnvironment.
+
+- `eight/shaders/emissive.gdshader`: shared canvas emission, with `mode` for keyed eyes, cool light, or red ammunition; tune `energy`, `light_color`, and `tolerance` in the four `.tres` materials beside it. Player light is softer than weapon light; vertex alpha preserves hurt blinking and bow charge colours remain visible. Enemy shots retain their silhouettes and flying shots remain smaller.
+- `eight/shaders/atmosphere.gdshader`: one screen sample, a restrained purple shadow grade, edge vignette, and two slow haze waves. Tune `strength` (0 disables), `vignette_strength`, `grade_strength`, `haze_strength`, and `drift_speed` on Atmosphere/Veil's material. Multiplicative grading preserves stage floor tints and protects bright gameplay signals. The HUD is drawn afterwards.
+
+Eyes use original texture colours before tint/flash multiplication: cream for husk, imp (also flying), brute, Lust, Envy's many eyes, Gluttony and Wrath; black plus cream for Pride; black pupils for Greed and Sloth; cream plus mint for Satan's idle/attack poses. `Enemy.EYE_PROFILES` limits keys to animated eye regions, excluding horns and teeth. All inspected frames contain distinguishable eye pixels; no drawn-eye fallback is used. All enemies share one material and use instance uniforms. These bounds assume the committed untrimmed 32/64-pixel atlas cells with no padding; update them when human-authored replacement art changes the eyes or atlas packing.
+
+Run `godot --headless --path eight --script res://tests/glow_smoke.gd` to check rendering wiring, shared materials and eye-key coverage in every enemy/boss animation frame. Appearance still needs a windowed run.

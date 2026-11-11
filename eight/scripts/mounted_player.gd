@@ -51,7 +51,7 @@ const SLASH_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeho
 @export_range(0.0, 1.0, 0.05) var jump_cooldown: float = 0.15
 
 @export_group("Life")
-@export_range(1, 20, 1) var max_health: int = 5
+@export_range(1, 500, 1) var max_health: int = 100
 @export_range(0.1, 3.0, 0.05) var hurt_invulnerability: float = 1.0
 @export_range(16.0, 600.0, 4.0) var pickup_radius: float = 90.0
 

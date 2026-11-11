@@ -9,7 +9,7 @@ const FLASH_COLOR: Color = Color(3.0, 3.0, 3.0, 1.0)
 
 @export_range(1, 5000, 1) var max_health: int = 2
 @export_range(0.0, 600.0, 5.0) var speed: float = 105.0
-@export_range(0, 10, 1) var contact_damage: int = 1
+@export_range(0, 100, 1) var contact_damage: int = 1
 @export_range(0, 500, 1) var xp_value: int = 1
 @export_range(4.0, 120.0, 1.0) var radius: float = 14.0
 @export_range(0.0, 1000.0, 10.0) var knockback_strength: float = 240.0

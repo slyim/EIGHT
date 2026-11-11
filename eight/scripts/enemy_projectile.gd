@@ -6,6 +6,9 @@ const RADIUS: float = 9.0
 const LIFETIME: float = 5.0
 const FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_projectile_fire.aseprite")
 
+## PLACEHOLDER damage; every boss projectile hits for the same amount.
+const CONTACT_DAMAGE: int = 12
+
 var velocity: Vector2 = Vector2.ZERO
 var target: MountedPlayer
 var life_left: float = LIFETIME
@@ -34,7 +37,7 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(target):
 		var closest: Vector2 = Geometry2D.get_closest_point_to_segment(target.global_position, start, stop)
 		if closest.distance_to(target.global_position) <= RADIUS + MountedPlayer.HURT_RADIUS:
-			if target.take_damage(1):
+			if target.take_damage(CONTACT_DAMAGE):
 				queue_free()
 				return
 	if not wall_hit.is_empty():

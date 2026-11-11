@@ -47,7 +47,7 @@ func _run() -> void:
 	run.actors.add_child(fast)
 	fast.global_position = Vector2(-200.0, 0.0)
 	await _wait_ticks(2)
-	_check(player.health == player.max_health - 1, "Fast projectile crossing player between ticks must deal damage.")
+	_check(player.health == player.max_health - 12, "Fast projectile crossing player between ticks must deal damage.")
 	_check(not is_instance_valid(fast), "Projectile must free itself after damaging the player.")
 	await _clear_projectiles()
 
@@ -152,7 +152,7 @@ func _run() -> void:
 	var expected_spawn: Vector2 = boss.global_position + Vector2.RIGHT * boss.radius
 	_check(spawned.global_position.distance_to(expected_spawn) < 0.5, "Projectile must spawn at boss global_position + direction * radius even under transformed parent (got %s, expected %s)." % [spawned.global_position, expected_spawn])
 	await _wait_ticks(45)
-	_check(player.health == player.max_health - 1, "Boss projectile under transformed parent must travel in world space and hit the player.")
+	_check(player.health == player.max_health - 12, "Boss projectile under transformed parent must travel in world space and hit the player.")
 	_check(not is_instance_valid(spawned), "Boss projectile must free itself after hitting player under transformed parent.")
 
 	boss.queue_free()

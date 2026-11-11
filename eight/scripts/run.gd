@@ -46,28 +46,28 @@ const SFX_VOICES: int = 16
 
 ## PLACEHOLDER horde types.
 const ENEMY_TYPES: Array[Dictionary] = [
-	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
-	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
-	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
+	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
+	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
+	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
 ]
 
 ## Fights in order; the last entry is the final boss. Stats and patterns are PLACEHOLDER.
 const BOSSES: Array[Dictionary] = [
-	{"name": "PRIDE", "health": 60, "speed": 95.0, "radius": 36.0, "interval": 2.4,
+	{"name": "PRIDE", "health": 60, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE]},
-	{"name": "GREED", "health": 90, "speed": 80.0, "radius": 38.0, "interval": 2.6,
+	{"name": "GREED", "health": 90, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.SUMMON, Boss.Pattern.BURST]},
-	{"name": "LUST", "health": 110, "speed": 140.0, "radius": 32.0, "interval": 2.0,
+	{"name": "LUST", "health": 110, "speed": 140.0, "radius": 32.0, "interval": 2.0, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_lust.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.AIMED]},
-	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2,
+	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
-	{"name": "GLUTTONY", "health": 220, "speed": 60.0, "radius": 54.0, "interval": 2.6,
+	{"name": "GLUTTONY", "health": 220, "speed": 60.0, "radius": 54.0, "interval": 2.6, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_gluttony.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
-	{"name": "WRATH", "health": 200, "speed": 125.0, "radius": 40.0, "interval": 1.8,
+	{"name": "WRATH", "health": 200, "speed": 125.0, "radius": 40.0, "interval": 1.8, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST]},
-	{"name": "SLOTH", "health": 260, "speed": 45.0, "radius": 46.0, "interval": 2.8,
+	{"name": "SLOTH", "health": 260, "speed": 45.0, "radius": 46.0, "interval": 2.8, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_sloth.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
-	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5,
+	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST,
 		Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
 ]
@@ -78,7 +78,7 @@ const UPGRADES: Array[Dictionary] = [
 	{"name": "Quicker thrusts", "text": "Thrust 12% faster", "stat": "attack_speed", "amount": 0.88},
 	{"name": "Longer spear", "text": "+16 spear reach", "stat": "reach", "amount": 16.0},
 	{"name": "Swifter mount", "text": "+20 movement speed", "stat": "speed", "amount": 20.0},
-	{"name": "Vitality", "text": "+1 max life and heal 1", "stat": "max_health", "amount": 1.0},
+	{"name": "Vitality", "text": "+20 max health and heal 20", "stat": "max_health", "amount": 20.0},
 	{"name": "Wider pull", "text": "+40 pickup radius", "stat": "magnet", "amount": 40.0},
 	{"name": "Piercing spear", "text": "Thrust hits +1 more enemy", "stat": "pierce", "amount": 1.0},
 	{"name": "Quicker dash", "text": "Dash cooldown -15%", "stat": "dash", "amount": 0.85},
@@ -88,7 +88,7 @@ const UPGRADES: Array[Dictionary] = [
 const ITEMS: Array[Dictionary] = [
 	{"name": "Item: Spearhead", "text": "+2 spear damage", "stat": "damage", "amount": 2.0},
 	{"name": "Item: Feather", "text": "Thrust 20% faster", "stat": "attack_speed", "amount": 0.8},
-	{"name": "Item: Heart vessel", "text": "+2 max life and heal 2", "stat": "max_health", "amount": 2.0},
+	{"name": "Item: Heart vessel", "text": "+40 max health and heal 40", "stat": "max_health", "amount": 40.0},
 	{"name": "Item: Lodestone", "text": "+90 pickup radius", "stat": "magnet", "amount": 90.0},
 	{"name": "Item: Long haft", "text": "+28 spear reach", "stat": "reach", "amount": 28.0},
 	{"name": "Item: Drill tip", "text": "Thrust hits +2 more enemies", "stat": "pierce", "amount": 2.0},
@@ -278,6 +278,7 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	enemy.speed = float(data["speed"])
 	enemy.radius = float(data["radius"])
 	enemy.xp_value = int(data["xp"])
+	enemy.contact_damage = int(data["damage"])
 	enemy.frames = data["frames"] as SpriteFrames
 	enemy.position = at
 	enemy.target = player
@@ -296,6 +297,7 @@ func spawn_next_boss() -> Boss:
 	boss.speed = float(data["speed"])
 	boss.radius = float(data["radius"])
 	boss.attack_interval = float(data["interval"])
+	boss.contact_damage = int(data["damage"])
 	boss.frames = data["frames"] as SpriteFrames
 	boss.patterns.assign(data["patterns"])
 	boss.xp_value = 20 + boss_index * 5
@@ -331,7 +333,7 @@ func _on_enemy_died(enemy: Enemy) -> void:
 	_spawn_poof(enemy.global_position, PIXEL_SCALE)
 	spawn_pickup(Pickup.Kind.XP, enemy.global_position, enemy.xp_value)
 	if randf() < heart_drop_chance:
-		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 1)
+		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
 	if randf() < item_drop_chance:
 		spawn_pickup(Pickup.Kind.ITEM, enemy.global_position, randi() % ITEMS.size())
 
@@ -348,8 +350,8 @@ func _on_boss_died(enemy: Enemy) -> void:
 		_end_run(true)
 		return
 	spawn_pickup(Pickup.Kind.XP, at, enemy.xp_value)
-	spawn_pickup(Pickup.Kind.HEART, at + Vector2(-30.0, 20.0), 1)
-	spawn_pickup(Pickup.Kind.HEART, at + Vector2(30.0, 20.0), 1)
+	spawn_pickup(Pickup.Kind.HEART, at + Vector2(-30.0, 20.0), 20)
+	spawn_pickup(Pickup.Kind.HEART, at + Vector2(30.0, 20.0), 20)
 	spawn_pickup(Pickup.Kind.ITEM, at + Vector2(0.0, -30.0), randi() % ITEMS.size())
 
 

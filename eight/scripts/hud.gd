@@ -3,25 +3,25 @@ extends Control
 ## Run HUD. Layout, colors, and wording are PLACEHOLDER UI. Keeps running while paused
 ## so level-up choices and restart work.
 
-const LIFE_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_pickup_life.aseprite")
-
 const STATS_REFRESH: float = 0.25
 const ITEMS_SHOWN: int = 6
-const HEART_SIZE: float = 32.0
-const HEART_PITCH: float = 30.0
-const EMPTY_HEART_TINT: Color = Color(0.3, 0.22, 0.34, 1.0)
+const ORB_EMPTY_TINT: Color = Color(0.3, 0.22, 0.34, 1.0)
+const ORB_FILL_TINT: Color = Color(0.85, 0.32, 0.3, 1.0)
+const ORB_OUTLINE_TINT: Color = Color(0.0275, 0.0039, 0.0353, 1.0)
+## Low health is flagged below this fraction of max health.
+const LOW_LIFE_FRACTION: float = 0.25
 const LOW_LIFE_TINT: Color = Color(1.0, 0.45, 0.42, 1.0)
 const BOSS_WARNING_SECONDS: float = 10.0
 const BOSS_WARNING_TINT: Color = Color(1.0, 0.8, 0.45, 1.0)
 const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
 
-var run: Run
+var run: Run: set = _set_run
 var stats_refresh_left: float = 0.0
 
 @onready var stats_label: Label = $Stats
 @onready var xp_bar: ProgressBar = $XPBar
 @onready var xp_label: Label = $XPBar/XPLabel
-@onready var life_hearts: Control = $LifeHearts
+@onready var health_orb: Control = $HealthOrb
 @onready var life_label: Label = $LifeLabel
 @onready var boss_status_label: Label = $BossStatus
 @onready var dash_bar: ProgressBar = $Abilities/DashBar
@@ -48,10 +48,17 @@ var stats_refresh_left: float = 0.0
 func _ready() -> void:
 	for index: int in range(choice_buttons.size()):
 		choice_buttons[index].pressed.connect(_on_choice.bind(index))
-	life_hearts.draw.connect(_draw_life)
+	health_orb.draw.connect(_draw_health_orb)
 	level_up_panel.hide()
 	boss_panel.hide()
 	end_label.hide()
+
+
+## The run assigns itself once it is ready; hook the player's health signal then.
+func _set_run(value: Run) -> void:
+	run = value
+	if value != null and not value.player.health_changed.is_connected(_update_life):
+		value.player.health_changed.connect(_update_life)
 
 
 func _process(_delta: float) -> void:
@@ -69,9 +76,7 @@ func _process(_delta: float) -> void:
 	xp_label.text = "LEVEL %d    XP %d / %d" % [run.level, run.xp, run.xp_needed()]
 
 	var player: MountedPlayer = run.player
-	life_label.text = "LIFE %d/%d" % [player.health, player.max_health]
-	life_label.self_modulate = LOW_LIFE_TINT if player.health <= 1 else Color.WHITE
-	life_hearts.queue_redraw()
+	_update_life(player.health, player.max_health)
 	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
 	_update_ability(jump_bar, jump_label, "JUMP", _jump_wait(), player.jump_duration + player.jump_cooldown)
 
@@ -129,19 +134,47 @@ func _update_ability(bar: ProgressBar, label: Label, ability: String, wait: floa
 		label.text = "%s %.1fs" % [ability, ceilf(wait * 10.0) / 10.0]
 
 
-func _draw_life() -> void:
-	# PLACEHOLDER life display: one heart sprite per point of life, tighter as max life grows.
+func _update_life(current: int, maximum: int) -> void:
+	life_label.text = "LIFE %d / %d" % [current, maximum]
+	life_label.self_modulate = LOW_LIFE_TINT if current <= roundi(LOW_LIFE_FRACTION * maximum) else Color.WHITE
+	health_orb.queue_redraw()
+
+
+func _draw_health_orb() -> void:
+	# PLACEHOLDER life display: an orb filled from the bottom up in proportion to health.
 	if run == null:
 		return
-	var player: MountedPlayer = run.player
-	var heart: Texture2D = LIFE_FRAMES.get_frame_texture(&"idle", 0)
-	var pitch: float = HEART_PITCH
-	if player.max_health > 1:
-		pitch = minf(pitch, (life_hearts.size.x - HEART_SIZE) / (player.max_health - 1))
-	for index: int in range(player.max_health):
-		var bounds: Rect2 = Rect2(index * pitch, 0.0, HEART_SIZE, HEART_SIZE)
-		var tint: Color = Color.WHITE if index < player.health else EMPTY_HEART_TINT
-		life_hearts.draw_texture_rect(heart, bounds, false, tint)
+	var center: Vector2 = health_orb.size * 0.5
+	var radius: float = minf(health_orb.size.x, health_orb.size.y) * 0.5 - 2.0
+	_draw_orb_shape(health_orb, center, radius)
+	_draw_orb_fill(health_orb, center, radius, orb_fill_fraction())
+
+
+## The orb's container shape: empty interior and outline. Kept apart from the fill so the
+## circle can later be swapped for a heart without touching the fill logic.
+func _draw_orb_shape(canvas: Control, center: Vector2, radius: float) -> void:
+	canvas.draw_circle(center, radius, ORB_EMPTY_TINT)
+	canvas.draw_arc(center, radius, 0.0, TAU, 40, ORB_OUTLINE_TINT, 3.0, true)
+
+
+## Fills the circular segment below the health fraction's chord, rising from the bottom.
+func _draw_orb_fill(canvas: Control, center: Vector2, radius: float, fraction: float) -> void:
+	if fraction <= 0.0:
+		return
+	# Chord position: at fraction f the fill surface sits at sin(1 - 2f) * radius from the
+	# center, and every angle in [start, PI - start] lies below that chord.
+	var start: float = asin(clampf(1.0 - 2.0 * fraction, -1.0, 1.0))
+	var points: PackedVector2Array = []
+	for step: int in range(25):
+		var angle: float = lerpf(start, PI - start, step / 24.0)
+		points.append(center + Vector2(cos(angle), sin(angle)) * radius)
+	canvas.draw_colored_polygon(points, ORB_FILL_TINT)
+
+
+func orb_fill_fraction() -> float:
+	if run == null:
+		return 0.0
+	return clampf(float(run.player.health) / float(run.player.max_health), 0.0, 1.0)
 
 
 func _stats_text() -> String:

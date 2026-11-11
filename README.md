@@ -28,7 +28,7 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 - **Jump:** Space triggers a short leap independently of the spear attack. While high in the air the angel clears enemies and projectiles; landing kicks up dust.
 - **Dash:** a fast burst with brief invulnerability.
 
-- **Life:** five life points to start, shown as hearts. Contact with enemies or boss projectiles costs one life, followed by a short invulnerability blink. Dashing also grants invulnerability and passes through projectiles. Boss projectiles stop at world walls and pillars, and check their entire movement each physics tick so fast shots cannot skip through the player. Running out of life ends the run.
+- **Life:** 100 health to start, shown as a bottom-filled orb. Enemy and boss contact costs 10-25 health depending on the enemy, and boss projectiles cost 12, followed by a short invulnerability blink. Dashing also grants invulnerability and passes through projectiles. Boss projectiles stop at world walls and pillars, and check their entire movement each physics tick so fast shots cannot skip through the player. Running out of health ends the run.
 - **Experience:** slain enemies drop experience gems, which are pulled in when you come near. Filling the bar at the top raises your level, pauses the game, and offers three upgrades; pick one by clicking or pressing 1-3.
 - **Life pickups:** enemies sometimes drop life, and each boss drops two. Life stays on the ground while you are at full health.
 - **Items:** enemies rarely drop an item, and every sin boss drops one. Walk over it to collect it. The top-right list appears after collecting an item and shows the latest six, with a total count. Every collected bonus remains active for the run.
@@ -45,7 +45,7 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 | F3 | Show or hide the stats overlay |
 | R | Restart the run |
 
-The HUD shows life and experience numerically as well as with hearts and a bar, the next boss countdown or active boss health at the top centre, and dash/jump readiness gauges at the bottom. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
+The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown or active boss health at the top centre, and dash/jump readiness gauges at the bottom. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
 
 The owner's EIGHT logo appears at the top right as a transparent pixel-art adaptation of the supplied `Eight.pdf`, recolored in the game's mint, steel, and purple palette. This specific AI-assisted adaptation was requested by the owner; its provenance and generation prompt are recorded in `eight/assets/art/CREDITS.md` and `eight_logo_pixel.md`. The original design and other authored assets are preserved.
 
@@ -116,7 +116,7 @@ godot --headless --path eight --script res://tests/hud_smoke.gd
 
 `prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
 
-`hud_smoke.gd` checks the visible logo, placeholder notice, physical F3 toggle, ability readiness, life/XP text, boss status, item list limit, level-up text, and HUD bounds and overlap at the default viewport size.
+`hud_smoke.gd` checks the visible logo, placeholder notice, physical F3 toggle, ability readiness, life/XP text and orb fill, boss status, item list limit, level-up text, and HUD bounds and overlap at the default viewport size.
 
 ## Performance benchmark
 

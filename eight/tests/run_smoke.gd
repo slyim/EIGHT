@@ -46,7 +46,7 @@ func _run() -> void:
 	current_scene = run
 	await _wait_ticks(3)
 	var player: MountedPlayer = run.player
-	_check(player.health == 5, "Player must start with five life.")
+	_check(player.health == 100, "Player must start with 100 health.")
 
 	# Spear kills a horde enemy, which drops experience that gets pulled in and collected.
 	var enemy: Enemy = run.spawn_enemy(0, player.global_position + Vector2(90.0, 0.0))
@@ -131,12 +131,18 @@ func _run() -> void:
 	_check(not paused and not run.hud.level_up_panel.visible, "Choosing must resume the run.")
 
 	# Damage, invulnerability, and life pickups.
-	_check(player.take_damage(1), "The player must take damage.")
-	_check(not player.take_damage(1), "Damage must be ignored during hurt invulnerability.")
-	_check(player.health == 4, "One hit must cost one life.")
-	run.spawn_pickup(Pickup.Kind.HEART, player.global_position + Vector2(40.0, 0.0), 1)
+	_check(player.take_damage(10), "The player must take damage.")
+	_check(not player.take_damage(10), "Damage must be ignored during hurt invulnerability.")
+	_check(player.health == 90, "A husk touch must remove 10 health.")
+	run.spawn_pickup(Pickup.Kind.HEART, player.global_position + Vector2(40.0, 0.0), 20)
 	await _wait_ticks(30)
-	_check(player.health == 5, "A life pickup must heal the player.")
+	_check(player.health == 100, "A heart pickup must heal 20 without exceeding max health.")
+
+	# The Vitality upgrade raises max health and heals the increase.
+	run.level_up_options.assign([run.UPGRADES[4]])
+	run.choose_upgrade(0)
+	_check(player.max_health == 120, "Vitality must raise max health to 120.")
+	_check(player.health == 120, "Vitality must heal the raised health.")
 
 	# Dash moves quickly and grants invulnerability.
 	player.invulnerable_left = 0.0
@@ -177,9 +183,9 @@ func _run() -> void:
 	root.add_child(second)
 	current_scene = second
 	await _wait_ticks(3)
-	for hit: int in range(second.player.max_health):
+	for hit: int in range(10):
 		second.player.invulnerable_left = 0.0
-		second.player.take_damage(1)
+		second.player.take_damage(10)
 	_check(second.player.is_dead and second.ended and not second.victory, "Losing all life must end the run.")
 	_check(second.hud.end_label.visible, "The defeat message must be shown.")
 

@@ -97,13 +97,24 @@ func _run() -> void:
 	await _wait_ticks(40)
 	_check(hud.dash_label.text == "DASH READY", "Dash must read ready after landing.")
 
-	# Life and experience read as numbers as well as icons and fill.
+	# Life and experience read as numbers as well as fill.
 	player.health = 1
 	run.xp = 2
 	await process_frame
-	_check(hud.life_label.text == "LIFE 1/5", "Life must read as a number, got %s." % hud.life_label.text)
-	_check(hud.life_label.self_modulate == Hud.LOW_LIFE_TINT, "Last life must be flagged.")
+	_check(hud.life_label.text == "LIFE 1 / 100", "Life must read as a number, got %s." % hud.life_label.text)
+	_check(hud.life_label.self_modulate == Hud.LOW_LIFE_TINT, "Low health must be flagged.")
 	_check(hud.xp_label.text == "LEVEL 1    XP 2 / 7", "XP must read as numbers, got %s." % hud.xp_label.text)
+	player.health = player.max_health
+
+	# The orb fill fraction follows health, including when max health grows.
+	player.health = 73
+	await process_frame
+	_check(absf(hud.orb_fill_fraction() - 0.73) < 0.001, "The orb fill must follow health, got %f." % hud.orb_fill_fraction())
+	player.max_health = 200
+	player.health = 100
+	await process_frame
+	_check(absf(hud.orb_fill_fraction() - 0.5) < 0.001, "The orb fill must follow max health growth, got %f." % hud.orb_fill_fraction())
+	player.max_health = 100
 	player.health = player.max_health
 
 	# The countdown and the boss bar share a slot, so exactly one shows.

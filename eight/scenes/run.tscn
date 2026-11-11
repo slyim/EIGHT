@@ -204,24 +204,24 @@ offset_bottom = 106.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_stats")
 
-[node name="LifeHearts" type="Control" parent="HUD/Hud"]
+[node name="HealthOrb" type="Control" parent="HUD/Hud"]
 anchors_preset = 0
 offset_left = 26.0
-offset_top = 34.0
-offset_right = 256.0
-offset_bottom = 66.0
+offset_top = 28.0
+offset_right = 66.0
+offset_bottom = 68.0
 mouse_filter = 2
 
 [node name="LifeLabel" type="Label" parent="HUD/Hud"]
 layout_mode = 0
-offset_left = 260.0
+offset_left = 74.0
 offset_top = 36.0
 offset_right = 354.0
 offset_bottom = 64.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 18
-text = "LIFE 5/5"
-horizontal_alignment = 2
+text = "LIFE 100 / 100"
+horizontal_alignment = 0
 vertical_alignment = 1
 
 [node name="Stats" type="Label" parent="HUD/Hud"]

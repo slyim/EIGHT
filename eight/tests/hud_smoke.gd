@@ -76,6 +76,7 @@ func _run() -> void:
 	_check(not hud.stats_panel.visible, "The stats overlay must start hidden.")
 	await _toggle_stats(hud)
 	_check(hud.stats_panel.visible and hud.debug_label.text.contains("FPS"), "F3 must show the filled stats overlay.")
+	_check(hud.debug_label.text.contains("FLIGHT 100%"), "The stats overlay must show flight stamina.")
 	await _wait_ticks(1)
 	_check_layout(hud, PackedStringArray(["StatusPanel", "StatsPanel", "BossStatus", "AssetNotice", "Abilities", "Controls", "LevelUp"]))
 	await _toggle_stats(hud)
@@ -83,21 +84,27 @@ func _run() -> void:
 
 	# Readiness is on screen without the overlay.
 	_check(hud.dash_label.is_visible_in_tree() and hud.dash_label.text == "DASH READY", "Dash must read ready.")
-	_check(hud.jump_label.is_visible_in_tree() and hud.jump_label.text == "JUMP READY", "Jump must read ready.")
+	_check(hud.flight_label.is_visible_in_tree() and hud.flight_label.text == "FLIGHT READY", "Flight must read ready.")
+	_check(hud.flight_bar.value == 1.0 and hud.flight_bar.self_modulate == Color.WHITE, "A full flight gauge must be full and lit.")
 	player.dash_cooldown_left = 0.35
-	player.jump_time = 0.0
+	player.flight_stamina = player.flight_time * 0.5
 	await process_frame
 	_check(hud.dash_label.text.begins_with("DASH 0."), "Dash must show its cooldown, got %s." % hud.dash_label.text)
 	_check(hud.dash_bar.value < 1.0, "The dash bar must drain on cooldown.")
-	_check(hud.jump_label.text.begins_with("JUMP 0."), "Jump must wait while airborne, got %s." % hud.jump_label.text)
-	player.jump_time = -1.0
-	player.height = 0.0
+	# The flight gauge follows stamina and greys out below the take-off minimum.
+	_check(hud.flight_label.text == "FLIGHT 50%" and is_equal_approx(hud.flight_bar.value, 0.5), "The flight gauge must follow stamina, got %s." % hud.flight_label.text)
+	_check(hud.flight_bar.self_modulate == Color.WHITE, "Flight must stay lit while take-off is possible.")
+	player.flight_stamina = player.flight_min_stamina * 0.5
+	await process_frame
+	_check(hud.flight_bar.value < player.flight_min_stamina / player.flight_time, "The flight gauge must drop with stamina.")
+	_check(hud.flight_bar.self_modulate == Hud.ABILITY_WAIT_TINT, "Flight must grey out below the take-off minimum.")
+	player.flight_stamina = player.flight_time
 	player.dash_cooldown_left = 0.0
 	player.begin_descent(100.0, 0.5)
 	await process_frame
-	_check(hud.dash_label.text == "DASH --" and hud.jump_label.text == "JUMP --", "Abilities must read locked during descent.")
+	_check(hud.dash_label.text == "DASH --" and hud.flight_label.text == "FLIGHT --", "Abilities must read locked during descent.")
 	await _wait_ticks(40)
-	_check(hud.dash_label.text == "DASH READY", "Dash must read ready after landing.")
+	_check(hud.dash_label.text == "DASH READY" and hud.flight_label.text == "FLIGHT READY", "Abilities must read ready after landing.")
 
 	# Life and experience read as numbers as well as fill.
 	player.health = 1

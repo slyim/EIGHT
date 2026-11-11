@@ -17,7 +17,7 @@ const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
 
 var run: Run: set = _set_run
 var stats_refresh_left: float = 0.0
-## Active weapon and bow draw, built from the jump gauge so it matches the other gauges.
+## Active weapon and bow draw, built from the flight gauge so it matches the other gauges.
 var weapon_bar: ProgressBar
 var weapon_label: Label
 
@@ -31,8 +31,8 @@ var weapon_label: Label
 @onready var boss_status_label: Label = $BossStatus
 @onready var dash_bar: ProgressBar = $Abilities/DashBar
 @onready var dash_label: Label = $Abilities/DashBar/Label
-@onready var jump_bar: ProgressBar = $Abilities/JumpBar
-@onready var jump_label: Label = $Abilities/JumpBar/Label
+@onready var flight_bar: ProgressBar = $Abilities/FlightBar
+@onready var flight_label: Label = $Abilities/FlightBar/Label
 @onready var items_label: Label = $Items
 @onready var boss_panel: Control = $BossPanel
 @onready var boss_name_label: Label = $BossPanel/BossName
@@ -54,9 +54,9 @@ func _ready() -> void:
 	for index: int in range(choice_buttons.size()):
 		choice_buttons[index].pressed.connect(_on_choice.bind(index))
 	health_orb.draw.connect(_draw_health_orb)
-	weapon_bar = jump_bar.duplicate() as ProgressBar
+	weapon_bar = flight_bar.duplicate() as ProgressBar
 	weapon_bar.name = &"WeaponBar"
-	jump_bar.get_parent().add_child(weapon_bar)
+	flight_bar.get_parent().add_child(weapon_bar)
 	weapon_label = weapon_bar.get_node(^"Label") as Label
 	level_up_panel.hide()
 	boss_panel.hide()
@@ -89,7 +89,7 @@ func _process(_delta: float) -> void:
 	var player: MountedPlayer = run.player
 	_update_life(player.health, player.max_health)
 	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
-	_update_ability(jump_bar, jump_label, "JUMP", _jump_wait(), player.jump_duration + player.jump_cooldown)
+	_update_flight(player)
 	_update_weapon(player)
 
 	items_label.visible = not run.items.is_empty()
@@ -128,13 +128,23 @@ func _dash_wait() -> float:
 	return maxf(run.player.dash_cooldown_left, run.player.dash_time_left)
 
 
-## Seconds until a jump can start: the rest of any jump in progress, then its cooldown.
-func _jump_wait() -> float:
-	var player: MountedPlayer = run.player
-	var wait: float = player.jump_cooldown_left
-	if player.jump_time >= 0.0:
-		wait = player.jump_duration - player.jump_time + player.jump_cooldown
-	return maxf(wait, player.dash_time_left)
+## Remaining flight stamina, rounded down so 100% only shows when full.
+func _flight_percent(player: MountedPlayer) -> int:
+	return floori(100.0 * player.flight_stamina / player.flight_time)
+
+
+## The flight gauge holds the remaining stamina; it greys out below the take-off minimum.
+func _update_flight(player: MountedPlayer) -> void:
+	var locked: bool = player.is_dead or player.is_descending()
+	flight_bar.value = 0.0 if locked else player.flight_stamina / player.flight_time
+	var low: bool = player.flight_stamina < player.flight_min_stamina
+	flight_bar.self_modulate = ABILITY_WAIT_TINT if locked or low else Color.WHITE
+	if locked:
+		flight_label.text = "FLIGHT --"
+	elif player.flight_stamina >= player.flight_time:
+		flight_label.text = "FLIGHT READY"
+	else:
+		flight_label.text = "FLIGHT %d%%" % _flight_percent(player)
 
 
 func _update_weapon(player: MountedPlayer) -> void:
@@ -236,11 +246,11 @@ func _stats_text() -> String:
 		"",
 		"DMG %d  ATK %.1f/s  REACH %d" % [player.spear_damage, attack_rate, roundi(player.spear_reach)],
 		"PIERCE %d  SPEED %d  PULL %d" % [player.spear_pierce, roundi(player.movement_speed), roundi(player.pickup_radius)],
-		"COMBO %d/%d  DASH %s  JUMP %s" % [
+		"COMBO %d/%d  DASH %s  FLIGHT %d%%" % [
 			player.attack_step + 1 if player.combo_window_left > 0.0 or player.attack_time_left > 0.0 else 0,
 			MountedPlayer.COMBO_LENGTH,
 			"ok" if _dash_wait() <= 0.0 else "--",
-			"ok" if _jump_wait() <= 0.0 else "--",
+			_flight_percent(player),
 		],
 	])
 	return "\n".join(lines)
@@ -272,7 +282,7 @@ func show_level_up(options: Array[Dictionary]) -> void:
 		choice_details[index].text = option["text"]
 	var more: int = run.pending_level_ups - 1
 	level_up_heading.text = "LEVEL UP - CHOOSE ONE" if more <= 0 else "LEVEL UP - CHOOSE ONE (+%d MORE)" % more
-	# No focus grab: Space is the jump key and must not pick a choice by accident.
+	# No focus grab: Space is the flight key and must not pick a choice by accident.
 	level_up_panel.show()
 
 

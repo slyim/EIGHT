@@ -425,7 +425,7 @@ text = "DASH READY"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="JumpBar" type="ProgressBar" parent="HUD/Hud/Abilities"]
+[node name="FlightBar" type="ProgressBar" parent="HUD/Hud/Abilities"]
 custom_minimum_size = Vector2(160, 30)
 layout_mode = 2
 mouse_filter = 2
@@ -435,7 +435,7 @@ max_value = 1.0
 value = 1.0
 show_percentage = false
 
-[node name="Label" type="Label" parent="HUD/Hud/Abilities/JumpBar"]
+[node name="Label" type="Label" parent="HUD/Hud/Abilities/FlightBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -444,7 +444,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_font_sizes/font_size = 16
-text = "JUMP READY"
+text = "FLIGHT READY"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -463,7 +463,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
 theme_override_font_sizes/font_size = 13
-text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Space jump   |   Shift / RMB dash   |   F3 stats   |   R restart   |   Hold E exit"
+text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   F3 stats   |   R restart   |   Hold E exit"
 horizontal_alignment = 1
 vertical_alignment = 1
 

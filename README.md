@@ -26,9 +26,10 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 
 - **Light spear combo:** hold attack to chain thrust, thrust, and a sweeping finisher. The finisher swings the light trident through a 140-degree arc, hitting every enemy inside it for double damage (walls still block it). Pausing longer than the combo window restarts the chain. Spear hits land with a brief hit-stop and camera shake (stronger on the finisher) and knock enemies back.
 - **Bow:** press Q or turn the mouse wheel to switch between spear and bow; switching cancels a draw. Hold attack to draw and release to fire one arrow at the mouse. A longer draw (full charge after 0.75 s) gives more damage, range, and pierce; a quick tap still fires a weak, short arrow. Arrows are unlimited and stop at walls and pillars. The bow, its draw, and the arrows are drawn PLACEHOLDER shapes, and the shot reuses the placeholder thrust sound.
-- **Input buffer:** a dash, jump, or attack pressed up to 0.15 s before it is ready still fires when it becomes available.
-- **Jump:** Space triggers a short leap independently of the spear attack. While high in the air the angel clears enemies and projectiles; landing kicks up dust.
-- **Dash:** a fast burst with brief invulnerability.
+- **Input buffer:** a dash, take-off, or attack pressed up to 0.15 s before it is ready still fires when it becomes available.
+- **Flight:** hold Space to take off. The angel climbs to a hover about 80 px above its ground shadow in 0.2 s, bobs gently while Space is held, and glides back down in 0.25 s when it is released; landing kicks up dust. The climb always finishes, so a tap of Space is a short hop. Flight stamina (2.5 s when full) drains whenever the angel is off the ground and refills only after landing (0.6 s of flight per second, so about 4 s from empty). Taking off needs at least 0.5 s of stamina, so tapping cannot dodge the meter; running dry forces a landing even with Space held, and taking off again needs a fresh press. Pressing Space while gliding down climbs again if stamina allows. Walls and pillars still block flight; enemies never block the angel's movement, in the air or on the ground. All of this is tunable in the player's **Flight** export group.
+- **Air and ground:** while airborne, ground attacks miss the angel: enemy and boss contact and boss projectiles. Attacks from the air (`take_damage(amount, true)`) land at any height. The spear (thrusts and finisher) hits flying enemies only while airborne, and ground enemies and practice targets only on the ground. Arrows hit both from any height, and fly at the height of the bow.
+- **Dash:** a fast burst with brief invulnerability. It works the same in the air: the angel bursts along at its current height while flight and stamina drain continue, and take-off is allowed mid-dash.
 - **Flying enemies:** after about a minute some horde spawns are flying enemies (PLACEHOLDER imp art, tinted violet). They hover above the plain with a ground shadow and a gentle bob, keep a preferred distance instead of piling on, and fire an aimed shot after a short wind-up glint. Their shots hurt a grounded or airborne angel and pass over walls and pillars, and touching one hurts from the air. The bow hits them anywhere; the spear reaches them only while the angel is airborne. They do not collide with walls, pillars, or each other.
 
 - **Life:** 100 health to start, shown as a bottom-filled orb. Enemy and boss contact costs 8-25 health depending on the enemy, and boss projectiles cost 12, followed by a short invulnerability blink. Dashing also grants invulnerability and passes through projectiles. Boss projectiles stop at world walls and pillars, and check their entire movement each physics tick so fast shots cannot skip through the player. Flying-enemy shots cost 10 and reach an airborne angel, while ground enemies and boss contact and shots miss one. Running out of health ends the run.
@@ -44,14 +45,14 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 | Mouse | Aim the spear or bow |
 | Hold left mouse button or J | Spear combo (thrust, thrust, finisher); with the bow, hold to draw and release to fire |
 | Q or mouse wheel | Switch between spear and bow |
-| Space | Jump |
+| Hold Space | Fly; release to land |
 | Shift or right mouse button | Dash |
 | 1 / 2 / 3 or click | Choose a level-up upgrade |
 | F3 | Show or hide the stats overlay |
 | Hold E inside an exit portal | Confirm travel to the next stage (1 second) |
 | R | Restart the run |
 
-The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown, active boss health, or portal prompt at the top centre, plus the current stage/sin and persistent run timer/difficulty tier, and dash/jump readiness gauges at the bottom, next to a weapon gauge showing the active weapon and the bow's draw charge. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, and dash/jump readiness.
+The HUD shows life and experience numerically as well as with a health orb and a bar, the next boss countdown, active boss health, or portal prompt at the top centre, plus the current stage/sin and persistent run timer/difficulty tier, and the dash readiness and flight stamina gauges at the bottom (flight greys out below the take-off minimum), next to a weapon gauge showing the active weapon and the bow's draw charge. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, dash readiness, and flight stamina.
 
 The owner's EIGHT logo appears at the top right as a transparent pixel-art adaptation of the supplied `Eight.pdf`, recolored in the game's mint, steel, and purple palette. This specific AI-assisted adaptation was requested by the owner; its provenance and generation prompt are recorded in `eight/assets/art/CREDITS.md` and `eight_logo_pixel.md`. The original design and other authored assets are preserved.
 
@@ -116,6 +117,7 @@ This checks project loading and asset imports, not gameplay. Run the native beha
 godot --headless --path eight --script res://tests/prototype_smoke.gd
 godot --headless --path eight --script res://tests/run_smoke.gd
 godot --headless --path eight --script res://tests/player_controls_smoke.gd
+godot --headless --path eight --script res://tests/flight_smoke.gd
 godot --headless --path eight --script res://tests/projectile_smoke.gd
 godot --headless --path eight --script res://tests/flying_enemy_smoke.gd
 godot --headless --path eight --script res://tests/hud_smoke.gd
@@ -128,6 +130,8 @@ godot --headless --path eight --script res://tests/stage_smoke.gd
 Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
 
 `weapon_smoke.gd` checks Q and mouse-wheel weapon switching, draw cancelling, the HUD weapon gauge, charged and tap arrow damage, an arrow stopped by a pillar, arrows expiring at their range, a buffered dash press (and that a stale press is dropped), and that a spear hit starts hit-stop and shake and time recovers afterwards.
+
+`flight_smoke.gd` checks that holding Space climbs to a bobbing hover and stays up, releasing lands (one `jumped` and one `landed` per flight), a tap is a short hop, stamina drains in the air and refills only on the ground, take-off is refused below the minimum (and that press never fires later), running dry forces a landing that holding Space cannot undo, the HUD flight gauge follows stamina, an air dash keeps the angel up, pillars still block flight, ground damage misses while airborne but `take_damage(10, true)` lands, the spear thrust and finisher hit a layer-5 flying stand-in only while airborne and a ground enemy only while grounded, arrows hit a flying stand-in from the ground and a ground enemy from the air, and a slain angel falls to the ground.
 
 `stage_smoke.gd` covers clock/tier growth, generic enemy and boss scaling, spawn pressure, safe portal placement, fresh-press/hold/cancel confirmation, farming without the next boss, stage cleanup and retained difficulty, all eight bosses through countdowns and portals, and immediate Satan victory.
 

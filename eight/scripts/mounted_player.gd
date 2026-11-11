@@ -1,6 +1,6 @@
 class_name MountedPlayer
 extends CharacterBody2D
-## Mounted hero controller: movement, dash, jump, a three-hit light-spear combo, a
+## Mounted hero controller: movement, dash, flight, a three-hit light-spear combo, a
 ## charged bow, and the descent from the sky that opens a run. Sprites and drawn effects
 ## (including the bow and arrows) are PLACEHOLDER art.
 
@@ -10,7 +10,9 @@ signal hurt
 ## step is 0 and 1 for thrusts, 2 for the sweeping finisher.
 signal attack_started(step: int)
 signal dashed
+## Emitted when the angel leaves the ground.
 signal jumped
+## Emitted on touchdown.
 signal landed
 signal weapon_switched(weapon: Weapon)
 ## charge runs from 0 (minimum-draw tap) to 1 (full draw).
@@ -23,8 +25,15 @@ const COMBO_LENGTH: int = 3
 ## Spear sprite length in world units (48 px art at 2x); the tip sits at spear_length.
 const SPEAR_SPRITE_LENGTH: float = 96.0
 const SPEAR_HEIGHT: float = 6.0
-## Above this height a jump clears enemies and projectiles.
+## Above this height the angel is airborne (see is_airborne).
 const JUMP_CLEAR_HEIGHT: float = 12.0
+## PLACEHOLDER feel: the gentle hover bob, in world units and seconds per cycle.
+const FLIGHT_BOB_HEIGHT: float = 4.0
+const FLIGHT_BOB_PERIOD: float = 1.0
+## Spear layers on the ground (World, practice targets, enemies) and in the air (World and
+## flying enemies on layer 5). Walls stop it either way.
+const SPEAR_GROUND_MASK: int = 1 | 4 | 8
+const SPEAR_AIR_MASK: int = 1 | 16
 const SLASH_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_vfx_slash.aseprite")
 const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 
@@ -64,7 +73,7 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 @export_range(200.0, 3000.0, 10.0) var arrow_speed: float = 950.0
 
 @export_group("Feel")
-## Seconds a dash, jump, or attack press is remembered until it can fire.
+## Seconds a dash, take-off, or attack press is remembered until it can fire.
 @export_range(0.0, 0.5, 0.01) var input_buffer: float = 0.15
 ## Real-time seconds the game slows on a spear thrust hit, and on a finisher hit.
 @export_range(0.0, 0.3, 0.005) var hit_stop: float = 0.045
@@ -79,10 +88,21 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 @export_range(0.05, 0.5, 0.01) var dash_duration: float = 0.16
 @export_range(0.1, 3.0, 0.05) var dash_cooldown: float = 0.55
 
-@export_group("Jump")
-@export_range(0.2, 1.5, 0.05) var jump_duration: float = 0.45
-@export_range(16.0, 160.0, 2.0) var jump_height: float = 56.0
-@export_range(0.0, 1.0, 0.05) var jump_cooldown: float = 0.15
+@export_group("Flight")
+## Seconds of flight a full stamina meter holds. It drains whenever the angel is off the ground.
+@export_range(0.5, 10.0, 0.1) var flight_time: float = 2.5
+## Seconds of flight regained per second on the ground; refilling starts only after landing.
+@export_range(0.05, 5.0, 0.05) var flight_refill_rate: float = 0.6
+## Stamina (seconds) needed to take off, so tapping Space cannot dodge the meter.
+@export_range(0.05, 5.0, 0.05) var flight_min_stamina: float = 0.5
+## Seconds to climb from the ground to hover height. A take-off always finishes its climb,
+## so a tap of Space is a short hop.
+@export_range(0.05, 1.0, 0.01) var flight_rise_time: float = 0.2
+## Seconds to glide back down from hover height.
+@export_range(0.05, 1.0, 0.01) var flight_descend_time: float = 0.25
+@export_range(16.0, 240.0, 2.0) var flight_height: float = 80.0
+## Movement speed multiplier at hover height (blended in during the climb).
+@export_range(0.25, 2.0, 0.05) var flight_speed_multiplier: float = 1.0
 
 @export_group("Life")
 @export_range(1, 500, 1) var max_health: int = 100
@@ -104,8 +124,15 @@ var spear_length: float = 56.0
 var dash_direction: Vector2 = Vector2.RIGHT
 var dash_time_left: float = 0.0
 var dash_cooldown_left: float = 0.0
-var jump_time: float = -1.0
-var jump_cooldown_left: float = 0.0
+## Climbing to or holding hover height: Space is held, or a take-off is still climbing.
+var flying: bool = false
+## 0 on the ground, 1 at hover height.
+var lift: float = 0.0
+## Seconds of flight left.
+var flight_stamina: float = 0.0
+## Seconds since take-off; drives the hover bob.
+var hover_time: float = 0.0
+## How far the sprite is drawn above the ground; the shadow and hit position stay put.
 var height: float = 0.0
 var descent_height: float = 0.0
 var descent_duration: float = 0.0
@@ -137,6 +164,7 @@ var hit_stop_timer: SceneTreeTimer
 
 func _ready() -> void:
 	health = max_health
+	flight_stamina = flight_time
 	bow.draw.connect(_draw_bow)
 
 
@@ -175,6 +203,8 @@ func begin_descent(from_height: float, duration: float) -> void:
 	descent_height = from_height
 	descent_duration = duration
 	descent_left = duration
+	flying = false
+	lift = 0.0
 	height = from_height
 
 
@@ -182,6 +212,8 @@ func is_descending() -> bool:
 	return descent_left > 0.0
 
 
+## True once the angel is high enough to clear ground things: ground attacks miss it and the
+## spear reaches flying enemies instead of ground ones. The single source of truth for "in the air".
 func is_airborne() -> bool:
 	return height > JUMP_CLEAR_HEIGHT
 
@@ -189,6 +221,12 @@ func is_airborne() -> bool:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		velocity = Vector2.ZERO
+		if lift > 0.0:
+			# A slain angel drops out of the sky.
+			flying = false
+			_move_flight(delta)
+			sprite.position = sprite_base - Vector2(0.0, height)
+			queue_redraw()
 		return
 	if is_descending():
 		descent_left = maxf(0.0, descent_left - delta)
@@ -204,7 +242,6 @@ func _physics_process(delta: float) -> void:
 	# movement tick also retains its dash invulnerability.
 	dash_time_left = maxf(0.0, dash_time_left - delta)
 	dash_cooldown_left = maxf(0.0, dash_cooldown_left - delta)
-	jump_cooldown_left = maxf(0.0, jump_cooldown_left - delta)
 	dash_buffer_left = input_buffer if Input.is_action_just_pressed(&"dash") else maxf(0.0, dash_buffer_left - delta)
 	jump_buffer_left = input_buffer if Input.is_action_just_pressed(&"jump") else maxf(0.0, jump_buffer_left - delta)
 	attack_buffer_left = input_buffer if Input.is_action_just_pressed(&"attack") else maxf(0.0, attack_buffer_left - delta)
@@ -216,7 +253,7 @@ func _physics_process(delta: float) -> void:
 	if not mouse_offset.is_zero_approx():
 		aim_direction = mouse_offset.normalized()
 
-	_update_jump(delta)
+	_update_flight(delta)
 	if dash_buffer_left > 0.0 and dash_cooldown_left <= 0.0 and dash_time_left <= 0.0:
 		dash_buffer_left = 0.0
 		dash_direction = movement.normalized() if not movement.is_zero_approx() else aim_direction
@@ -227,7 +264,7 @@ func _physics_process(delta: float) -> void:
 	if dash_time_left > 0.0:
 		velocity = dash_direction * dash_speed
 	else:
-		velocity = movement * movement_speed
+		velocity = movement * movement_speed * lerpf(1.0, flight_speed_multiplier, lift)
 	move_and_slide()
 	if not movement.is_zero_approx():
 		mount_direction = movement.normalized()
@@ -236,22 +273,39 @@ func _physics_process(delta: float) -> void:
 	_update_visuals(movement, delta)
 
 
-func _update_jump(delta: float) -> void:
-	if jump_time < 0.0:
-		if jump_buffer_left > 0.0 and jump_cooldown_left <= 0.0 and dash_time_left <= 0.0:
-			jump_buffer_left = 0.0
-			jump_time = 0.0
+## Hold Space to take off and hover. Releasing it (once the climb is done) or running out of
+## stamina brings the angel down; a press while gliding down climbs again if stamina allows.
+func _update_flight(delta: float) -> void:
+	if flying:
+		# A press while flying is spent here, so it cannot relaunch the angel after landing.
+		jump_buffer_left = 0.0
+		if flight_stamina <= 0.0 or (lift >= 1.0 and not Input.is_action_pressed(&"jump")):
+			flying = false
+	elif jump_buffer_left > 0.0 and flight_stamina >= flight_min_stamina:
+		jump_buffer_left = 0.0
+		flying = true
+		if lift == 0.0:
+			hover_time = 0.0
 			jumped.emit()
+	_move_flight(delta)
+
+
+## Climbs toward hover height or glides to the ground, draining stamina while off the ground.
+## Stamina refills only once landed. Leaves height alone while grounded.
+func _move_flight(delta: float) -> void:
+	if lift == 0.0 and not flying:
+		flight_stamina = minf(flight_time, flight_stamina + flight_refill_rate * delta)
 		return
-	jump_time += delta
-	var t: float = jump_time / jump_duration
-	if t >= 1.0:
-		jump_time = -1.0
+	lift = move_toward(lift, 1.0 if flying else 0.0, delta / (flight_rise_time if flying else flight_descend_time))
+	flight_stamina = maxf(0.0, flight_stamina - delta)
+	if lift == 0.0:
 		height = 0.0
-		jump_cooldown_left = jump_cooldown
 		_land(4.0)
-	else:
-		height = 4.0 * jump_height * t * (1.0 - t)
+		return
+	hover_time += delta
+	# Eases out on the climb and in on the way down; the bob fades in with height.
+	var bob: float = sin(hover_time * TAU / FLIGHT_BOB_PERIOD) * FLIGHT_BOB_HEIGHT * lift
+	height = flight_height * (1.0 - (1.0 - lift) * (1.0 - lift)) + bob
 
 
 func _land(shake: float) -> void:
@@ -299,6 +353,8 @@ func _push(collider: Object, scale: float) -> void:
 func _update_attack(delta: float) -> void:
 	cooldown_left = maxf(0.0, cooldown_left - delta)
 	combo_window_left = maxf(0.0, combo_window_left - delta)
+	# The spear strikes what shares the angel's level: flying enemies in the air, the rest on the ground.
+	spear_cast.collision_mask = SPEAR_AIR_MASK if is_airborne() else SPEAR_GROUND_MASK
 	if weapon == Weapon.BOW:
 		_update_bow(delta)
 		return
@@ -369,6 +425,7 @@ func fire_arrow(charge: float) -> Arrow:
 	arrow.damage = roundi(lerpf(bow_min_damage, maxi(bow_min_damage, bow_max_damage), charge))
 	arrow.range_left = lerpf(bow_min_range, maxf(bow_min_range, bow_max_range), charge)
 	arrow.pierce = roundi(lerpf(1.0, bow_max_pierce, charge))
+	arrow.height = SPEAR_HEIGHT + height
 	arrow.position = global_position
 	get_parent().add_child(arrow)
 	arrow_fired.emit(charge)
@@ -435,10 +492,11 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	var animation: StringName = &"idle"
 	if is_descending():
 		animation = &"descend"
-	elif height > 0.0:
-		animation = &"jump"
 	elif dash_time_left > 0.0:
 		animation = &"dash"
+	elif height > 0.0:
+		# Wings raised on the climb; spread and beating while hovering or gliding down.
+		animation = &"jump" if flying and lift < 1.0 else &"descend"
 	elif not movement.is_zero_approx():
 		animation = &"run"
 	if sprite.animation != animation:
@@ -465,10 +523,13 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	queue_redraw()
 
 
+## True while ground attacks cannot land. Attacks from the air (see take_damage) still
+## reach an airborne player.
 func is_invulnerable() -> bool:
 	return invulnerable_left > 0.0 or dash_time_left > 0.0 or is_airborne() or is_descending()
 
 
+## Returns true when the damage landed.
 ## Ground attacks miss an airborne player; attacks from the air (from_air) reach the player at any height.
 func take_damage(amount: int, from_air: bool = false) -> bool:
 	if is_dead or amount <= 0 or is_descending() or invulnerable_left > 0.0 or dash_time_left > 0.0:
@@ -497,10 +558,11 @@ func heal(amount: int) -> void:
 
 
 func _draw() -> void:
-	# PLACEHOLDER ground shadow (shrinks while airborne) and the descent light beam.
-	var lift: float = clampf(1.0 - height / 160.0, 0.35, 1.0)
+	# PLACEHOLDER ground shadow (stays on the ground and shrinks as the angel rises) and the
+	# descent light beam.
+	var shrink: float = clampf(1.0 - height / 160.0, 0.35, 1.0)
 	draw_set_transform(Vector2(0.0, 14.0), 0.0, Vector2(1.0, 0.3))
-	draw_circle(Vector2.ZERO, 22.0 * lift, Color(0.0275, 0.0039, 0.0353, 0.75))
+	draw_circle(Vector2.ZERO, 22.0 * shrink, Color(0.0275, 0.0039, 0.0353, 0.75))
 	draw_set_transform(Vector2.ZERO)
 	if is_descending():
 		var glow: float = 1.0 - descent_left / descent_duration

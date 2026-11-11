@@ -1,10 +1,11 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/run.gd" id="1_run"]
 [ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="3_hud"]
 [ext_resource type="AudioStream" path="res://assets/audio/placeholder/placeholder_music_loop.ogg" id="4_music"]
 [ext_resource type="Texture2D" path="res://assets/art/eight_logo_pixel.png" id="5_logo"]
+[ext_resource type="Script" path="res://scripts/lava_pools.gd" id="6_lava"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(4096, 48)
@@ -142,6 +143,9 @@ shape = SubResource("RectangleShape2D_pillar")
 [node name="Pillar6" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(400, -1300)
 shape = SubResource("RectangleShape2D_pillar")
+
+[node name="Lava" type="Node2D" parent="."]
+script = ExtResource("6_lava")
 
 [node name="Pickups" type="Node2D" parent="."]
 

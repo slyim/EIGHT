@@ -14,12 +14,16 @@ const LOW_LIFE_TINT: Color = Color(1.0, 0.45, 0.42, 1.0)
 const BOSS_WARNING_SECONDS: float = 10.0
 const BOSS_WARNING_TINT: Color = Color(1.0, 0.8, 0.45, 1.0)
 const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
+## PLACEHOLDER burn callout tint while the angel stands in lava.
+const BURN_TINT: Color = Color(1.0, 0.55, 0.2, 1.0)
 
 var run: Run: set = _set_run
 var stats_refresh_left: float = 0.0
 ## Active weapon and bow draw, built from the flight gauge so it matches the other gauges.
 var weapon_bar: ProgressBar
 var weapon_label: Label
+## Hidden "BURNING" callout, built in code like the weapon gauge.
+var burn_label: Label
 
 @onready var stats_label: Label = $Stats
 @onready var xp_bar: ProgressBar = $XPBar
@@ -58,6 +62,20 @@ func _ready() -> void:
 	weapon_bar.name = &"WeaponBar"
 	flight_bar.get_parent().add_child(weapon_bar)
 	weapon_label = weapon_bar.get_node(^"Label") as Label
+	# PLACEHOLDER burn callout above the ability gauges; nothing else occupies that slot.
+	burn_label = Label.new()
+	burn_label.name = &"BurnLabel"
+	burn_label.text = "BURNING"
+	burn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	burn_label.add_theme_font_size_override(&"font_size", 16)
+	burn_label.self_modulate = BURN_TINT
+	burn_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	burn_label.offset_left = -80.0
+	burn_label.offset_right = 80.0
+	burn_label.offset_top = -98.0
+	burn_label.offset_bottom = -76.0
+	burn_label.visible = false
+	add_child(burn_label)
 	level_up_panel.hide()
 	boss_panel.hide()
 	end_label.hide()
@@ -91,6 +109,7 @@ func _process(_delta: float) -> void:
 	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
 	_update_flight(player)
 	_update_weapon(player)
+	burn_label.visible = run.lava != null and run.lava.burning
 
 	items_label.visible = not run.items.is_empty()
 	if items_label.visible:

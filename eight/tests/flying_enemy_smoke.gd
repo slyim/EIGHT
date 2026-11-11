@@ -61,6 +61,8 @@ func _run() -> void:
 	var flyer_type: int = Run.ENEMY_TYPES.size() - 1
 
 	# 1. The new roster entry spawns the flying enemy with its roster stats.
+	# Difficulty scales stats with elapsed time; the roster values apply at zero.
+	run.elapsed = 0.0
 	var flyer: Enemy = run.spawn_enemy(flyer_type, Vector2(400.0, 0.0))
 	_check(flyer is FlyingEnemy, "The new ENEMY_TYPES entry must instantiate the flying enemy scene.")
 	_check(flyer.flying, "A flying enemy must set the flying flag.")

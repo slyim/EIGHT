@@ -3,7 +3,10 @@
 [ext_resource type="Shader" path="res://shaders/emissive.gdshader" id="1"]
 
 [resource]
-resource_name = "PLACEHOLDER-tunable eyes"
+resource_name = "PLACEHOLDER-tunable sin glow: cream pixels glow red"
 shader = ExtResource("1")
-shader_parameter/mode = 0
-shader_parameter/energy = 10
+shader_parameter/key = Color(0.902, 0.886, 0.62, 1)
+shader_parameter/glow = Color(1, 0.03, 0.05, 1)
+shader_parameter/energy = 5.5
+metadata/light = Color(1, 0.08, 0.12, 0.11)
+metadata/light_radius = 38.0

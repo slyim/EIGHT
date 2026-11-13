@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/mounted_player.gd" id="1_player"]
 [ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_player.aseprite" id="2_frames"]
@@ -10,6 +10,23 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_mount"]
 radius = 22.0
 
+[sub_resource type="Gradient" id="Gradient_lamp"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_lamp"]
+resource_name = "PLACEHOLDER-tunable lamp falloff: the alpha fade is what the light-only AngelLight shows"
+gradient = SubResource("Gradient_lamp")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="CanvasItemMaterial" id="Material_beam_light"]
+resource_name = "PLACEHOLDER-tunable descent beam light (read by lights.gd; draws nothing)"
+metadata/light = Color(0.792, 0.922, 0.878, 0.22)
+metadata/light_radius = 96.0
+
 [node name="MountedPlayer" type="CharacterBody2D"]
 collision_layer = 2
 collision_mask = 5
@@ -19,13 +36,18 @@ script = ExtResource("1_player")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_mount")
 
-[node name="Sprite" type="AnimatedSprite2D" parent="."]
+[node name="Sprite" type="AnimatedSprite2D" parent="." groups=["light"]]
 material = ExtResource("4_light")
 position = Vector2(0, -8)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("2_frames")
 animation = &"idle"
 autoplay = "idle"
+
+[node name="HaloLight" type="Node2D" parent="Sprite" groups=["light"]]
+position = Vector2(-2, -13)
+metadata/light = Color(1, 0.86, 0.5, 0.3)
+metadata/light_radius = 60.0
 
 [node name="Spear" type="AnimatedSprite2D" parent="."]
 material = ExtResource("5_light")
@@ -37,15 +59,63 @@ autoplay = "idle"
 centered = false
 offset = Vector2(0, -8)
 
+[node name="SpearLight" type="Node2D" parent="Spear" groups=["light"]]
+material = ExtResource("5_light")
+position = Vector2(40, 0)
+
 [node name="Bow" type="Node2D" parent="."]
 material = ExtResource("5_light")
 visible = false
+
+[node name="BowLight" type="Node2D" parent="Bow" groups=["light"]]
+material = ExtResource("5_light")
+position = Vector2(30, 0)
+
+[node name="Beam" type="Node2D" parent="."]
+visible = false
+
+[node name="Light1" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -70)
+
+[node name="Light2" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -200)
+
+[node name="Light3" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -330)
+
+[node name="Light4" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -460)
+
+[node name="Light5" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -590)
+
+[node name="Light6" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -720)
+
+[node name="Light7" type="Node2D" parent="Beam" groups=["light"]]
+material = SubResource("Material_beam_light")
+position = Vector2(0, -850)
 
 [node name="SpearCast" type="RayCast2D" parent="."]
 enabled = false
 target_position = Vector2(112, 0)
 collision_mask = 13
 hit_from_inside = true
+
+[node name="Lamp" type="PointLight2D" parent="."]
+color = Color(0.792, 0.922, 0.878, 1)
+energy = 2.5
+range_item_cull_mask = 2
+shadow_enabled = true
+shadow_item_cull_mask = 3
+texture = SubResource("GradientTexture2D_lamp")
+texture_scale = 5.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
 limit_left = -960

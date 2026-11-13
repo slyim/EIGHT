@@ -34,6 +34,10 @@ const BUBBLE_DISTANCES: Array[float] = [0.35, 0.7, 0.5]
 ## the death tint stay untouched.
 const BURN_FLASH_COLOR: Color = Color(1.7, 0.75, 0.4)
 const BURN_FLASH_TIME: float = 0.45
+## PLACEHOLDER glow: every blob is an orange light (alpha is energy / 4) reaching this many
+## blob radii, so the pools stay readable in the dark.
+const LIGHT_COLOR: Color = Color(1.0, 0.5, 0.14, 0.3)
+const LIGHT_REACH: float = 2.2
 
 ## Per pool: center, extent (blob reach from center), blobs [[Vector2, radius], ...],
 ## and fixed bubble anchors inside the main blob.
@@ -52,11 +56,20 @@ var shimmer_time: float = 0.0
 ## (the node sits at the run's origin); extent and bubbles are derived here.
 func set_pools(pool_blobs: Array) -> void:
 	pools = []
+	# The only children are the previous stage's blob lights (see scripts/lights.gd).
+	for light: Node in get_children():
+		light.queue_free()
 	for blobs: Array in pool_blobs:
 		var center: Vector2 = blobs[0][0]
 		var extent: float = 0.0
 		for blob: Array in blobs:
 			extent = maxf(extent, center.distance_to(blob[0]) + (blob[1] as float))
+			var light: Node2D = Node2D.new()
+			light.position = blob[0]
+			light.set_meta(&"light", LIGHT_COLOR)
+			light.set_meta(&"light_radius", (blob[1] as float) * LIGHT_REACH)
+			light.add_to_group(&"light")
+			add_child(light)
 		var bubbles: Array[Vector2] = []
 		var reach: float = maxf(0.0, (blobs[0][1] as float) - CRUST_WIDTH - 8.0)
 		var phase: float = fposmod(center.x * 0.013 + center.y * 0.029, TAU)

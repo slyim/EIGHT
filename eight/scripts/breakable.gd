@@ -20,6 +20,7 @@ const KINDS: Array[Dictionary] = [
 	{"health": 3, "size": Vector2(52.0, 52.0)},
 ]
 const PILLAR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_pillar.aseprite")
+const STRUCTURE_ART_RECT: Rect2 = Rect2(-52.0, -52.0, 104.0, 112.0)
 ## Seconds of shake after a blow; the flash covers the first FLASH_TIME of it.
 const SHAKE_TIME: float = 0.16
 const FLASH_TIME: float = 0.08
@@ -76,6 +77,7 @@ var debris: Array[Array] = []
 var flip: float = 1.0
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var light_occluder: LightOccluder2D = $LightOccluder2D
 
 
 ## Collision size of a kind; vertical swaps a wall's length and depth.
@@ -96,6 +98,15 @@ func _ready() -> void:
 		var box: RectangleShape2D = RectangleShape2D.new()
 		box.size = size
 		collision_shape.shape = box
+	# Only the angel's Lamp casts shadows. PLACEHOLDER shape: the drawn obstacle (a tree's
+	# trunk), wound clockwise and culled so the obstacle stays lit and its shadow falls behind.
+	var shade: Rect2 = Rect2(-10.0, -76.0, 20.0, 92.0) if kind == Kind.TREE else _visual_rect()
+	if kind == Kind.STRUCTURE:
+		shade = STRUCTURE_ART_RECT
+	var occluder: OccluderPolygon2D = OccluderPolygon2D.new()
+	occluder.cull_mode = OccluderPolygon2D.CULL_COUNTER_CLOCKWISE
+	occluder.polygon = [shade.position, Vector2(shade.end.x, shade.position.y), shade.end, Vector2(shade.position.x, shade.end.y)]
+	light_occluder.occluder = occluder
 	# Each obstacle cracks and leans its own way, but the same way every time it is built.
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = hash(position)
@@ -104,7 +115,7 @@ func _ready() -> void:
 	if kind == Kind.TREE:
 		area = Rect2(-6.0, -74.0, 12.0, 82.0)
 	elif kind == Kind.STRUCTURE:
-		area = Rect2(-52.0, -52.0, 104.0, 112.0) # Inside the pillar art's narrower top.
+		area = STRUCTURE_ART_RECT # Inside the pillar art's narrower top.
 	for index: int in range(CRACK_STAGES):
 		# Cracks start in the middle and spread out; trees split along the trunk.
 		var point: Vector2 = area.position + area.size * Vector2(rng.randf_range(0.3, 0.7), rng.randf_range(0.3, 0.7))
@@ -151,6 +162,7 @@ func take_blow(damage: int) -> void:
 func _break() -> void:
 	# Collision goes at once, so the horde, the angel, and shots pass this very tick.
 	collision_layer = 0
+	light_occluder.queue_free()
 	break_left = BREAK_TIME
 	shake_left = 0.0
 	modulate = Color.WHITE

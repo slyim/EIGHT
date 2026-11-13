@@ -89,7 +89,8 @@ A top-down 2D game about an unnamed angel, fully robed in purple and riding a bl
 - `eight/` — Godot project; this is `res://` in the editor.
 - `eight/assets/` — game assets and their source/credit information.
 - `eight/scenes/` — the survival run, enemy and boss scenes, the mounted player, and the spear test space.
-- `eight/scripts/` — player, enemies, bosses, pickups, run director, HUD, lava pools, and test-space behavior.
+- `eight/scripts/` — player, enemies, bosses, pickups, run director, HUD, lava pools, lights, and test-space behavior.
+- `eight/shaders/` — the light palette, darkness, light falloff and atmosphere shaders, and their materials.
 - `eight/tests/` — native Godot behavior checks, with no test framework.
 - `eight/addons/AsepriteWizard/` — third-party Aseprite importer (MIT, license included).
 - `tools/` — placeholder art and audio generators.
@@ -129,7 +130,7 @@ godot --headless --path eight --script res://tests/lava_smoke.gd
 godot --headless --path eight --script res://tests/obstacle_smoke.gd
 ```
 
-`prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. `flying_enemy_smoke.gd` checks the flying enemy's layer 5 collision and pillar pass-over, its preferred-distance hover, its wind-up and interval shot, from-air shot damage against grounded and airborne players, ground-shot and husk-touch misses against an airborne player, wall blocking for ground shots, kill experience and enemy count, and the 60-second roster gate. On this Windows Godot 4.7.2 setup, `--quit-after 600` and the benchmark can intermittently report audio playback/resource leaks during shutdown (also reproduced on unchanged HEAD); no gameplay script errors were observed. A fresh import may report an unavailable locally configured Aseprite executable before falling back to the committed baked resources.
+`prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, boss order, Satan victory, defeat, horde spawning, and the boss timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. `flying_enemy_smoke.gd` checks the flying enemy's layer 5 collision and pillar pass-over, its preferred-distance hover, its wind-up and interval shot, from-air shot damage against grounded and airborne players, ground-shot and husk-touch misses against an airborne player, wall blocking for ground shots, kill experience and enemy count, and the 60-second roster gate. On this Windows Godot 4.7.2 setup, `--quit-after 600` and the benchmark can intermittently report audio playback/resource leaks during shutdown (also reproduced on unchanged HEAD); no gameplay script errors were observed. `glow_smoke` can likewise report audio-only shutdown leaks after PASS. A fresh import may report an unavailable locally configured Aseprite executable before falling back to the committed baked resources.
 
 Also run the game with a visible window to judge control feel and readability; automated checks do not establish that the movement feels good.
 
@@ -169,13 +170,38 @@ No runtime optimization has been applied: these aggregate samples do not isolate
 movement, pickup processing, or poof allocation costs. Further controlled ablations
 and repeated samples are required before attributing a hotspot.
 
-## Shaders and glow
+## Shaders, glow and lighting
 
-All look-development shaders and materials are **PLACEHOLDER-tunable**, pending human art direction. No new art or audio is included. Forward Plus/D3D12 is preserved. HDR 2D and the run's Canvas-mode WorldEnvironment allow colours above 1.0 (including drawn lava) to bloom. Only canvas layer 0 enters glow; Atmosphere is layer 1 and HUD is layer 2. Tight low glow levels and linear upscaling keep pixel edges clear. Tune `glow_intensity`, `glow_hdr_threshold` and `glow_levels` on WorldEnvironment.
+All look-development shaders, materials and light values are **PLACEHOLDER-tunable**, pending human art direction. No new art or audio is included. Forward Plus/D3D12 is preserved.
 
-- `eight/shaders/emissive.gdshader`: shared canvas emission, with `mode` for keyed eyes, cool light, or red ammunition; tune `energy`, `light_color`, and `tolerance` in the four `.tres` materials beside it. Player light is softer than weapon light; vertex alpha preserves hurt blinking and bow charge colours remain visible. Enemy shots retain their silhouettes and flying shots remain smaller.
-- `eight/shaders/atmosphere.gdshader`: one screen sample, a restrained purple shadow grade, edge vignette, and two slow haze waves. Tune `strength` (0 disables), `vignette_strength`, `grade_strength`, `haze_strength`, and `drift_speed` on Atmosphere/Veil's material. Multiplicative grading preserves stage floor tints and protects bright gameplay signals. The HUD is drawn afterwards.
+The run is dark: away from light the world shows as dim silhouettes, and glowing things are real light sources that reveal what is around them. There are three layers, all on canvas layer 0 so the result still blooms; Atmosphere is layer 1 and the HUD is layer 2.
 
-Eyes use original texture colours before tint/flash multiplication: cream for husk, imp (also flying), brute, Lust, Envy's many eyes, Gluttony and Wrath; black plus cream for Pride; black pupils for Greed and Sloth; cream plus mint for Satan's idle/attack poses. `Enemy.EYE_PROFILES` limits keys to animated eye regions, excluding horns and teeth. All inspected frames contain distinguishable eye pixels; no drawn-eye fallback is used. All enemies share one material and use instance uniforms. These bounds assume the committed untrimmed 32/64-pixel atlas cells with no padding; update them when human-authored replacement art changes the eyes or atlas packing.
+1. **Glow.** HDR 2D and the run's Canvas-mode WorldEnvironment let colours above 1.0 (including drawn lava) bloom. Tight low glow levels and linear upscaling keep pixel edges clear. Tune `glow_intensity`, `glow_hdr_threshold` and `glow_levels` on WorldEnvironment.
+2. **What glows: the light palette** (`eight/shaders/emissive.gdshader`). A sprite pixel painted in the material's `key` colour glows as `glow` x `energy`; with `whole` on, every pixel glows (things made of light). The key is matched on the original texture, so hit flashes and tints cannot switch a glow off. The materials beside the shader are the palette:
+   - `eyes.tres`: **cream `#e6e29e` glows red** on every enemy and boss.
+   - `player_light.tres`: **mint `#caebe0` glows blue-white** on the angel, and its cream halo glows gold.
+   - `weapon_light.tres` (spear, bow, arrows, exit portal): cool whole-sprite glow; `enemy_ammo.tres`: hot orange-gold whole-sprite glow so enemy shots stay distinct from red enemies.
+   - `pickup_light.tres`: every XP, life and item pickup glows in its own colours.
+3. **What gets lit: darkness and lights** (`Lighting`, a CanvasGroup above the world in `run.tscn`). Its children draw light; `eight/shaders/lighting.gdshader` then multiplies the finished world by `ambient` + that light. Light is read once per art pixel (2 px) and stepped into dithered bands, so it stays on the pixel-art grid and does not swim when the camera moves. The camera snaps its final translation to whole screen pixels, including at fractional window scales; this intentionally trades away sub-pixel scrolling to keep the light cells stable. `Murk` is a faint additive haze drawn just below, so light pools read on the dark floor.
 
-Run `godot --headless --path eight --script res://tests/glow_smoke.gd` to check rendering wiring, shared materials and eye-key coverage in every enemy/boss animation frame. Appearance still needs a windowed run.
+**Art rule for hand-made sprites:** to make something glow, paint it in the reserved colour: mint on the angel, cream on enemies. Nothing is set up per sprite. The cost is that those exact colours cannot be used for non-glowing detail on those sprites; on the placeholders, horn tips and teeth are cream, so they glow with the eyes. Greed and Sloth have dark pupils, so their cream details—not their pupils—glow until their placeholder art is repainted.
+
+**Adding a light** takes one line: `add_to_group(&"light")` on a CanvasItem (or `groups=["light"]` in its scene). `eight/scripts/lights.gd` draws one falloff quad per visible member each frame, and a freed node leaves the group by itself. A light is two metadata values, `light` (a Color whose alpha is energy / 4) and `light_radius` (px), read from the node or, when the node has none, from its material. So a family is tuned once in its material (`eyes.tres`, `enemy_ammo.tres`, `weapon_light.tres`), and one kind can override it on its node (the boss sprite in `boss.tscn`, the exit portal in `exit_portal.tscn`). Lava makes one orange light per blob (`LIGHT_COLOR`, `LIGHT_REACH` in `lava_pools.gd`). Current lights: the angel's wings and halo, spear, bow and descent beam, enemy and boss sprites, enemy shots, arrows, pickups, the exit portal, and lava. Hit effects are not lights.
+
+**Only the angel's light casts shadows.** `Lamp` (a PointLight2D on the player) lights nothing but `Lighting/AngelLight`, a light-only additive sheet, so its shadowed light joins the same sum as every other light. The lamp follows the angel's height and fades while descending, so the landing site stays dim until touchdown. Each `Breakable` carries a `LightOccluder2D` shaped like the drawn obstacle (a tree's trunk or the actual pillar art inside its texture), culled so the obstacle itself stays lit and its shadow falls behind it; breaking the obstacle removes the shadow. The Lamp's texture must fade by alpha, because a light-only item shows the light texture's alpha, and `shadow_item_cull_mask` must include AngelLight's light mask (2) as well as the occluders' (1), or no shadow is received.
+
+| To change | Tune |
+| --- | --- |
+| How dark the unlit world is | `ambient` on Lighting's material |
+| Band count, dither width, smooth light | `bands` (0 is smooth), `dither` |
+| How bright light can get before it saturates | `max_light` |
+| How much light shows on dark ground | `Murk` colour |
+| The angel's light | `Lamp` energy, colour, `texture_scale` (reach) |
+| A family's light | `metadata/light`, `metadata/light_radius` in its material |
+| Glow colour and strength of a palette entry | `glow`, `energy` in its material |
+
+- `eight/shaders/atmosphere.gdshader`: one screen sample, a restrained purple shadow grade, edge vignette, and two slow haze waves, applied after glow. Tune `strength` (0 disables), `vignette_strength`, `grade_strength`, `haze_strength`, and `drift_speed` on Atmosphere/Veil's material. The HUD is drawn afterwards.
+
+Cost on the benchmark fixture (220 enemies, each a light; Windows / RTX 3060 / D3D12): median 2.24-2.27 ms against 1.98-2.00 ms just before, p95 3.6-3.8 ms against 3.3-3.5 ms, and 161 draw calls against 157. With the angel/weapon/beam lights and 600 glowing pickups added, three final-tuning runs measured median 2.70-2.77 ms and p95 4.37-4.39 ms, still at 161 draw calls.
+
+Run `godot --headless --path eight --script res://tests/glow_smoke.gd` to check the rendering wiring: glow layers, the Lighting group, the Lamp, AngelLight and occluder masks, shadow removal on break, shared materials, that every requested actor, weapon, projectile, pickup, portal and lava blob is a light, that a freed light leaves the group, and that every angel, enemy and boss animation frame carries a glow-key pixel. Appearance still needs a windowed run.

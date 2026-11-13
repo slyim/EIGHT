@@ -4,6 +4,8 @@
 
 [ext_resource type="Material" path="res://shaders/weapon_light.tres" id="2_light"]
 
-[node name="ExitPortal" type="Node2D"]
+[node name="ExitPortal" type="Node2D" groups=["light"]]
 script = ExtResource("1")
 material = ExtResource("2_light")
+metadata/light = Color(0.792, 0.922, 0.878, 0.35)
+metadata/light_radius = 150.0

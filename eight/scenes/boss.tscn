@@ -18,3 +18,5 @@ shape = SubResource("CircleShape2D_boss")
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -28)
 scale = Vector2(2, 2)
+metadata/light = Color(1, 0.1, 0.14, 0.35)
+metadata/light_radius = 120.0

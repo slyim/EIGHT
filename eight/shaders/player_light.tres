@@ -3,8 +3,12 @@
 [ext_resource type="Shader" path="res://shaders/emissive.gdshader" id="1"]
 
 [resource]
-resource_name = "PLACEHOLDER-tunable player_light"
+resource_name = "PLACEHOLDER-tunable angel glow: mint glows blue-white, the cream halo glows gold"
 shader = ExtResource("1")
-shader_parameter/mode = 1
-shader_parameter/energy = 2.2
-shader_parameter/light_color = Color(1, 1, 1, 1)
+shader_parameter/key = Color(0.792, 0.922, 0.878, 1)
+shader_parameter/glow = Color(0.792, 0.922, 0.878, 1)
+shader_parameter/key2 = Color(0.902, 0.886, 0.62, 1)
+shader_parameter/glow2 = Color(1, 0.86, 0.5, 1)
+shader_parameter/energy = 3.0
+metadata/light = Color(0.792, 0.922, 0.878, 0.3)
+metadata/light_radius = 110.0

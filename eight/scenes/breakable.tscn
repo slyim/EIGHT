@@ -8,3 +8,5 @@ collision_mask = 0
 script = ExtResource("1_breakable")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="."]

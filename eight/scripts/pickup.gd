@@ -13,6 +13,10 @@ const FRAMES: Array[SpriteFrames] = [
 	preload("res://assets/art/placeholder/placeholder_pickup_item.aseprite"),
 ]
 
+## PLACEHOLDER light per kind, in Kind order (alpha is energy / 4), and its reach in px.
+const LIGHTS: Array[Color] = [Color(0.447, 0.604, 0.631, 0.3), Color(0.9, 0.3, 0.4, 0.35), Color(0.902, 0.886, 0.62, 0.45)]
+const LIGHT_RADIUS: float = 44.0
+
 var kind: Kind = Kind.XP
 var value: int = 1
 var item_index: int = -1
@@ -23,6 +27,10 @@ var pull_speed: float = 160.0
 
 func _ready() -> void:
 	sprite_frames = FRAMES[kind]
+	material = preload("res://shaders/pickup_light.tres")
+	set_meta(&"light", LIGHTS[kind])
+	set_meta(&"light_radius", LIGHT_RADIUS)
+	add_to_group(&"light")
 	scale = Vector2(2.0, 2.0)
 	# Bigger experience drops (brutes, bosses) read bigger.
 	if kind == Kind.XP and value > 1:

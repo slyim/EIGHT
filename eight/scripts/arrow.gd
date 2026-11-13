@@ -25,6 +25,7 @@ var height: float = 0.0
 
 func _ready() -> void:
 	material = preload("res://shaders/weapon_light.tres")
+	add_to_group(&"light")
 	global_rotation = direction.angle()
 
 

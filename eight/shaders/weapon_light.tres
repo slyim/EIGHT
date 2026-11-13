@@ -5,5 +5,8 @@
 [resource]
 resource_name = "PLACEHOLDER-tunable weapon_light"
 shader = ExtResource("1")
-shader_parameter/mode = 1
+shader_parameter/glow = Color(0.792, 0.922, 0.878, 1)
 shader_parameter/energy = 3.2
+shader_parameter/whole = true
+metadata/light = Color(0.792, 0.922, 0.878, 0.4)
+metadata/light_radius = 80.0

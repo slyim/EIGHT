@@ -5,5 +5,8 @@
 [resource]
 resource_name = "PLACEHOLDER-tunable enemy_ammo"
 shader = ExtResource("1")
-shader_parameter/mode = 2
-shader_parameter/energy = 8.0
+shader_parameter/glow = Color(1, 0.32, 0.08, 1)
+shader_parameter/energy = 9.5
+shader_parameter/whole = true
+metadata/light = Color(1, 0.28, 0.08, 0.45)
+metadata/light_radius = 64.0

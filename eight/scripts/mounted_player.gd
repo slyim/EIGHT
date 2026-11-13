@@ -160,6 +160,9 @@ var hit_stop_timer: SceneTreeTimer
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var spear: AnimatedSprite2D = $Spear
 @onready var bow: Node2D = $Bow
+## PLACEHOLDER descent beam light: lights spaced up the beam, shown only while descending.
+@onready var beam: Node2D = $Beam
+@onready var lamp: PointLight2D = $Lamp
 @onready var camera: Camera2D = $Camera2D
 @onready var sprite_base: Vector2 = sprite.position
 
@@ -214,6 +217,11 @@ func is_descending() -> bool:
 	return descent_left > 0.0
 
 
+func _update_lamp() -> void:
+	lamp.position = Vector2(0.0, -height)
+	lamp.energy = 2.5 * lerpf(0.2, 1.0, pow(1.0 - clampf(height / 420.0, 0.0, 1.0), 2.0))
+
+
 ## True once the angel is high enough to clear ground things: ground attacks miss it and the
 ## spear reaches flying enemies instead of ground ones. The single source of truth for "in the air".
 func is_airborne() -> bool:
@@ -228,6 +236,7 @@ func _physics_process(delta: float) -> void:
 			flying = false
 			_move_flight(delta)
 			sprite.position = sprite_base - Vector2(0.0, height)
+			_update_lamp()
 			queue_redraw()
 		return
 	if is_descending():
@@ -526,7 +535,9 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	if absf(mount_direction.x) > 0.01:
 		sprite.flip_h = mount_direction.x < 0.0
 	sprite.position = sprite_base - Vector2(0.0, height)
+	_update_lamp()
 
+	beam.visible = is_descending()
 	spear.visible = not is_descending() and weapon == Weapon.SPEAR
 	bow.visible = not is_descending() and weapon == Weapon.BOW
 	bow.position = Vector2(0.0, -SPEAR_HEIGHT - height)
@@ -538,6 +549,10 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	shake_left = maxf(0.0, shake_left - delta)
 	var strength: float = shake_strength * shake_left / 0.25
 	camera.offset = Vector2(randf_range(-strength, strength), randf_range(-strength, strength))
+	# Whole screen pixels keep the world-locked light cells and dither from swimming.
+	camera.force_update_scroll()
+	var screen_transform: Transform2D = get_viewport().get_final_transform() * get_parent().get_global_transform_with_canvas()
+	camera.offset += (screen_transform.origin - screen_transform.origin.round()) / screen_transform.get_scale()
 
 	var blink: bool = invulnerable_left > 0.0 and int(invulnerable_left * 16.0) % 2 == 0
 	modulate.a = 0.35 if blink else 1.0
@@ -588,7 +603,7 @@ func _draw() -> void:
 	if is_descending():
 		var glow: float = 1.0 - descent_left / descent_duration
 		draw_rect(Rect2(-14.0, -900.0, 28.0, 914.0), Color(0.792, 0.922, 0.878, 0.12 + 0.18 * glow))
-		draw_rect(Rect2(-5.0, -900.0, 10.0, 914.0), Color(0.792, 0.922, 0.878, 0.2 + 0.3 * glow))
+		draw_rect(Rect2(-5.0, -900.0, 10.0, 914.0), Color(1.5, 1.9, 1.75, 0.28 + 0.35 * glow))
 
 
 func _draw_bow() -> void:

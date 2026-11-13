@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scripts/run.gd" id="1_run"]
 [ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
@@ -8,6 +8,9 @@
 [ext_resource type="Script" path="res://scripts/lava_pools.gd" id="6_lava"]
 
 [ext_resource type="Shader" path="res://shaders/atmosphere.gdshader" id="6_atmosphere"]
+[ext_resource type="Shader" path="res://shaders/lighting.gdshader" id="7_lighting"]
+[ext_resource type="Shader" path="res://shaders/light.gdshader" id="8_light"]
+[ext_resource type="Script" path="res://scripts/lights.gd" id="9_lights"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 resource_name = "PLACEHOLDER-tunable tight canvas glow"
@@ -27,6 +30,23 @@ glow_hdr_threshold = 1.0
 [sub_resource type="ShaderMaterial" id="Material_atmosphere"]
 resource_name = "PLACEHOLDER-tunable atmosphere"
 shader = ExtResource("6_atmosphere")
+
+[sub_resource type="ShaderMaterial" id="Material_lighting"]
+resource_name = "PLACEHOLDER-tunable darkness and light bands"
+shader = ExtResource("7_lighting")
+
+[sub_resource type="ShaderMaterial" id="Material_light"]
+resource_name = "PLACEHOLDER-tunable light falloff"
+shader = ExtResource("8_light")
+
+[sub_resource type="CanvasItemMaterial" id="Material_murk"]
+resource_name = "PLACEHOLDER-tunable murk: additive"
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="Material_angel_light"]
+resource_name = "PLACEHOLDER-tunable angel light: additive, shown only where the Lamp reaches"
+blend_mode = 1
+light_mode = 2
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(4096, 48)
@@ -165,6 +185,26 @@ script = ExtResource("6_lava")
 [node name="MountedPlayer" parent="." instance=ExtResource("2_player")]
 
 [node name="Effects" type="Node2D" parent="."]
+
+[node name="Murk" type="Polygon2D" parent="."]
+z_index = 99
+material = SubResource("Material_murk")
+color = Color(0.05, 0.115, 0.11, 1)
+polygon = PackedVector2Array(-3000, -3000, 3000, -3000, 3000, 3000, -3000, 3000)
+
+[node name="Lighting" type="CanvasGroup" parent="."]
+z_index = 100
+material = SubResource("Material_lighting")
+
+[node name="Lights" type="Node2D" parent="Lighting"]
+material = SubResource("Material_light")
+script = ExtResource("9_lights")
+
+[node name="AngelLight" type="Polygon2D" parent="Lighting"]
+light_mask = 2
+material = SubResource("Material_angel_light")
+color = Color(0.85, 1, 0.96, 1)
+polygon = PackedVector2Array(-3000, -3000, 3000, -3000, 3000, 3000, -3000, 3000)
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 process_mode = 3

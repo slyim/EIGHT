@@ -1,24 +1,29 @@
 class_name Pickup
 extends AnimatedSprite2D
-## PLACEHOLDER collectible sprite: experience, life, or an item.
+## PLACEHOLDER collectible sprite: experience, life, an item, or a weapon evolution (the item
+## art, tinted by weapon: mint for the spear, violet for the bow).
 
 signal collected(pickup: Pickup)
 
-enum Kind { XP, HEART, ITEM }
+enum Kind { XP, HEART, ITEM, EVOLUTION }
 
 const COLLECT_RADIUS: float = 26.0
 const FRAMES: Array[SpriteFrames] = [
 	preload("res://assets/art/placeholder/placeholder_pickup_xp.aseprite"),
 	preload("res://assets/art/placeholder/placeholder_pickup_life.aseprite"),
 	preload("res://assets/art/placeholder/placeholder_pickup_item.aseprite"),
+	preload("res://assets/art/placeholder/placeholder_pickup_item.aseprite"),
 ]
+## Evolution tint per MountedPlayer.Weapon.
+const EVOLUTION_TINTS: Array[Color] = [Color(0.6, 1.0, 0.9, 1.0), Color(0.78, 0.6, 1.0, 1.0)]
 
 ## PLACEHOLDER light per kind, in Kind order (alpha is energy / 4), and its reach in px.
-const LIGHTS: Array[Color] = [Color(0.447, 0.604, 0.631, 0.3), Color(0.9, 0.3, 0.4, 0.35), Color(0.902, 0.886, 0.62, 0.45)]
+const LIGHTS: Array[Color] = [Color(0.447, 0.604, 0.631, 0.3), Color(0.9, 0.3, 0.4, 0.35), Color(0.902, 0.886, 0.62, 0.45), Color(0.6, 1.0, 0.9, 0.55)]
 const LIGHT_RADIUS: float = 44.0
 
 var kind: Kind = Kind.XP
 var value: int = 1
+## ITEM: index into Run.ITEMS. EVOLUTION: the MountedPlayer.Weapon it evolves.
 var item_index: int = -1
 var target: MountedPlayer
 var attracted: bool = false
@@ -33,6 +38,8 @@ func _ready() -> void:
 	add_to_group(&"light")
 	# Always 2x so every art pixel matches; bigger drops need bigger art to read bigger.
 	scale = Vector2(2.0, 2.0)
+	if kind == Kind.EVOLUTION:
+		self_modulate = EVOLUTION_TINTS[item_index]
 	play(&"idle")
 	frame = randi() % sprite_frames.get_frame_count(&"idle")
 
@@ -49,8 +56,8 @@ func _physics_process(delta: float) -> void:
 		collected.emit(self)
 		queue_free()
 		return
-	# Items must be walked over; experience and life are pulled in.
-	if kind != Kind.ITEM and distance <= target.pickup_radius:
+	# Items and evolutions must be walked over; experience and life are pulled in.
+	if kind != Kind.ITEM and kind != Kind.EVOLUTION and distance <= target.pickup_radius:
 		attracted = true
 	if attracted:
 		pull_speed += 900.0 * delta

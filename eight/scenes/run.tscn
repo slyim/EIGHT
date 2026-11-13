@@ -727,3 +727,100 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "RETURN WITHOUT SAVING"
+
+[node name="Evolution" type="PanelContainer" parent="HUD/Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -128.0
+offset_right = 340.0
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"MenuPanel"
+
+[node name="Box" type="VBoxContainer" parent="HUD/Hud/Evolution"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="HUD/Hud/Evolution/Box"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 28
+text = "EVOLUTION"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="HUD/Hud/Evolution/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 14
+text = "Choose a path for this run: click or press 1 - 2"
+horizontal_alignment = 1
+
+[node name="Paths" type="HBoxContainer" parent="HUD/Hud/Evolution/Box"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Path1" type="Button" parent="HUD/Hud/Evolution/Box/Paths"]
+custom_minimum_size = Vector2(300, 150)
+layout_mode = 2
+focus_mode = 0
+
+[node name="Text" type="VBoxContainer" parent="HUD/Hud/Evolution/Box/Paths/Path1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = -18.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path1/Text"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 22
+
+[node name="Detail" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path1/Text"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
+[node name="Path2" type="Button" parent="HUD/Hud/Evolution/Box/Paths"]
+custom_minimum_size = Vector2(300, 150)
+layout_mode = 2
+focus_mode = 0
+
+[node name="Text" type="VBoxContainer" parent="HUD/Hud/Evolution/Box/Paths/Path2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = -18.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path2/Text"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 22
+
+[node name="Detail" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path2/Text"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3

@@ -73,6 +73,8 @@ var burn_label: Label
 @onready var pause_menu: Control = $PauseMenu
 @onready var end_buttons: Control = $EndButtons
 @onready var save_failed: Control = $SaveFailed
+@onready var evolution_panel: Control = $Evolution
+@onready var evolution_cards: Array[Button] = [$Evolution/Box/Paths/Path1 as Button, $Evolution/Box/Paths/Path2 as Button]
 
 
 func _ready() -> void:
@@ -110,6 +112,9 @@ func _ready() -> void:
 	($PauseMenu/Box/Resume as Button).pressed.connect(set_paused.bind(false))
 	($PauseMenu/Box/Restart as Button).pressed.connect(restart)
 	($PauseMenu/Box/Hub as Button).pressed.connect(hub_requested.emit)
+	for index: int in range(evolution_cards.size()):
+		evolution_cards[index].pressed.connect(_on_evolution_choice.bind(index))
+	evolution_panel.hide()
 	($EndButtons/Retry as Button).pressed.connect(restart)
 	($EndButtons/Hub as Button).pressed.connect(hub_requested.emit)
 	level_up_panel.hide()
@@ -303,8 +308,18 @@ func _update_flight(player: MountedPlayer) -> void:
 		flight_label.text = "FLIGHT %d%%" % _flight_percent(player)
 
 
+## The weapon's evolution path name, or "" before it evolves.
+func path_name(player: MountedPlayer, which: MountedPlayer.Weapon) -> String:
+	var path: int = player.spear_path if which == MountedPlayer.Weapon.SPEAR else player.bow_path
+	return "" if path == 0 else String(Run.EVOLUTIONS[which][path - 1]["name"]).to_upper()
+
+
 func _update_weapon(player: MountedPlayer) -> void:
 	var weapon_name: String = "SPEAR" if player.weapon == MountedPlayer.Weapon.SPEAR else "BOW"
+	# Path names are unique per weapon, so an evolved weapon shows just its path (it fits the gauge).
+	var evolved: String = path_name(player, player.weapon)
+	if evolved != "":
+		weapon_name = evolved
 	var step: int = player.combo_step()
 	if step < 0:
 		weapon_label.text = "%s  [Q]" % weapon_name
@@ -423,6 +438,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_paused(not pause_menu.visible)
 		return
 	var key: InputEventKey = event as InputEventKey
+	if evolution_panel.visible and key != null and key.pressed and not key.echo:
+		var path: int = key.physical_keycode - KEY_1
+		if path >= 0 and path < evolution_cards.size():
+			get_viewport().set_input_as_handled()
+			_on_evolution_choice(path)
+		return
 	if level_up_panel.visible and key != null and key.pressed and not key.echo:
 		var index: int = key.physical_keycode - KEY_1
 		if index >= 0 and index < choice_buttons.size():
@@ -461,10 +482,10 @@ func _pop_in(control: Control, delay: float) -> void:
 ## Opens or closes the pause menu. It never opens over a level-up choice or after the run ends,
 ## and closing it never unpauses a level-up.
 func set_paused(open: bool) -> void:
-	if open and (run.ended or level_up_panel.visible):
+	if open and (run.ended or level_up_panel.visible or evolution_panel.visible):
 		return
 	pause_menu.visible = open
-	get_tree().paused = open or level_up_panel.visible
+	get_tree().paused = open or level_up_panel.visible or evolution_panel.visible
 	if open:
 		# Only a hosted run has a hub to return to.
 		($PauseMenu/Box/Hub as Button).visible = world_view != null
@@ -489,12 +510,51 @@ func show_save_failed(error: Error) -> void:
 		_pop_in(save_failed.get_child(index) as Control, 0.08 * index)
 
 
+## The two evolution paths for a weapon, as cards that deal in; 1 / 2 or a click picks one.
+func show_evolution(which: int, paths: Array) -> void:
+	pause_menu.hide()
+	($Evolution/Box/Heading as Label).text = "%s EVOLUTION" % ("SPEAR" if which == MountedPlayer.Weapon.SPEAR else "BOW")
+	for index: int in range(evolution_cards.size()):
+		var card: Button = evolution_cards[index]
+		(card.get_node(^"Text/Title") as Label).text = "%d   %s" % [index + 1, String(paths[index]["name"]).to_upper()]
+		(card.get_node(^"Text/Detail") as Label).text = paths[index]["text"]
+	evolution_panel.show()
+	_pop_in(evolution_panel, 0.0)
+	for index: int in range(evolution_cards.size()):
+		_pop_in(evolution_cards[index], 0.1 + index * 0.1)
+
+
+func hide_evolution() -> void:
+	evolution_panel.hide()
+
+
+func _on_evolution_choice(index: int) -> void:
+	if not evolution_panel.visible:
+		return
+	run.choose_evolution(index)
+	_flash()
+
+
+## Theatrical: a brief white flash over everything, unaffected by pause or hit-stop.
+func _flash() -> void:
+	var flash: ColorRect = ColorRect.new()
+	flash.name = &"Flash"
+	flash.color = Color(1.0, 1.0, 1.0, 0.45)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(flash)
+	var tween: Tween = flash.create_tween().set_ignore_time_scale()
+	tween.tween_property(flash, ^"color:a", 0.0, 0.35).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(flash.queue_free)
+
+
 func hide_level_up() -> void:
 	level_up_panel.hide()
 
 
 func show_end(victory: bool) -> void:
 	level_up_panel.hide()
+	evolution_panel.hide()
 	pause_menu.hide()
 	var hosted: bool = world_view != null
 	if victory and run.sin_index == Run.SATAN:

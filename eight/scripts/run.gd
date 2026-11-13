@@ -143,6 +143,17 @@ const UPGRADES: Array[Dictionary] = [
 	{"name": "Piercing arrows", "text": "Arrows hit +1 more enemy", "stat": "bow_pierce", "amount": 1.0},
 ]
 
+## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
+## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
+const EVOLUTIONS: Array[Array] = [
+	[{"name": "Whirlwind", "text": "The finisher becomes a full spin, striking all around the angel."},
+		{"name": "Chain Light", "text": "Finisher hits arc lightning on to up to 3 more enemies nearby."}],
+	[{"name": "Ricochet", "text": "The finishing arrow bounces on to up to 4 more enemies."},
+		{"name": "Rain of Light", "text": "The finishing shot calls light down on a circle at the aim."}],
+]
+## Experience given by an evolution item for a weapon that has already evolved.
+const SPARE_EVOLUTION_XP: int = 10
+
 ## Collectible items found in the arena. PLACEHOLDER names and values.
 const ITEMS: Array[Dictionary] = [
 	{"name": "Item: Spearhead", "text": "+2 spear damage", "stat": "damage", "amount": 2.0},
@@ -193,6 +204,8 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 @export_range(10, 1000, 10) var max_enemies: int = 220
 @export_range(0.0, 1.0, 0.005) var heart_drop_chance: float = 0.03
 @export_range(0.0, 1.0, 0.001) var item_drop_chance: float = 0.006
+## PLACEHOLDER chance a horde enemy drops an evolution item (guards always drop one).
+@export_range(0.0, 1.0, 0.0005) var evolution_drop_chance: float = 0.002
 ## Authored lava: one entry per pool, each a list of [center, radius] blobs. Empty means
 ## generate from the map's seed. Sin map scenes carry theirs, so they can be edited.
 @export var lava_layout: Array = []
@@ -221,6 +234,8 @@ var xp: int = 0
 var kills: int = 0
 var pending_level_ups: int = 0
 var level_up_options: Array[Dictionary] = []
+## The weapon whose evolution choice is open, or -1.
+var evolution_weapon: int = -1
 var items: Array[Dictionary] = []
 var ended: bool = false
 var victory: bool = false
@@ -530,6 +545,18 @@ func _on_guard_died(guard: Enemy) -> void:
 	play_sfx(&"boss_death", 0.0)
 	_spawn_poof(guard.global_position)
 	spawn_pickup(Pickup.Kind.XP, guard.global_position, guard.xp_value)
+	drop_evolution(guard.global_position + Vector2(0.0, 30.0))
+
+
+## Drops an evolution item for a weapon that has not evolved yet (none once both have).
+func drop_evolution(at: Vector2) -> Pickup:
+	var open: Array[int] = []
+	for which: int in [MountedPlayer.Weapon.SPEAR, MountedPlayer.Weapon.BOW]:
+		if not player.is_evolved(which):
+			open.append(which)
+	if open.is_empty():
+		return null
+	return spawn_pickup(Pickup.Kind.EVOLUTION, at, open.pick_random())
 
 
 func _physics_process(delta: float) -> void:
@@ -699,6 +726,8 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
 	if randf() < item_drop_chance:
 		spawn_pickup(Pickup.Kind.ITEM, enemy.global_position, randi() % ITEMS.size())
+	if randf() < evolution_drop_chance:
+		drop_evolution(enemy.global_position + Vector2(-12.0, 0.0))
 
 
 ## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
@@ -728,7 +757,7 @@ func _on_boss_died(enemy: Enemy) -> void:
 func spawn_pickup(kind: Pickup.Kind, at: Vector2, value: int) -> Pickup:
 	var pickup: Pickup = Pickup.new()
 	pickup.kind = kind
-	if kind == Pickup.Kind.ITEM:
+	if kind == Pickup.Kind.ITEM or kind == Pickup.Kind.EVOLUTION:
 		pickup.item_index = value
 	else:
 		pickup.value = value
@@ -752,6 +781,34 @@ func _on_pickup_collected(pickup: Pickup) -> void:
 			var item: Dictionary = ITEMS[pickup.item_index]
 			items.append(item)
 			_apply_bonus(item["stat"] as String, float(item["amount"]))
+		Pickup.Kind.EVOLUTION:
+			play_sfx(&"pickup_item", 0.0)
+			# Once per weapon per run: a spare item is experience instead.
+			if player.is_evolved(pickup.item_index):
+				add_xp(SPARE_EVOLUTION_XP)
+			elif not ended:
+				_offer_evolution(pickup.item_index)
+
+
+## Pauses for the weapon's two evolution paths; a level-up waits until it is chosen.
+func _offer_evolution(which: int) -> void:
+	evolution_weapon = which
+	get_tree().paused = true
+	play_sfx(&"level_up", 0.0)
+	hud.show_evolution(which, EVOLUTIONS[which])
+
+
+## Takes path index 0 or 1 for the weapon on offer, then any queued level-up.
+func choose_evolution(index: int) -> void:
+	if evolution_weapon < 0 or index < 0 or index >= EVOLUTIONS[evolution_weapon].size():
+		return
+	player.evolve(evolution_weapon, index + 1)
+	evolution_weapon = -1
+	hud.hide_evolution()
+	if pending_level_ups > 0:
+		_offer_level_up()
+	else:
+		get_tree().paused = false
 
 
 func add_xp(amount: int) -> void:
@@ -760,7 +817,7 @@ func add_xp(amount: int) -> void:
 		xp -= xp_needed()
 		level += 1
 		pending_level_ups += 1
-	if pending_level_ups > 0 and level_up_options.is_empty() and not ended:
+	if pending_level_ups > 0 and level_up_options.is_empty() and evolution_weapon < 0 and not ended:
 		_offer_level_up()
 
 
@@ -841,6 +898,8 @@ func _end_run(won: bool) -> void:
 		if is_instance_valid(exit_portal):
 			exit_portal.queue_free()
 		hud.hide_level_up()
+		hud.hide_evolution()
+		evolution_weapon = -1
 		pending_level_ups = 0
 		level_up_options.clear()
 		get_tree().paused = false

@@ -21,6 +21,9 @@ signal weapon_switched(weapon: Weapon)
 signal arrow_fired(step: int)
 
 enum Weapon { SPEAR, BOW }
+## Evolution paths (once per weapon per run); each changes that weapon's finisher.
+enum SpearPath { NONE, WHIRLWIND, CHAIN_LIGHT }
+enum BowPath { NONE, RICOCHET, RAIN }
 
 const HURT_RADIUS: float = 20.0
 const COMBO_LENGTH: int = 3
@@ -40,6 +43,9 @@ const SPEAR_AIR_MASK: int = 1 | 16
 const FINISHER_RAY_SPACING: float = 24.0
 const SLASH_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_vfx_slash.aseprite")
 const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
+## PLACEHOLDER chain-light streak: bright, even-width, no antialiasing.
+const CHAIN_COLOR: Color = Color(1.4, 1.9, 1.8, 1.0)
+const CHAIN_TIME: float = 0.2
 
 @export_group("Movement")
 @export_range(80.0, 600.0, 10.0) var movement_speed: float = 260.0
@@ -74,6 +80,19 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 ## Targets one arrow passes through.
 @export_range(1, 20, 1) var bow_pierce: int = 1
 @export_range(200.0, 3000.0, 10.0) var arrow_speed: float = 950.0
+
+@export_group("Evolution")
+## PLACEHOLDER values for the evolved finishers.
+## Chain Light: extra enemies the finisher's lightning jumps to, and how far each jump reaches.
+@export_range(1, 10, 1) var chain_jumps: int = 3
+@export_range(40.0, 600.0, 10.0) var chain_range: float = 200.0
+## Ricochet: how many more enemies the finishing arrow bounces to, and how far it looks.
+@export_range(1, 10, 1) var ricochet_bounces: int = 4
+@export_range(40.0, 800.0, 10.0) var ricochet_range: float = 280.0
+## Rain of Light: the circle's radius, the delay before it strikes, and its damage per bow damage.
+@export_range(20.0, 400.0, 5.0) var rain_radius: float = 110.0
+@export_range(0.0, 2.0, 0.05) var rain_delay: float = 0.35
+@export_range(0.5, 5.0, 0.1) var rain_damage_multiplier: float = 2.0
 
 @export_group("Feel")
 ## Seconds a dash, take-off, or attack press is remembered until it can fire.
@@ -113,6 +132,10 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 @export_range(16.0, 600.0, 4.0) var pickup_radius: float = 90.0
 
 var aim_direction: Vector2 = Vector2.RIGHT
+## How far the mouse is from the angel (Rain of Light lands there, within bow range).
+var aim_distance: float = 0.0
+var spear_path: SpearPath = SpearPath.NONE
+var bow_path: BowPath = BowPath.NONE
 var mount_direction: Vector2 = Vector2.RIGHT
 var thrust_direction: Vector2 = Vector2.RIGHT
 var spear_direction: Vector2 = Vector2.RIGHT
@@ -197,6 +220,23 @@ func switch_weapon() -> void:
 	weapon_switched.emit(weapon)
 
 
+## Takes an evolution path for a weapon (path 1 or 2; see SpearPath and BowPath).
+func evolve(which: Weapon, path: int) -> void:
+	if which == Weapon.SPEAR:
+		spear_path = path as SpearPath
+	else:
+		bow_path = path as BowPath
+
+
+func is_evolved(which: Weapon) -> bool:
+	return (spear_path if which == Weapon.SPEAR else bow_path) != 0
+
+
+## The finisher's sweep: a full spin once evolved into Whirlwind.
+func finisher_arc() -> float:
+	return 360.0 if spear_path == SpearPath.WHIRLWIND else finisher_arc_degrees
+
+
 ## Combo step of the current weapon (0..COMBO_LENGTH-1) while a combo is live, else -1.
 func combo_step() -> int:
 	return attack_step if attack_time_left > 0.0 or combo_window_left > 0.0 or cooldown_left > 0.0 else -1
@@ -272,6 +312,7 @@ func _physics_process(delta: float) -> void:
 		&"move_left", &"move_right", &"move_up", &"move_down"
 	)
 	var mouse_offset: Vector2 = get_global_mouse_position() - global_position
+	aim_distance = mouse_offset.length()
 	if not mouse_offset.is_zero_approx():
 		aim_direction = mouse_offset.normalized()
 
@@ -408,7 +449,7 @@ func _update_attack(delta: float) -> void:
 	attack_time_left = maxf(0.0, attack_time_left - delta)
 	var progress: float = 1.0 - attack_time_left / attack_duration
 	if attack_step == COMBO_LENGTH - 1:
-		var half: float = deg_to_rad(finisher_arc_degrees) * 0.5
+		var half: float = deg_to_rad(finisher_arc()) * 0.5
 		spear_length = spear_reach * 0.9
 		spear_direction = thrust_direction.rotated(lerpf(-half, half, progress))
 		if not finisher_resolved and progress >= 0.35:
@@ -432,7 +473,10 @@ func _update_bow() -> void:
 		return
 	attack_buffer_left = 0.0
 	attack_step = (attack_step + 1) % COMBO_LENGTH if combo_window_left > 0.0 else 0
-	fire_arrow(attack_step)
+	if attack_step == COMBO_LENGTH - 1 and bow_path == BowPath.RAIN:
+		call_rain()
+	else:
+		fire_arrow(attack_step)
 	if attack_step == COMBO_LENGTH - 1:
 		cooldown_left = bow_finisher_cooldown
 		combo_window_left = 0.0
@@ -441,8 +485,7 @@ func _update_bow() -> void:
 		combo_window_left = cooldown_left + combo_window
 
 
-## Fires one arrow toward the aim. Every step is a plain arrow for now; step is reported
-## so weapon evolutions can change the finisher later.
+## Fires one arrow toward the aim. The finishing arrow of a Ricochet bow bounces on.
 func fire_arrow(step: int = 0) -> Arrow:
 	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
 	arrow.direction = aim_direction
@@ -450,11 +493,26 @@ func fire_arrow(step: int = 0) -> Arrow:
 	arrow.damage = bow_damage
 	arrow.range_left = bow_range
 	arrow.pierce = bow_pierce
+	if step == COMBO_LENGTH - 1 and bow_path == BowPath.RICOCHET:
+		arrow.bounces = ricochet_bounces
+		arrow.bounce_range = ricochet_range
 	arrow.height = SPEAR_HEIGHT + height
 	arrow.position = global_position
 	get_parent().add_child(arrow)
 	arrow_fired.emit(step)
 	return arrow
+
+
+## Rain of Light: the finishing shot marks the aim point (within bow range) and light falls there.
+func call_rain() -> LightRain:
+	var rain: LightRain = LightRain.new()
+	rain.radius = rain_radius
+	rain.delay = rain_delay
+	rain.damage = maxi(1, roundi(bow_damage * rain_damage_multiplier))
+	rain.position = global_position + aim_direction * minf(aim_distance, bow_range)
+	get_parent().add_child(rain)
+	arrow_fired.emit(COMBO_LENGTH - 1)
+	return rain
 
 
 ## Each target is hit at most once per thrust; walls stop the spear. A breakable obstacle
@@ -490,14 +548,17 @@ func _resolve_finisher() -> void:
 	query.transform = Transform2D(0.0, global_position)
 	query.collision_mask = spear_cast.collision_mask & ~1
 	query.exclude = [get_rid()]
-	var half: float = deg_to_rad(finisher_arc_degrees) * 0.5
+	var half: float = deg_to_rad(finisher_arc()) * 0.5
 	var damage: int = maxi(1, roundi(spear_damage * finisher_damage_multiplier))
+	var struck_targets: Array[Node2D] = []
 	for result: Dictionary in space.intersect_shape(query, 128):
 		var collider: Node2D = result["collider"] as Node2D
 		if collider == null or not collider.has_method(&"take_hit"):
 			continue
 		var offset: Vector2 = collider.global_position - global_position
-		if offset.length() > 24.0 and absf(thrust_direction.angle_to(offset)) > half:
+		# A full spin (Whirlwind) takes everything around; skip the angle test, whose edge is
+		# exactly behind the angel and would drop targets there to float rounding.
+		if finisher_arc() < 360.0 and offset.length() > 24.0 and absf(thrust_direction.angle_to(offset)) > half:
 			continue
 		var line_of_sight: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(
 			global_position, collider.global_position, 1
@@ -507,6 +568,9 @@ func _resolve_finisher() -> void:
 		collider.call(&"take_hit", damage)
 		_push(collider, finisher_knockback_scale)
 		_on_attack_connected(true)
+		struck_targets.append(collider)
+	if spear_path == SpearPath.CHAIN_LIGHT and not struck_targets.is_empty():
+		_chain_light(struck_targets, damage)
 	# Sample the sweep with rays no further apart at the tip than FINISHER_RAY_SPACING.
 	var rays: int = 2 + ceili(spear_reach * half * 2.0 / FINISHER_RAY_SPACING)
 	var struck: Array[Breakable] = []
@@ -521,16 +585,73 @@ func _resolve_finisher() -> void:
 		_on_attack_connected(true)
 
 
+## Chain Light: lightning jumps from the last struck enemy to the nearest unstruck one in
+## range, chain_jumps times, at the angel's level; each jump deals the finisher's damage.
+func _chain_light(struck_targets: Array[Node2D], damage: int) -> void:
+	var space: PhysicsDirectSpaceState2D = get_world_2d().direct_space_state
+	var circle: CircleShape2D = CircleShape2D.new()
+	circle.radius = chain_range
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = circle
+	query.collision_mask = spear_cast.collision_mask & ~1
+	var hit: Array[Node2D] = struck_targets.duplicate()
+	var from: Node2D = struck_targets[0]
+	var points: PackedVector2Array = [from.global_position]
+	for jump: int in range(chain_jumps):
+		query.transform = Transform2D(0.0, from.global_position)
+		var next: Node2D = null
+		for result: Dictionary in space.intersect_shape(query, 64):
+			var collider: Node2D = result["collider"] as Node2D
+			if collider == null or not collider.has_method(&"take_hit") or hit.has(collider):
+				continue
+			# Lightning does not jump through walls or standing obstacles.
+			if not space.intersect_ray(PhysicsRayQueryParameters2D.create(from.global_position, collider.global_position, 1)).is_empty():
+				continue
+			if next == null or from.global_position.distance_to(collider.global_position) < from.global_position.distance_to(next.global_position):
+				next = collider
+		if next == null:
+			break
+		next.call(&"take_hit", damage)
+		hit.append(next)
+		points.append(next.global_position)
+		from = next
+	if points.size() > 1:
+		_spawn_chain(points)
+
+
+## PLACEHOLDER lightning: a jagged line through the chain that fades out.
+func _spawn_chain(points: PackedVector2Array) -> void:
+	var line: Line2D = Line2D.new()
+	line.width = 2.0
+	line.default_color = CHAIN_COLOR
+	line.antialiased = false
+	for index: int in range(points.size() - 1):
+		var from: Vector2 = points[index]
+		var to: Vector2 = points[index + 1]
+		line.add_point(from)
+		# A kink midway, on whole art pixels.
+		var kink: Vector2 = (from + to) * 0.5 + (to - from).orthogonal().normalized() * 12.0 * (1.0 if index % 2 == 0 else -1.0)
+		line.add_point((kink / 2.0).round() * 2.0)
+	line.add_point(points[points.size() - 1])
+	get_parent().add_child(line)
+	var tween: Tween = line.create_tween()
+	tween.tween_property(line, ^"modulate:a", 0.0, CHAIN_TIME)
+	tween.tween_callback(line.queue_free)
+
+
 func _spawn_slash() -> void:
-	var arc: AnimatedSprite2D = AnimatedSprite2D.new()
-	arc.sprite_frames = SLASH_FRAMES
-	arc.position = Vector2(0.0, -SPEAR_HEIGHT - height)
-	arc.rotation = thrust_direction.angle()
-	# Always 2x so every art pixel matches; a longer reach does not stretch the art.
-	arc.scale = Vector2(2.0, 2.0)
-	arc.animation_finished.connect(arc.queue_free)
-	add_child(arc)
-	arc.play(&"slash")
+	# Whirlwind spins all the way round, so its slash shows on three sides.
+	var turns: int = 3 if spear_path == SpearPath.WHIRLWIND else 1
+	for turn: int in range(turns):
+		var arc: AnimatedSprite2D = AnimatedSprite2D.new()
+		arc.sprite_frames = SLASH_FRAMES
+		arc.position = Vector2(0.0, -SPEAR_HEIGHT - height)
+		arc.rotation = thrust_direction.angle() + TAU * turn / turns
+		# Always 2x so every art pixel matches; a longer reach does not stretch the art.
+		arc.scale = Vector2(2.0, 2.0)
+		arc.animation_finished.connect(arc.queue_free)
+		add_child(arc)
+		arc.play(&"slash")
 
 
 func _update_visuals(movement: Vector2, delta: float) -> void:

@@ -1,0 +1,266 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/run.tscn" id="1_run"]
+[ext_resource type="PackedScene" path="res://scenes/breakable.tscn" id="2_breakable"]
+
+[node name="Sloth" instance=ExtResource("1_run")]
+sin_index = 6
+lava_layout = [[[Vector2(1761.742, 944.9453), 126.253975]], [[Vector2(1397.5044, 843.3635), 80.64788], [Vector2(1369.9564, 840.4075), 39.24586259630132], [Vector2(1392.2384, 868.8843), 43.352410186497764]], [[Vector2(-1635.3564, 1132.806), 84.60633], [Vector2(-1630.2828, 1111.7023), 54.87109076475235]], [[Vector2(899.3135, -1127.1196), 121.797134]], [[Vector2(1003.05005, 1282.7842), 86.58051]], [[Vector2(374.59277, 961.1138), 83.099144], [Vector2(399.46597, 957.6681), 40.36183963237454], [Vector2(382.80478, 925.30035), 37.92743308518766]], [[Vector2(710.532, 1512.365), 85.609314]], [[Vector2(-849.8472, 1634.5526), 90.95091], [Vector2(-866.9427, 1668.044), 53.43853247701827]], [[Vector2(-1452.5756, 1469.585), 105.728714], [Vector2(-1488.6138, 1470.2135), 48.90575399863337], [Vector2(-1485.0822, 1430.6926), 60.42437002272709]]]
+
+[node name="Shrine1" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(0, -1300)
+kind = 3
+
+[node name="Shrine2" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1236, -402)
+kind = 3
+
+[node name="Shrine3" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(764, 1052)
+kind = 3
+
+[node name="Shrine4" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-764, 1052)
+kind = 3
+
+[node name="Shrine5" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1236, -402)
+kind = 3
+
+[node name="Structure1" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-600, -400)
+kind = 1
+
+[node name="Structure2" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(700, 300)
+kind = 1
+
+[node name="Structure3" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-300, 900)
+kind = 1
+
+[node name="Structure4" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1200, -1000)
+kind = 1
+
+[node name="Structure5" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1300, 700)
+kind = 1
+
+[node name="Structure6" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(400, -1300)
+kind = 1
+
+[node name="Wall1" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1469, 1719)
+kind = 0
+
+[node name="Wall2" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1639, 127)
+kind = 0
+vertical = true
+
+[node name="Wall3" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(219, -833)
+kind = 0
+vertical = true
+
+[node name="Wall4" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(570, -219)
+kind = 0
+
+[node name="Wall5" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1546, -578)
+kind = 0
+vertical = true
+
+[node name="Wall6" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1489, -1317)
+kind = 0
+vertical = true
+
+[node name="Wall7" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1755, 1553)
+kind = 0
+vertical = true
+
+[node name="Wall8" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1059, -172)
+kind = 0
+
+[node name="Tree1" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1266, 1021)
+kind = 2
+vertical = true
+
+[node name="Tree2" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1288, 77)
+kind = 2
+vertical = true
+
+[node name="Tree3" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1220, -686)
+kind = 2
+vertical = true
+
+[node name="Tree4" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-819, 635)
+kind = 2
+
+[node name="Tree5" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-974, 871)
+kind = 2
+
+[node name="Tree6" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(788, 1767)
+kind = 2
+
+[node name="Tree7" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1352, -797)
+kind = 2
+
+[node name="Tree8" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-250, 639)
+kind = 2
+vertical = true
+
+[node name="Tree9" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-290, -1779)
+kind = 2
+
+[node name="Tree10" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1259, -1004)
+kind = 2
+
+[node name="Tree11" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1817, 1193)
+kind = 2
+
+[node name="Tree12" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1316, 316)
+kind = 2
+vertical = true
+
+[node name="Tree13" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1267, 1648)
+kind = 2
+vertical = true
+
+[node name="Tree14" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1579, -550)
+kind = 2
+
+[node name="Tree15" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-607, -1498)
+kind = 2
+vertical = true
+
+[node name="Tree16" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1283, 301)
+kind = 2
+
+[node name="Tree17" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-687, 393)
+kind = 2
+
+[node name="Tree18" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1681, -1466)
+kind = 2
+vertical = true
+
+[node name="Tree19" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-178, -1001)
+kind = 2
+
+[node name="Tree20" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(120, 542)
+kind = 2
+vertical = true
+
+[node name="Tree21" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-489, -939)
+kind = 2
+
+[node name="Tree22" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(848, -537)
+kind = 2
+vertical = true
+
+[node name="Tree23" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1235, 1151)
+kind = 2
+
+[node name="Tree24" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1363, 1447)
+kind = 2
+
+[node name="Tree25" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(573, 1288)
+kind = 2
+vertical = true
+
+[node name="Tree26" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1640, 503)
+kind = 2
+
+[node name="Tree27" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(89, -1710)
+kind = 2
+vertical = true
+
+[node name="Tree28" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1597, -1087)
+kind = 2
+
+[node name="Tree29" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-1467, -1818)
+kind = 2
+vertical = true
+
+[node name="Tree30" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1581, 1759)
+kind = 2
+vertical = true
+
+[node name="Tree31" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(172, 1606)
+kind = 2
+vertical = true
+
+[node name="Tree32" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1087, 865)
+kind = 2
+
+[node name="Tree33" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-237, 1440)
+kind = 2
+vertical = true
+
+[node name="Tree34" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1106, -1817)
+kind = 2
+
+[node name="Tree35" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1757, -1099)
+kind = 2
+
+[node name="Tree36" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1621, -1773)
+kind = 2
+
+[node name="Tree37" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-407, 1700)
+kind = 2
+vertical = true
+
+[node name="Tree38" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(393, 1616)
+kind = 2
+
+[node name="Tree39" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(1580, 163)
+kind = 2
+
+[node name="Tree40" parent="Obstacles" instance=ExtResource("2_breakable")]
+position = Vector2(-876, -1563)
+kind = 2

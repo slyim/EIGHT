@@ -162,21 +162,33 @@ func _run() -> void:
 	await _wait_ticks(3)
 	_check(run.items.size() == 1 and player.spear_reach == reach_before + 28.0, "Items must be collected and applied.")
 
-	# Seven sins in order, then Satan ends the run in victory.
-	for index: int in range(Run.BOSSES.size()):
-		_check(run.current_boss == null and not run.ended, "No boss may be active between fights.")
-		var boss: Boss = run.spawn_next_boss()
-		await _wait_ticks(2)
-		_check(boss.boss_name.begins_with(Run.BOSSES[index]["name"] as String), "Bosses must appear in roster order.")
-		boss.take_hit(boss.max_health)
-		await _wait_ticks(2)
-		if index < Run.BOSSES.size() - 1:
-			_check(is_instance_valid(run.exit_portal), "Each sin must open an exit.")
-			_check(run.spawn_next_boss() == null, "A portal must gate the next boss.")
-			run._advance_stage()
-	_check(run.exit_portal == null, "Satan must not open a portal.")
-	_check(run.boss_index == 8, "All eight bosses must be counted.")
-	_check(run.ended and run.victory and paused, "Defeating Satan must end the run in victory.")
+	# The last shrine summons the map's sin; its death opens the exit, and leaving wins the map.
+	_check(run.current_boss == null and not run.ended, "No sin may be active while shrines stand.")
+	for child: Node in run.obstacles.get_children():
+		if (child as Breakable).kind == Breakable.Kind.SHRINE:
+			(child as Breakable).take_blow(1000)
+	await _wait_ticks(2)
+	var boss: Boss = run.current_boss
+	_check(boss != null and boss.boss_name.begins_with("PRIDE"), "The last shrine must summon Pride.")
+	boss.take_hit(boss.max_health)
+	await _wait_ticks(2)
+	_check(is_instance_valid(run.exit_portal) and not run.ended, "The sin must open an exit without ending the run.")
+	var finished: Array[bool] = []
+	run.finished.connect(func(won: bool) -> void: finished.append(won))
+	run.exit_portal.confirmed.emit()
+	await _wait_ticks(2)
+	_check(run.ended and run.victory and not paused and run.player.is_descending() and run.player.ascending, "Leaving must win the map and lift the angel (unpaused).")
+	_check(run.actors.get_child_count() == 0 or run.actors.get_children().all(func(node: Node) -> bool: return node.is_queued_for_deletion()), "The horde must be gone once the map is won.")
+	await _wait_ticks(roundi(Run.ASCENT_TIME * 60.0) + 10)
+	_check(finished == [true] and not run.player.visible and is_equal_approx(run.heal_world, 1.0), "The ascension must finish with the realm healed (finished %s, heal %.2f)." % [finished, run.heal_world])
+	_check(run.hud.end_label.text.begins_with("THE REALM OF PRIDE IS SAVED"), "The win card must name the saved realm.")
+	# Unhosted (F6), R starts again once the ascension is over, as the card says.
+	_check(run.hud.end_label.text.contains("R to start a new run"), "An unhosted win must say how to start again.")
+	run.hud.restart()
+	await _wait_ticks(3)
+	_check(current_scene != run and current_scene is Run and not (current_scene as Run).ended, "R after an unhosted win must start a fresh run.")
+	run = current_scene as Run
+	run.spawning_enabled = false
 	paused = false
 	run.queue_free()
 	await _wait_ticks(2)
@@ -192,13 +204,16 @@ func _run() -> void:
 		second.player.invulnerable_left = 0.0
 		second.player.take_damage(10)
 	_check(second.player.is_dead and second.ended and not second.victory, "Losing all life must end the run.")
-	_check(second.hud.end_label.visible, "The defeat message must be shown.")
+	await _wait_ticks(5)
+	_check(not second.hud.end_label.visible and second.modulate != Color.WHITE, "The world must dim while the angel falls, before the card.")
+	await _wait_ticks(roundi(Run.FALL_TIME * 60.0) + 10)
+	_check(second.hud.end_label.visible and second.hud.end_label.text.begins_with("YOU HAVE FALLEN"), "The defeat card must follow the fall.")
+	_check(not second.hud.end_buttons.visible, "An unhosted run has no hub buttons.")
 
-	# Natural spawning and boss timer.
+	# Natural spawning.
 	second.queue_free()
 	await _wait_ticks(2)
 	var third: Run = RUN_SCENE.instantiate() as Run
-	third.boss_interval = 5.0
 	third.intro_enabled = false
 	root.add_child(third)
 	current_scene = third
@@ -206,7 +221,7 @@ func _run() -> void:
 	third.player.health = 99
 	await _wait_ticks(int(5.5 * 60.0))
 	_check(third.enemy_count > 0, "Enemies must spawn over time.")
-	_check(third.current_boss != null and third.current_boss.boss_name.begins_with("PRIDE"), "Pride must arrive when the boss timer runs out.")
+	_check(third.current_boss == null, "The sin must not arrive on a timer.")
 
 	third.queue_free()
 	await _wait_ticks(2)
@@ -225,5 +240,5 @@ func _run() -> void:
 	await _wait_ticks(15)
 
 	if failures == 0:
-		print("PASS: kills, experience, piercing, combo finisher, jump, level-up, damage, life pickup, dash, items, boss order, victory, defeat, spawning, boss timer, descent intro.")
+		print("PASS: kills, experience, piercing, combo finisher, jump, level-up, damage, life pickup, dash, items, shrines summon the sin, exit win, defeat, spawning, no boss timer, descent intro.")
 	quit(1 if failures > 0 else 0)

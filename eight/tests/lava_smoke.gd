@@ -1,6 +1,6 @@
 extends SceneTree
 ## Native smoke check for the PLACEHOLDER lava pools: burn rate, grace, air and dash
-## safety, defeat by burning, hazard-blind enemies, and the deterministic per-stage layout.
+## safety, defeat by burning, hazard-blind enemies, and the deterministic per-map layout.
 
 const RUN_SCENE: PackedScene = preload("res://scenes/run.tscn")
 
@@ -45,7 +45,7 @@ func _run() -> void:
 
 	# Layout: a handful of pools, inside the arena, clear of landing, walls, pillars, each other.
 	_check(lava_node.pools.size() >= Run.LAVA_COUNT_MIN and lava_node.pools.size() <= Run.LAVA_COUNT_MAX,
-			"A stage must dress a handful of pools, got %d." % lava_node.pools.size())
+			"A map must dress a handful of pools, got %d." % lava_node.pools.size())
 	_check(not run.hud.burn_label.visible, "The burn callout must start hidden.")
 	if lava_node.pools.is_empty():
 		quit(failures)
@@ -69,36 +69,23 @@ func _run() -> void:
 	_check(not lava_node.point_in_lava(lava_node.pools[0]["center"] + Vector2((lava_node.pools[0]["extent"] as float) + 1.0, 0.0)),
 			"Beyond a pool must query as dry.")
 
-	# The same stage must generate the same layout; a new stage must differ.
+	# The same sin map must generate the same layout; another map must differ.
 	var twin: Run = RUN_SCENE.instantiate() as Run
 	twin.intro_enabled = false
 	twin.spawning_enabled = false
 	root.add_child(twin)
 	await _wait_ticks(3)
-	_check(str(twin.lava.pools) == str(lava_node.pools), "The same stage must generate the same lava layout.")
+	_check(str(twin.lava.pools) == str(lava_node.pools), "The same sin map must generate the same lava layout.")
 	var shifted: Run = RUN_SCENE.instantiate() as Run
-	shifted.stage_index = 3
+	shifted.sin_index = 3
 	shifted.intro_enabled = false
 	shifted.spawning_enabled = false
 	root.add_child(shifted)
 	await _wait_ticks(3)
-	_check(str(shifted.lava.pools) != str(lava_node.pools), "A new stage must generate a different lava layout.")
+	_check(str(shifted.lava.pools) != str(lava_node.pools), "Another sin map must generate a different lava layout.")
 	twin.queue_free()
 	shifted.queue_free()
 	await _wait_ticks(2)
-
-	# Advancing the stage must rebuild the layout.
-	var before: String = str(lava_node.pools)
-	run.boss_index = 2
-	var boss: Boss = run.spawn_next_boss()
-	boss.position = Vector2(1500.0, 1500.0)
-	await _wait_ticks(2)
-	boss.take_hit(boss.max_health)
-	await _wait_ticks(3)
-	run._advance_stage()
-	await _wait_ticks(2)
-	_check(run.stage_index == 3, "The stage must advance to the slain boss's next index.")
-	_check(str(lava_node.pools) != before, "Advancing the stage must rebuild the lava layout.")
 
 	# apply_burn must refuse in every state take_damage refuses (plus none it invents).
 	player.dash_time_left = 0.3
@@ -178,7 +165,8 @@ func _run() -> void:
 	await _wait_ticks(30)
 	_check(player.health == 0 and player.is_dead, "Burning to zero must slay the angel.")
 	_check(run.ended and not run.victory, "Burning to zero must end the run in defeat.")
-	_check(run.hud.end_label.visible, "The defeat message must be shown.")
+	await _wait_ticks(roundi(Run.FALL_TIME * 60.0) + 10)
+	_check(run.hud.end_label.visible, "The defeat message must be shown after the fall.")
 	run.queue_free()
 	await _wait_ticks(2)
 
@@ -194,7 +182,7 @@ func _run() -> void:
 	var wader: Enemy = second.spawn_enemy(0, lava_two.pools[0]["blobs"][0][0])
 	var wader_speed: float = wader.speed
 	var wader_start: Vector2 = wader.global_position
-	var brute: Boss = second.spawn_next_boss()
+	var brute: Boss = second.spawn_sin_boss()
 	brute.position = lava_two.pools[0]["center"]
 	brute.attack_interval = 999.0
 	var brute_speed: float = brute.speed
@@ -235,5 +223,5 @@ func _run() -> void:
 	# Let the audio server release playbacks before quitting.
 	await _wait_ticks(15)
 	if failures == 0:
-		print("Lava smoke passed: query and inset, deterministic per-stage layout, burn rate and grace, air and dash safety, defeat, hazard-blind enemies, hurt-blink interplay.")
+		print("Lava smoke passed: query and inset, deterministic per-map layout, burn rate and grace, air and dash safety, defeat, hazard-blind enemies, hurt-blink interplay.")
 	quit(failures)

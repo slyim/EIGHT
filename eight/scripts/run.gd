@@ -1,8 +1,12 @@
 class_name Run
 extends Node2D
-## Survival run graybox: horde spawning, experience, life, items, and the boss sequence
-## (seven sins, then Satan). Arena layout, sprites, audio, stats, upgrades, and items
-## are PLACEHOLDER content, not final design.
+
+## The run is over: emitted after the angel's ascension on a win, or once the fallen angel
+## has dropped on a defeat. A host (Game) returns to the hub from here.
+signal finished(victory: bool)
+## Survival run on one sin's map: horde spawning, experience, life, items, Satan's five
+## shrines with their guards and countdown, then the sin boss and an exit portal. Arena
+## layout, sprites, audio, stats, upgrades, and items are PLACEHOLDER content, not final design.
 
 const ARENA_RECT: Rect2 = Rect2(-2000.0, -2000.0, 4000.0, 4000.0)
 const ENEMY_SCENE: PackedScene = preload("res://scenes/enemy.tscn")
@@ -19,8 +23,32 @@ const DECOR_COUNT: int = 460
 const LANDING_CLEARANCE: float = 260.0
 const DESCENT_HEIGHT: float = 420.0
 const DESCENT_TIME: float = 1.6
-## PLACEHOLDER obstacle layout. Structures stand where the old pillars stood on every stage;
-## wall segments and trees are scattered per stage.
+## BOSSES index of Satan's map: no shrines; calm until Satan arrives after the ritual.
+const SATAN: int = 7
+## PLACEHOLDER seconds of calm after landing on Satan's map before Satan arrives.
+const RITUAL_TIME: float = 3.0
+## PLACEHOLDER win: the angel rises this high over this many seconds as the world heals.
+const ASCENT_HEIGHT: float = 520.0
+const ASCENT_TIME: float = 2.4
+## PLACEHOLDER defeat: seconds the fallen angel lies before the end card, and the world's dim.
+const FALL_TIME: float = 1.2
+const FALLEN_TINT: Color = Color(0.5, 0.42, 0.55, 1.0)
+## PLACEHOLDER: the darkness lifts to this ambient light as the won realm heals.
+const SAVED_AMBIENT: Color = Color(0.8, 0.92, 0.86, 1.0)
+## Satan's shrines stand on the points of a pentagram this far from the landing site.
+const SHRINE_COUNT: int = 5
+const SHRINE_RING: float = 1300.0
+## PLACEHOLDER guards: a weaker copy of the map's sin boss beside each shrine. It defends the
+## shrine while the angel is within GUARD_LEASH of it, and otherwise returns to it.
+const GUARD_HEALTH_SCALE: float = 0.35
+const GUARD_LEASH: float = 520.0
+const GUARD_OFFSET: float = 130.0
+## PLACEHOLDER healing: ground this far around a destroyed shrine shows healed, with a light.
+const HEAL_RADIUS: float = 300.0
+const HEAL_COLOR: Color = Color(0.36, 0.55, 0.45, 0.5)
+const HEAL_LIGHT: Color = Color(0.55, 1.0, 0.8, 0.5)
+## PLACEHOLDER obstacle layout. Structures stand where the old pillars stood on every map;
+## wall segments and trees are scattered per map.
 const STRUCTURE_SPOTS: Array[Vector2] = [Vector2(-600, -400), Vector2(700, 300), Vector2(-300, 900),
 	Vector2(1200, -1000), Vector2(-1300, 700), Vector2(400, -1300)]
 const WALL_COUNT: int = 8
@@ -28,8 +56,8 @@ const TREE_COUNT: int = 40
 ## Open ground kept between obstacles and from the arena walls, wider than the largest boss.
 const OBSTACLE_LANE: float = 140.0
 
-## PLACEHOLDER lava hazard: pool count and blob sizes per stage (burn rates live on the
-## Lava node). Layouts are deterministic per stage and rebuilt on stage advance.
+## PLACEHOLDER lava hazard: pool count and blob sizes per sin map (burn rates live on the
+## Lava node). Layouts are deterministic per sin map.
 const LAVA_COUNT_MIN: int = 6
 const LAVA_COUNT_MAX: int = 11
 const LAVA_RADIUS_MIN: float = 70.0
@@ -39,7 +67,7 @@ const LAVA_BLOBS_MAX: int = 3
 const LAVA_SPACING: float = 72.0
 ## Extra keep-out beyond LANDING_CLEARANCE, so a pool rim never nears the landing sigil.
 const LAVA_LANDING_MARGIN: float = 80.0
-## Deterministic per-stage seed; the step differs from the decor seed's.
+## Deterministic per-map seed; the step differs from the decor seed's.
 const LAVA_SEED: int = 5501
 const LAVA_SEED_STEP: int = 104729
 const LAVA_ATTEMPTS: int = 600
@@ -79,7 +107,7 @@ const ENEMY_TYPES: Array[Dictionary] = [
 	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
 ]
 
-## Fights in order; the last entry is the final boss. Stats and patterns are PLACEHOLDER.
+## One sin per map (sin_index); the last entry is Satan. Stats and patterns are PLACEHOLDER.
 const BOSSES: Array[Dictionary] = [
 	{"name": "PRIDE", "health": 60, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE]},
@@ -111,8 +139,8 @@ const UPGRADES: Array[Dictionary] = [
 	{"name": "Piercing spear", "text": "Thrust hits +1 more enemy", "stat": "pierce", "amount": 1.0},
 	{"name": "Quicker dash", "text": "Dash cooldown -15%", "stat": "dash", "amount": 0.85},
 	{"name": "Heavier arrows", "text": "+1 arrow damage", "stat": "bow_damage", "amount": 1.0},
-	{"name": "Quicker draw", "text": "Bow draws 15% faster", "stat": "draw_speed", "amount": 0.85},
-	{"name": "Piercing arrows", "text": "Full-draw arrows hit +1 more enemy", "stat": "bow_pierce", "amount": 1.0},
+	{"name": "Quicker shots", "text": "Bow fires 15% faster", "stat": "bow_speed", "amount": 0.85},
+	{"name": "Piercing arrows", "text": "Arrows hit +1 more enemy", "stat": "bow_pierce", "amount": 1.0},
 ]
 
 ## Collectible items found in the arena. PLACEHOLDER names and values.
@@ -127,6 +155,17 @@ const ITEMS: Array[Dictionary] = [
 	{"name": "Item: Phial", "text": "Restore all life", "stat": "heal", "amount": 0.0},
 ]
 
+## Difficulty (minutes) at which each roster entry joins the horde: husk, imp, brute, flyer.
+const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0]
+## PLACEHOLDER horde mix per map: weights for husk, imp, brute, flyer among the unlocked ones.
+## Pride balanced, Greed imps, Lust imps and flyers, Envy flyers, Gluttony brutes, Wrath imps
+## and brutes, Sloth husks only, Satan everything.
+const SIN_ENEMY_WEIGHTS: Array[Array] = [
+	[4.0, 2.0, 1.0, 1.0], [2.0, 5.0, 1.0, 1.0], [1.0, 4.0, 0.0, 3.0], [2.0, 1.0, 1.0, 5.0],
+	[2.0, 1.0, 5.0, 0.0], [1.0, 4.0, 4.0, 0.0], [1.0, 0.0, 0.0, 0.0], [3.0, 3.0, 2.0, 2.0],
+]
+## PLACEHOLDER spawn pace per map (interval multiplier): Sloth's horde comes slower.
+const SIN_SPAWN_PACE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.4, 1.0]
 ## One difficulty unit per minute; tiers step every two units.
 const DIFFICULTY_SECONDS: float = 60.0
 const TIER_UNITS: float = 2.0
@@ -140,23 +179,40 @@ const BASE_SPAWN_INTERVAL: float = 1.1
 const MIN_SPAWN_INTERVAL: float = 0.18
 const SPAWN_PRESSURE_GAIN: float = 0.35
 const MAX_SPAWN_BATCH: int = 12
-## PLACEHOLDER floor tints; stage geometry is shared.
-const STAGE_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6"),
+## PLACEHOLDER floor tints per sin map.
+const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6"),
 	Color("9bbfd5"), Color("b6b58a"), Color("d69a91"), Color("aba0cb"), Color("c08bba")]
 
 @export var spawning_enabled: bool = true
 ## Open the run with the angel descending onto the plain.
 @export var intro_enabled: bool = true
-@export_range(5.0, 600.0, 5.0) var boss_interval: float = 60.0
+## Which sin this map belongs to (index into BOSSES; 7 is Satan). Seeds the layout and tint.
+@export_range(0, 7, 1) var sin_index: int = 0
+## PLACEHOLDER countdown: seconds after landing to destroy every shrine, or the angel dies.
+@export_range(10.0, 3600.0, 10.0) var shrine_time: float = 480.0
 @export_range(10, 1000, 10) var max_enemies: int = 220
 @export_range(0.0, 1.0, 0.005) var heart_drop_chance: float = 0.03
 @export_range(0.0, 1.0, 0.001) var item_drop_chance: float = 0.006
+## Authored lava: one entry per pool, each a list of [center, radius] blobs. Empty means
+## generate from the map's seed. Sin map scenes carry theirs, so they can be edited.
+@export var lava_layout: Array = []
 
 var elapsed: float = 0.0
 var spawn_left: float = 1.0
-var boss_left: float = 0.0
-var boss_index: int = 0
-var stage_index: int = 0
+var shrine_time_left: float = 0.0
+var shrines_left: int = 0
+## Shrines the map started with (0 on Satan's map, or on a map authored without any).
+var shrine_total: int = 0
+## Where shrines fell; the ground around each is drawn healed.
+var healed_spots: Array[Vector2] = []
+var guards: Array[Boss] = []
+var sin_boss_defeated: bool = false
+var ritual_left: float = RITUAL_TIME
+## 0..1 while the won world heals over the ascension.
+var heal_world: float = 0.0:
+	set(value):
+		heal_world = value
+		queue_redraw()
 var exit_portal: ExitPortal
 var current_boss: Boss
 var enemy_count: int = 0
@@ -187,7 +243,7 @@ var has_landed: bool = false
 
 
 func _ready() -> void:
-	boss_left = boss_interval
+	shrine_time_left = shrine_time
 	var camera: Camera2D = player.get_node("Camera2D") as Camera2D
 	camera.limit_left = int(ARENA_RECT.position.x)
 	camera.limit_top = int(ARENA_RECT.position.y)
@@ -211,9 +267,19 @@ func _ready() -> void:
 		add_child(voice)
 		sfx_players.append(voice)
 	(music.stream as AudioStreamOggVorbis).loop = true
-	_place_obstacles()
-	_scatter_lava()
+	# A sin map scene carries its own authored obstacles and lava; otherwise generate them.
+	if obstacles.get_child_count() == 0:
+		_place_obstacles()
+	else:
+		_adopt_obstacles()
+	lava.player = player
+	if lava_layout.is_empty():
+		_scatter_lava()
+	else:
+		lava.set_pools(lava_layout)
 	_scatter_decor()
+	_spawn_guards()
+	player.ascended.connect(_on_ascended)
 	if intro_enabled:
 		player.begin_descent(DESCENT_HEIGHT, DESCENT_TIME)
 	else:
@@ -231,12 +297,12 @@ func _on_player_attack(step: int) -> void:
 func _on_player_landed() -> void:
 	if has_landed:
 		play_sfx(&"land")
-		_spawn_poof(player.global_position + Vector2(0.0, 12.0), PIXEL_SCALE * 0.8)
+		_spawn_poof(player.global_position + Vector2(0.0, 12.0))
 		return
 	# First touchdown on the plain: the run begins.
 	has_landed = true
 	play_sfx(&"holy_land", 0.0)
-	_spawn_poof(player.global_position + Vector2(0.0, 12.0), PIXEL_SCALE * 3.0)
+	_spawn_poof(player.global_position + Vector2(0.0, 12.0))
 	music.play()
 
 
@@ -252,11 +318,12 @@ func play_sfx(sound: StringName, pitch_jitter: float = 0.08) -> void:
 	voice.play()
 
 
-func _spawn_poof(at: Vector2, size: float) -> void:
+## Always drawn at PIXEL_SCALE so every art pixel matches; bigger bursts need bigger art.
+func _spawn_poof(at: Vector2) -> void:
 	var poof: AnimatedSprite2D = AnimatedSprite2D.new()
 	poof.sprite_frames = POOF_FRAMES
 	poof.position = at
-	poof.scale = Vector2(size, size)
+	poof.scale = Vector2(PIXEL_SCALE, PIXEL_SCALE)
 	poof.animation_finished.connect(poof.queue_free)
 	effects.add_child(poof)
 	poof.play(&"poof")
@@ -266,7 +333,7 @@ func _spawn_poof(at: Vector2, size: float) -> void:
 func _scatter_decor() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	decor_props.clear()
-	rng.seed = 8 + stage_index * 7919
+	rng.seed = 8 + sin_index * 7919
 	var animations: PackedStringArray = DECOR_FRAMES.get_animation_names()
 	# Trees are breakable obstacles now; a dead-tree floor prop would read as one.
 	animations.erase("deadtree")
@@ -283,11 +350,10 @@ func _scatter_decor() -> void:
 
 
 ## PLACEHOLDER lava: irregular pools of one to three overlapping blobs, deterministic
-## per stage, clear of the landing site, walls and pillars, and spaced from each other.
+## per sin map, clear of the landing site, walls and obstacles, and spaced from each other.
 func _scatter_lava() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.seed = LAVA_SEED + stage_index * LAVA_SEED_STEP
-	lava.player = player
+	rng.seed = LAVA_SEED + sin_index * LAVA_SEED_STEP
 	var target: int = rng.randi_range(LAVA_COUNT_MIN, LAVA_COUNT_MAX)
 	var pool_blobs: Array = []
 	var accepted: Array = [] # [center, extent] of the pools placed so far.
@@ -346,19 +412,31 @@ func _blocked_rect(x: float, y: float, margin: float) -> bool:
 ## placement, e.g. the exit portal, keep clear of the pools.
 func point_in_lava(point: Vector2, inset: float = 0.0) -> bool:
 	return lava.point_in_lava(point, inset)
-## PLACEHOLDER obstacles, rebuilt fresh for each stage from a fixed seed: the structures, then
+## Shrine positions: the points of a pentagram around the landing site, the first due north.
+static func shrine_spots() -> Array[Vector2]:
+	var spots: Array[Vector2] = []
+	for index: int in range(SHRINE_COUNT):
+		spots.append(Vector2.from_angle(-PI * 0.5 + TAU * index / SHRINE_COUNT) * SHRINE_RING)
+	return spots
+
+
+## PLACEHOLDER obstacles, built from a fixed seed per map: Satan's shrines, the structures, then
 ## wall segments and trees wherever they keep open lanes and the landing site clear.
 func _place_obstacles() -> void:
 	for child: Node in obstacles.get_children():
 		child.free()
+	if sin_index != SATAN:
+		for spot: Vector2 in shrine_spots():
+			_add_obstacle(Breakable.Kind.SHRINE, spot, false)
+	_count_shrines()
 	for spot: Vector2 in STRUCTURE_SPOTS:
 		_add_obstacle(Breakable.Kind.STRUCTURE, spot, false)
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.seed = 88 + stage_index * 6113
+	rng.seed = 88 + sin_index * 6113
 	var room: Rect2 = ARENA_RECT.grow(-OBSTACLE_LANE)
 	for index: int in range(WALL_COUNT + TREE_COUNT):
 		var kind: Breakable.Kind = Breakable.Kind.WALL if index < WALL_COUNT else Breakable.Kind.TREE
-		# shortcut: a crowded stage may get fewer than the counts; fine at these densities.
+		# shortcut: a crowded map may get fewer than the counts; fine at these densities.
 		for attempt: int in range(40):
 			var vertical: bool = rng.randf() < 0.5
 			var size: Vector2 = Breakable.footprint_size(kind, vertical)
@@ -367,6 +445,23 @@ func _place_obstacles() -> void:
 			if room.encloses(spot) and not spot.grow(LANDING_CLEARANCE).has_point(Vector2.ZERO) and not _crowds_obstacle(spot):
 				_add_obstacle(kind, at, vertical)
 				break
+
+
+## Hooks up obstacles authored in a sin map scene, exactly as _add_obstacle would.
+func _adopt_obstacles() -> void:
+	for child: Node in obstacles.get_children():
+		var obstacle: Breakable = child as Breakable
+		obstacle.hit.connect(play_sfx.bind(&"enemy_hit").unbind(1))
+		obstacle.broken.connect(_on_obstacle_broken)
+	_count_shrines()
+
+
+func _count_shrines() -> void:
+	shrines_left = 0
+	for child: Node in obstacles.get_children():
+		if (child as Breakable).kind == Breakable.Kind.SHRINE:
+			shrines_left += 1
+	shrine_total = shrines_left
 
 
 func _crowds_obstacle(spot: Rect2) -> bool:
@@ -390,27 +485,81 @@ func _add_obstacle(kind: Breakable.Kind, at: Vector2, vertical: bool) -> Breakab
 func _on_obstacle_broken(obstacle: Breakable) -> void:
 	# PLACEHOLDER AUDIO: the landing thud doubles as the break sound.
 	play_sfx(&"land")
-	var size: Vector2 = obstacle.footprint().size
-	_spawn_poof(obstacle.position, PIXEL_SCALE * clampf(size.length() / 70.0, 1.2, 3.0))
+	_spawn_poof(obstacle.position)
+	if obstacle.kind == Breakable.Kind.SHRINE:
+		_on_shrine_destroyed(obstacle)
+
+
+## The world heals around a fallen shrine; the last one summons the sin and stops the countdown.
+func _on_shrine_destroyed(shrine: Breakable) -> void:
+	shrines_left -= 1
+	healed_spots.append(shrine.position)
+	var light: Node2D = Node2D.new()
+	light.name = &"HealedLight"
+	light.position = shrine.position
+	light.set_meta(&"light", HEAL_LIGHT)
+	light.set_meta(&"light_radius", HEAL_RADIUS)
+	light.add_to_group(&"light")
+	add_child(light, true)
+	play_sfx(&"holy_land", 0.0)
+	queue_redraw()
+	if shrines_left == 0:
+		spawn_sin_boss()
+
+
+## One guard per shrine, standing on its outer side.
+func _spawn_guards() -> void:
+	guards.clear()
+	for child: Node in obstacles.get_children():
+		var shrine: Breakable = child as Breakable
+		if shrine == null or shrine.kind != Breakable.Kind.SHRINE:
+			continue
+		var guard: Boss = _make_boss(GUARD_HEALTH_SCALE)
+		guard.boss_name = "%s GUARD (PLACEHOLDER)" % BOSSES[sin_index]["name"]
+		guard.home = shrine.position
+		guard.leash = GUARD_LEASH
+		guard.position = _open_spot(shrine.position + shrine.position.normalized() * GUARD_OFFSET, guard.radius + 8.0)
+		guard.died.connect(_on_guard_died)
+		actors.add_child(guard)
+		guards.append(guard)
+
+
+func _on_guard_died(guard: Enemy) -> void:
+	kills += 1
+	guards.erase(guard)
+	play_sfx(&"boss_death", 0.0)
+	_spawn_poof(guard.global_position)
+	spawn_pickup(Pickup.Kind.XP, guard.global_position, guard.xp_value)
 
 
 func _physics_process(delta: float) -> void:
 	if ended or not has_landed:
 		return
 	elapsed += delta
+	if shrines_left > 0:
+		shrine_time_left = maxf(0.0, shrine_time_left - delta)
+		if shrine_time_left == 0.0:
+			# Satan's shrines outlasted the angel.
+			player.kill()
+			return
+	if sin_index != SATAN and shrines_left == 0 and not sin_boss_defeated and current_boss == null:
+		# No shrines stand (all broken, or none were authored): the sin comes.
+		spawn_sin_boss()
+	if sin_index == SATAN and not sin_boss_defeated and current_boss == null:
+		# The ritual: calm until Satan arrives.
+		ritual_left -= delta
+		if ritual_left <= 0.0:
+			spawn_sin_boss()
+		return
 	if not spawning_enabled:
 		return
 	spawn_left -= delta
 	if spawn_left <= 0.0:
-		var interval: float = spawn_interval()
+		var interval: float = spawn_interval() * SIN_SPAWN_PACE[sin_index]
 		spawn_left = interval * (2.0 if current_boss != null else 1.0)
 		for count: int in range(spawn_batch()):
 			if enemy_count < max_enemies:
 				spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
-	if current_boss == null and exit_portal == null and boss_index < BOSSES.size():
-		boss_left -= delta
-		if boss_left <= 0.0:
-			spawn_next_boss()
 
 
 func difficulty() -> float:
@@ -447,44 +596,23 @@ func _open_spot(at: Vector2, clearance: float, avoid_lava: bool = false) -> Vect
 	return Vector2.ZERO # Landing site is always clear.
 
 
-func _advance_stage() -> void:
-	if ended or not is_instance_valid(exit_portal) or current_boss != null:
-		return
-	exit_portal.free()
-	exit_portal = null
-	# Leave uncollected loot behind. Remove without death signals or extra rewards.
-	for child: Node in actors.get_children():
-		child.free()
-	for child: Node in pickups.get_children():
-		child.free()
-	for child: Node in effects.get_children():
-		child.free()
-	enemy_count = 0
-	stage_index = boss_index
-	boss_left = boss_interval
-	spawn_left = 1.0
-	player.position = Vector2.ZERO
-	player.velocity = Vector2.ZERO
-	(player.get_node("Camera2D") as Camera2D).reset_smoothing()
-	_place_obstacles()
-	_scatter_lava()
-	_scatter_decor()
-	play_sfx(&"holy_land", 0.0)
-
-
 func xp_needed() -> int:
 	return 3 + level * 4
 
 
+## A weighted pick from this map's mix among the roster entries unlocked by difficulty.
 func _pick_enemy_type() -> int:
-	var roll: float = randf()
-	if difficulty() >= 2.0 and roll < 0.15:
-		return 2
-	if difficulty() >= 0.75 and roll < 0.4:
-		return 1
-	# Flying enemy (roster index 3): appears after about a minute at a modest share.
-	if difficulty() >= 1.0 and roll < 0.5:
-		return 3
+	var weights: Array = SIN_ENEMY_WEIGHTS[sin_index]
+	var total: float = 0.0
+	for index: int in range(weights.size()):
+		if difficulty() >= ENEMY_UNLOCK[index]:
+			total += weights[index]
+	var roll: float = randf() * total
+	for index: int in range(weights.size()):
+		if difficulty() >= ENEMY_UNLOCK[index] and weights[index] > 0.0:
+			roll -= weights[index]
+			if roll < 0.0:
+				return index
 	return 0
 
 
@@ -514,29 +642,37 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	return enemy
 
 
-func spawn_next_boss() -> Boss:
-	if ended or current_boss != null or exit_portal != null or boss_index >= BOSSES.size():
-		return null
-	var data: Dictionary = BOSSES[boss_index]
+## A boss from this map's sin, scaled by difficulty; health_scale weakens guards.
+func _make_boss(health_scale: float = 1.0) -> Boss:
+	var data: Dictionary = BOSSES[sin_index]
 	var boss: Boss = BOSS_SCENE.instantiate() as Boss
 	boss.boss_name = "%s (PLACEHOLDER)" % data["name"]
-	boss.max_health = roundi(float(data["health"]) * (1.0 + difficulty() * BOSS_HEALTH_GAIN))
+	boss.max_health = maxi(1, roundi(float(data["health"]) * health_scale * (1.0 + difficulty() * BOSS_HEALTH_GAIN)))
 	boss.speed = float(data["speed"]) * (1.0 + difficulty() * BOSS_SPEED_GAIN)
 	boss.radius = float(data["radius"])
 	boss.attack_interval = float(data["interval"])
 	boss.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * BOSS_DAMAGE_GAIN))
 	boss.frames = data["frames"] as SpriteFrames
 	boss.patterns.assign(data["patterns"])
-	boss.xp_value = 20 + boss_index * 5
+	boss.xp_value = roundi((20 + sin_index * 5) * maxf(health_scale, 0.5))
 	boss.knockback_strength = 0.0
 	boss.target = player
+	boss.hit.connect(_on_enemy_hit)
+	boss.attacked.connect(play_sfx.bind(&"boss_attack", 0.05).unbind(1))
+	return boss
+
+
+## Summons this map's sin once every shrine has fallen (never twice, never after the run ends).
+func spawn_sin_boss() -> Boss:
+	if ended or current_boss != null or sin_boss_defeated:
+		return null
+	var boss: Boss = _make_boss()
 	boss.position = _open_spot((player.global_position + Vector2.RIGHT.rotated(randf() * TAU) * 520.0).clamp(
 		ARENA_RECT.position + Vector2(120.0, 120.0), ARENA_RECT.end - Vector2(120.0, 120.0)
 	), boss.radius + 8.0)
 	boss.died.connect(_on_boss_died)
-	boss.hit.connect(_on_enemy_hit)
+	# Only the sin summons; guards stay local to their shrines and off the horde cap.
 	boss.summon_requested.connect(_on_boss_summon)
-	boss.attacked.connect(play_sfx.bind(&"boss_attack", 0.05).unbind(1))
 	actors.add_child(boss)
 	current_boss = boss
 	play_sfx(&"boss_spawn", 0.0)
@@ -557,7 +693,7 @@ func _on_enemy_died(enemy: Enemy) -> void:
 	enemy_count -= 1
 	kills += 1
 	play_sfx(&"enemy_death")
-	_spawn_poof(enemy.global_position, PIXEL_SCALE)
+	_spawn_poof(enemy.global_position)
 	spawn_pickup(Pickup.Kind.XP, enemy.global_position, enemy.xp_value)
 	if randf() < heart_drop_chance:
 		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
@@ -565,20 +701,23 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		spawn_pickup(Pickup.Kind.ITEM, enemy.global_position, randi() % ITEMS.size())
 
 
+## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
+## then the horde keeps scaling and the angel keeps growing.
 func _on_boss_died(enemy: Enemy) -> void:
 	kills += 1
 	var at: Vector2 = enemy.global_position
 	current_boss = null
+	sin_boss_defeated = true
 	play_sfx(&"boss_death", 0.0)
-	_spawn_poof(at, PIXEL_SCALE * 3.0)
-	boss_index += 1
-	if boss_index >= BOSSES.size():
+	_spawn_poof(at)
+	if sin_index == SATAN:
+		# The last fight: the world is saved at once.
 		_end_run(true)
 		return
 	exit_portal = PORTAL_SCENE.instantiate() as ExitPortal
 	exit_portal.position = _portal_position(at)
 	exit_portal.target = player
-	exit_portal.confirmed.connect(_advance_stage, CONNECT_DEFERRED)
+	exit_portal.confirmed.connect(_end_run.bind(true), CONNECT_DEFERRED)
 	add_child(exit_portal)
 	spawn_pickup(Pickup.Kind.XP, at, enemy.xp_value)
 	spawn_pickup(Pickup.Kind.HEART, at + Vector2(-30.0, 20.0), 20)
@@ -669,12 +808,12 @@ func _apply_bonus(stat: String, amount: float) -> void:
 		"dash":
 			player.dash_cooldown = maxf(0.1, player.dash_cooldown * amount)
 		"bow_damage":
-			player.bow_min_damage += int(amount)
-			player.bow_max_damage += int(amount)
-		"draw_speed":
-			player.bow_draw_time = maxf(0.1, player.bow_draw_time * amount)
+			player.bow_damage += int(amount)
+		"bow_speed":
+			player.bow_cooldown = maxf(0.05, player.bow_cooldown * amount)
+			player.bow_finisher_cooldown = maxf(0.05, player.bow_finisher_cooldown * amount)
 		"bow_pierce":
-			player.bow_max_pierce += int(amount)
+			player.bow_pierce += int(amount)
 		"heal":
 			player.heal(player.max_health)
 		_:
@@ -692,9 +831,43 @@ func _end_run(won: bool) -> void:
 	victory = won
 	music.stop()
 	play_sfx(&"victory" if won else &"defeat", 0.0)
-	hud.show_end(won)
+	var tween: Tween = create_tween()
 	if won:
-		get_tree().paused = true
+		# The angel rises in a beam and the whole realm heals beneath it; the horde is gone.
+		for child: Node in actors.get_children():
+			child.queue_free()
+		for child: Node in pickups.get_children():
+			child.queue_free()
+		if is_instance_valid(exit_portal):
+			exit_portal.queue_free()
+		hud.hide_level_up()
+		pending_level_ups = 0
+		level_up_options.clear()
+		get_tree().paused = false
+		player.begin_ascent(ASCENT_HEIGHT, ASCENT_TIME)
+		tween.set_parallel()
+		tween.tween_property(self, ^"heal_world", 1.0, ASCENT_TIME).set_trans(Tween.TRANS_SINE)
+		# The darkness lifts from the shader's own ambient (unset until changed, so read its default).
+		var lighting: ShaderMaterial = $Lighting.material
+		var ambient: Variant = lighting.get_shader_parameter(&"ambient")
+		if ambient == null:
+			ambient = RenderingServer.shader_get_parameter_default(lighting.shader.get_rid(), &"ambient")
+		if ambient is Color:
+			tween.tween_method(func(value: Color) -> void: lighting.set_shader_parameter(&"ambient", value), ambient, SAVED_AMBIENT, ASCENT_TIME).set_trans(Tween.TRANS_SINE)
+		return
+	# The angel falls and the world dims; the end card follows.
+	tween.tween_property(self, ^"modulate", FALLEN_TINT, FALL_TIME)
+	tween.tween_callback(_show_ending.bind(false))
+
+
+func _on_ascended() -> void:
+	player.visible = false
+	_show_ending(true)
+
+
+func _show_ending(won: bool) -> void:
+	hud.show_end(won)
+	finished.emit(won)
 
 
 func _draw() -> void:
@@ -708,10 +881,15 @@ func _draw() -> void:
 	for row: int in range(rows):
 		for column: int in range(columns):
 			# Mostly plain tiles, with rare marked variants.
-			var roll: int = (column * 73856093 ^ row * 19349663 ^ stage_index * 83492791) & 0xffff
+			var roll: int = (column * 73856093 ^ row * 19349663 ^ sin_index * 83492791) & 0xffff
 			var variant: int = 0 if roll % 13 != 0 else 1 + (roll / 13) % (variants - 1)
 			var at: Vector2 = ARENA_RECT.position + Vector2(column, row) * tile
-			draw_texture_rect(FLOOR_FRAMES.get_frame_texture(&"tiles", variant), Rect2(at, Vector2(tile, tile)), false, STAGE_TINTS[stage_index])
+			draw_texture_rect(FLOOR_FRAMES.get_frame_texture(&"tiles", variant), Rect2(at, Vector2(tile, tile)), false, REALM_TINTS[sin_index])
+	# PLACEHOLDER healed ground around each fallen shrine, then the whole realm once won.
+	for spot: Vector2 in healed_spots:
+		draw_circle(spot, HEAL_RADIUS, HEAL_COLOR)
+	if heal_world > 0.0:
+		draw_rect(ARENA_RECT, Color(HEAL_COLOR, HEAL_COLOR.a * heal_world))
 	var landing: Texture2D = LANDING_FRAMES.get_frame_texture(&"idle", 0)
 	draw_texture_rect(landing, Rect2(-landing.get_size() * PIXEL_SCALE * 0.5 + Vector2(0.0, 12.0), landing.get_size() * PIXEL_SCALE), false)
 	for prop: Array in decor_props:

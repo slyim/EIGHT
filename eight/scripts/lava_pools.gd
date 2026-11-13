@@ -52,11 +52,11 @@ var shimmer_left: float = 0.0
 var shimmer_time: float = 0.0
 
 
-## Replaces the stage's pools. Each entry is one pool's blobs with absolute centers
+## Replaces the map's pools. Each entry is one pool's blobs with absolute centers
 ## (the node sits at the run's origin); extent and bubbles are derived here.
 func set_pools(pool_blobs: Array) -> void:
 	pools = []
-	# The only children are the previous stage's blob lights (see scripts/lights.gd).
+	# The only children are the previous layout's blob lights (see scripts/lights.gd).
 	for light: Node in get_children():
 		light.queue_free()
 	for blobs: Array in pool_blobs:

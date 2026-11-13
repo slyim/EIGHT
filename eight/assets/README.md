@@ -15,7 +15,7 @@ Temporary placeholders, including audio, are allowed for prototyping only when t
 - Record their source, creator/tool where applicable, license, and what needs replacing. Do not use a sound of unknown provenance or assume familiar audio is free to redistribute.
 - Never promote a placeholder to production without checking that it meets the human-created asset policy.
 
-The survival run uses code-generated placeholder sprites (`art/placeholder/`) and placeholder audio (`audio/placeholder/`), produced by the scripts in the repository's `tools/` folder and labeled on-screen as placeholder art and `PLACEHOLDER AUDIO`. The drawn spear, the boss name tags, and the spear test space's target remain code-drawn debug geometry. Owner-supplied sprites are stored under `art/`, with provenance recorded in `art/CREDITS.md`. The existing Godot project icon is editor/template material, not final game art.
+The survival run uses code-generated placeholder sprites (`art/placeholder/`) and placeholder audio (`audio/placeholder/`), produced by the scripts in the repository's `tools/` folder and labeled on-screen as placeholder art and `PLACEHOLDER AUDIO`. The drawn spear and the spear test space's target remain code-drawn debug geometry. The UI fonts in `fonts/` are third-party SIL OFL fonts chosen by the owner; see `fonts/CREDITS.md`. Owner-supplied sprites are stored under `art/`, with provenance recorded in `art/CREDITS.md`. The existing Godot project icon is editor/template material, not final game art.
 
 `.aseprite` files are tracked with Git LFS and imported by Aseprite Wizard; commit the `.import` file and the hidden `.ase_bake.res` bake file next to each one.
 

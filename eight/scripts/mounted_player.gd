@@ -1,7 +1,7 @@
 class_name MountedPlayer
 extends CharacterBody2D
-## Mounted hero controller: movement, dash, flight, a three-hit light-spear combo, a
-## charged bow, and the descent from the sky that opens a run. Sprites and drawn effects
+## Mounted hero controller: movement, dash, flight, three-hit light-spear and bow combos,
+## and the descent from the sky that opens a run. Sprites and drawn effects
 ## (including the bow and arrows) are PLACEHOLDER art.
 
 signal health_changed(current: int, maximum: int)
@@ -14,9 +14,11 @@ signal dashed
 signal jumped
 ## Emitted on touchdown.
 signal landed
+## Emitted when the winning ascension reaches the sky.
+signal ascended
 signal weapon_switched(weapon: Weapon)
-## charge runs from 0 (minimum-draw tap) to 1 (full draw).
-signal arrow_fired(charge: float)
+## step is 0 and 1 for the opening shots, 2 for the finisher.
+signal arrow_fired(step: int)
 
 enum Weapon { SPEAR, BOW }
 
@@ -62,16 +64,15 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 @export_range(0.0, 5.0, 0.1) var finisher_knockback_scale: float = 2.0
 
 @export_group("Bow")
-## Seconds of holding attack to reach full charge.
-@export_range(0.1, 3.0, 0.05) var bow_draw_time: float = 0.75
-## Seconds after a release before the next draw can start.
-@export_range(0.0, 2.0, 0.01) var bow_cooldown: float = 0.18
-@export_range(1, 20, 1) var bow_min_damage: int = 1
-@export_range(1, 40, 1) var bow_max_damage: int = 4
-@export_range(40.0, 2000.0, 10.0) var bow_min_range: float = 240.0
-@export_range(40.0, 2000.0, 10.0) var bow_max_range: float = 640.0
-## Targets a fully drawn arrow passes through; a tap pierces one.
-@export_range(1, 20, 1) var bow_max_pierce: int = 3
+## Three-shot combo on the spear's rhythm: shot, quicker shot, finisher. The finisher is a
+## plain arrow until a weapon evolution changes it. PLACEHOLDER values.
+## Seconds after a shot before the next; the second shot recovers faster.
+@export_range(0.05, 2.0, 0.01) var bow_cooldown: float = 0.26
+@export_range(0.05, 2.0, 0.01) var bow_finisher_cooldown: float = 0.45
+@export_range(1, 20, 1) var bow_damage: int = 1
+@export_range(40.0, 2000.0, 10.0) var bow_range: float = 520.0
+## Targets one arrow passes through.
+@export_range(1, 20, 1) var bow_pierce: int = 1
 @export_range(200.0, 3000.0, 10.0) var arrow_speed: float = 950.0
 
 @export_group("Feel")
@@ -139,15 +140,14 @@ var height: float = 0.0
 var descent_height: float = 0.0
 var descent_duration: float = 0.0
 var descent_left: float = 0.0
+## The descent runs in reverse: the angel rises into the sky (the win ending).
+var ascending: bool = false
 var shake_left: float = 0.0
 var shake_strength: float = 0.0
 var health: int = 0
 var invulnerable_left: float = 0.0
 var is_dead: bool = false
 var weapon: Weapon = Weapon.SPEAR
-## Seconds the bow has been drawn; negative while not drawing.
-var draw_time: float = -1.0
-var bow_cooldown_left: float = 0.0
 var attack_buffer_left: float = 0.0
 var dash_buffer_left: float = 0.0
 var jump_buffer_left: float = 0.0
@@ -186,10 +186,9 @@ func _input(event: InputEvent) -> void:
 		switch_weapon()
 
 
-## Toggles spear and bow. Cancels any draw or spear attack in progress.
+## Toggles spear and bow. Cancels any combo in progress; the recovery carries over.
 func switch_weapon() -> void:
 	weapon = Weapon.BOW if weapon == Weapon.SPEAR else Weapon.SPEAR
-	draw_time = -1.0
 	attack_time_left = 0.0
 	attack_step = -1
 	combo_window_left = 0.0
@@ -198,9 +197,9 @@ func switch_weapon() -> void:
 	weapon_switched.emit(weapon)
 
 
-## Bow draw from 0 to 1, or -1 while not drawing.
-func draw_charge() -> float:
-	return clampf(draw_time / bow_draw_time, 0.0, 1.0) if draw_time >= 0.0 else -1.0
+## Combo step of the current weapon (0..COMBO_LENGTH-1) while a combo is live, else -1.
+func combo_step() -> int:
+	return attack_step if attack_time_left > 0.0 or combo_window_left > 0.0 or cooldown_left > 0.0 else -1
 
 
 ## Opens a run: the angel falls from the sky and lands. Input waits until landing.
@@ -213,6 +212,14 @@ func begin_descent(from_height: float, duration: float) -> void:
 	height = from_height
 
 
+## Ends a won run: the angel rises in its beam. Input waits; ascended fires at the top.
+func begin_ascent(to_height: float, duration: float) -> void:
+	begin_descent(to_height, duration)
+	ascending = true
+	height = 0.0
+
+
+## True while descending into the run or ascending out of it.
 func is_descending() -> bool:
 	return descent_left > 0.0
 
@@ -242,10 +249,14 @@ func _physics_process(delta: float) -> void:
 	if is_descending():
 		descent_left = maxf(0.0, descent_left - delta)
 		var t: float = 1.0 - descent_left / descent_duration
-		height = descent_height * (1.0 - t * t)
+		height = descent_height * (t * t if ascending else 1.0 - t * t)
 		if descent_left == 0.0:
-			height = 0.0
-			_land(14.0)
+			if ascending:
+				set_physics_process(false)
+				ascended.emit()
+			else:
+				height = 0.0
+				_land(14.0)
 		_update_visuals(Vector2.ZERO, delta)
 		return
 	invulnerable_left = maxf(0.0, invulnerable_left - delta)
@@ -367,7 +378,7 @@ func _update_attack(delta: float) -> void:
 	# The spear strikes what shares the angel's level: flying enemies in the air, the rest on the ground.
 	spear_cast.collision_mask = SPEAR_AIR_MASK if is_airborne() else SPEAR_GROUND_MASK
 	if weapon == Weapon.BOW:
-		_update_bow(delta)
+		_update_bow()
 		return
 	var wants_attack: bool = Input.is_action_pressed(&"attack") or attack_buffer_left > 0.0
 	if wants_attack and cooldown_left <= 0.0 and attack_time_left <= 0.0:
@@ -413,33 +424,36 @@ func _update_attack(delta: float) -> void:
 		combo_window_left = combo_window if attack_step < COMBO_LENGTH - 1 else 0.0
 
 
-func _update_bow(delta: float) -> void:
-	bow_cooldown_left = maxf(0.0, bow_cooldown_left - delta)
-	if draw_time < 0.0:
-		if (Input.is_action_pressed(&"attack") or attack_buffer_left > 0.0) and bow_cooldown_left <= 0.0:
-			attack_buffer_left = 0.0
-			draw_time = 0.0
+## Same input and timing rules as the spear: press or hold attack; a press within
+## combo_window of the last shot's recovery continues the combo.
+func _update_bow() -> void:
+	var wants_attack: bool = Input.is_action_pressed(&"attack") or attack_buffer_left > 0.0
+	if not wants_attack or cooldown_left > 0.0:
 		return
-	if Input.is_action_pressed(&"attack"):
-		draw_time += delta
-		return
-	fire_arrow(draw_charge())
-	draw_time = -1.0
-	bow_cooldown_left = bow_cooldown
+	attack_buffer_left = 0.0
+	attack_step = (attack_step + 1) % COMBO_LENGTH if combo_window_left > 0.0 else 0
+	fire_arrow(attack_step)
+	if attack_step == COMBO_LENGTH - 1:
+		cooldown_left = bow_finisher_cooldown
+		combo_window_left = 0.0
+	else:
+		cooldown_left = bow_cooldown * (0.8 if attack_step == 1 else 1.0)
+		combo_window_left = cooldown_left + combo_window
 
 
-## Fires one arrow toward the aim; charge 0..1 scales damage, range, and pierce.
-func fire_arrow(charge: float) -> Arrow:
+## Fires one arrow toward the aim. Every step is a plain arrow for now; step is reported
+## so weapon evolutions can change the finisher later.
+func fire_arrow(step: int = 0) -> Arrow:
 	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
 	arrow.direction = aim_direction
 	arrow.speed = arrow_speed
-	arrow.damage = roundi(lerpf(bow_min_damage, maxi(bow_min_damage, bow_max_damage), charge))
-	arrow.range_left = lerpf(bow_min_range, maxf(bow_min_range, bow_max_range), charge)
-	arrow.pierce = roundi(lerpf(1.0, bow_max_pierce, charge))
+	arrow.damage = bow_damage
+	arrow.range_left = bow_range
+	arrow.pierce = bow_pierce
 	arrow.height = SPEAR_HEIGHT + height
 	arrow.position = global_position
 	get_parent().add_child(arrow)
-	arrow_fired.emit(charge)
+	arrow_fired.emit(step)
 	return arrow
 
 
@@ -512,7 +526,8 @@ func _spawn_slash() -> void:
 	arc.sprite_frames = SLASH_FRAMES
 	arc.position = Vector2(0.0, -SPEAR_HEIGHT - height)
 	arc.rotation = thrust_direction.angle()
-	arc.scale = Vector2(2.0, 2.0) * (spear_reach / 112.0)
+	# Always 2x so every art pixel matches; a longer reach does not stretch the art.
+	arc.scale = Vector2(2.0, 2.0)
 	arc.animation_finished.connect(arc.queue_free)
 	add_child(arc)
 	arc.play(&"slash")
@@ -551,7 +566,9 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	camera.offset = Vector2(randf_range(-strength, strength), randf_range(-strength, strength))
 	# Whole screen pixels keep the world-locked light cells and dither from swimming.
 	camera.force_update_scroll()
-	var screen_transform: Transform2D = get_viewport().get_final_transform() * get_parent().get_global_transform_with_canvas()
+	var parent: CanvasItem = get_parent() as CanvasItem
+	var parent_canvas: Transform2D = parent.get_global_transform_with_canvas() if parent != null else get_canvas_transform()
+	var screen_transform: Transform2D = get_viewport().get_final_transform() * parent_canvas
 	camera.offset += (screen_transform.origin - screen_transform.origin.round()) / screen_transform.get_scale()
 
 	var blink: bool = invulnerable_left > 0.0 and int(invulnerable_left * 16.0) % 2 == 0
@@ -577,13 +594,26 @@ func take_damage(amount: int, from_air: bool = false) -> bool:
 	health_changed.emit(health, max_health)
 	hurt.emit()
 	if health == 0:
-		is_dead = true
-		modulate = Color(0.45, 0.45, 0.45, 1.0)
-		sprite.stop()
-		spear.visible = false
-		bow.visible = false
-		died.emit()
+		_die()
 	return true
+
+
+## Dies at once whatever protects the angel (the shrine countdown running out).
+func kill() -> void:
+	if is_dead:
+		return
+	health = 0
+	health_changed.emit(health, max_health)
+	_die()
+
+
+func _die() -> void:
+	is_dead = true
+	modulate = Color(0.45, 0.45, 0.45, 1.0)
+	sprite.stop()
+	spear.visible = false
+	bow.visible = false
+	died.emit()
 
 
 func heal(amount: int) -> void:
@@ -607,20 +637,17 @@ func _draw() -> void:
 
 
 func _draw_bow() -> void:
-	# PLACEHOLDER bow, drawn in the Bow node's space (+x is the aim): a light arc whose
-	# string pulls back with the draw, and the nocked arrow while drawing.
+	# PLACEHOLDER bow, drawn in the Bow node's space (+x is the aim): a light arc, its string,
+	# and a nocked arrow once the next shot is ready. Widths are whole art pixels (2 units).
 	var color: Color = Arrow.COLOR
 	var grip: Vector2 = Vector2(30.0, 0.0)
 	var tip_top: Vector2 = grip + Vector2(-10.0, -18.0)
 	var tip_bottom: Vector2 = grip + Vector2(-10.0, 18.0)
-	bow.draw_polyline(PackedVector2Array([tip_top, grip + Vector2(-2.0, -10.0), grip, grip + Vector2(-2.0, 10.0), tip_bottom]), color, 3.0)
-	var charge: float = maxf(0.0, draw_charge())
-	var nock: Vector2 = grip + Vector2(-10.0 - 14.0 * charge, 0.0)
-	bow.draw_polyline(PackedVector2Array([tip_top, nock, tip_bottom]), color.lerp(Color.WHITE, charge), 1.0)
-	if draw_time >= 0.0:
+	bow.draw_polyline(PackedVector2Array([tip_top, grip + Vector2(-2.0, -10.0), grip, grip + Vector2(-2.0, 10.0), tip_bottom]), color, 4.0)
+	var nock: Vector2 = grip + Vector2(-10.0, 0.0)
+	bow.draw_polyline(PackedVector2Array([tip_top, nock, tip_bottom]), color, 2.0)
+	if cooldown_left <= 0.0:
 		bow.draw_line(nock, nock + Vector2(Arrow.LENGTH, 0.0), color, 2.0)
-		if charge >= 1.0:
-			bow.draw_circle(nock + Vector2(Arrow.LENGTH, 0.0), 3.0, Color.WHITE)
 
 
 ## PLACEHOLDER lava burn: ground damage on the lava's own rhythm. Guards and death
@@ -634,10 +661,5 @@ func apply_burn(amount: int) -> bool:
 	health_changed.emit(health, max_health)
 	hurt.emit()
 	if health == 0:
-		is_dead = true
-		modulate = Color(0.45, 0.45, 0.45, 1.0)
-		sprite.stop()
-		spear.visible = false
-		bow.visible = false
-		died.emit()
+		_die()
 	return true

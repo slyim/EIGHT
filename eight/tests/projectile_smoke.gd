@@ -137,7 +137,7 @@ func _run() -> void:
 	run.actors.position = Vector2(300.0, -200.0)
 	run.actors.scale = Vector2(2.0, 2.0)
 	run.actors.rotation = 0.35
-	var boss: Boss = run.spawn_next_boss()
+	var boss: Boss = run.spawn_sin_boss()
 	boss.speed = 0.0
 	boss.attack_left = 999.0
 	boss.global_position = Vector2(100.0, 100.0)

@@ -70,4 +70,4 @@ func _draw() -> void:
 	# PLACEHOLDER arrow: a light shaft with a small head, lifted to screen-up by height.
 	draw_set_transform(Vector2(0.0, -height).rotated(-global_rotation))
 	draw_line(Vector2(-LENGTH, 0.0), Vector2.ZERO, COLOR, 2.0)
-	draw_colored_polygon(PackedVector2Array([Vector2(4.0, 0.0), Vector2(-4.0, -3.5), Vector2(-4.0, 3.5)]), COLOR)
+	draw_colored_polygon(PackedVector2Array([Vector2(4.0, 0.0), Vector2(-4.0, -4.0), Vector2(-4.0, 4.0)]), COLOR)

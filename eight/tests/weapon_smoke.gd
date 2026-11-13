@@ -52,6 +52,14 @@ func _wheel(button: MouseButton) -> void:
 		Input.parse_input_event(event)
 
 
+## One press of attack, held for a single tick.
+func _tap_attack() -> void:
+	Input.action_press(&"attack")
+	await _wait_ticks(1)
+	Input.action_release(&"attack")
+	await _wait_ticks(1)
+
+
 func _still_enemy(run: Run, at: Vector2) -> Enemy:
 	var enemy: Enemy = run.spawn_enemy(2, at)
 	enemy.speed = 0.0
@@ -68,8 +76,8 @@ func _run() -> void:
 	current_scene = run
 	await _wait_ticks(3)
 	var player: MountedPlayer = run.player
-	var arrows: Array[float] = []
-	player.arrow_fired.connect(func(charge: float) -> void: arrows.append(charge))
+	var arrows: Array[int] = []
+	player.arrow_fired.connect(func(step: int) -> void: arrows.append(step))
 
 	# Q and the mouse wheel both toggle the weapon; the HUD names it.
 	_check(player.weapon == MountedPlayer.Weapon.SPEAR, "The run must start with the spear.")
@@ -88,36 +96,42 @@ func _run() -> void:
 	await _wait_ticks(2)
 	_check(player.weapon == MountedPlayer.Weapon.BOW, "Wheel up must also switch weapons.")
 
-	# Switching mid-draw cancels it without firing.
-	Input.action_press(&"attack")
-	await _wait_ticks(10)
-	_check(player.draw_charge() > 0.0 and run.hud.weapon_label.text.begins_with("BOW DRAW"), "Holding attack must draw the bow and show the charge.")
-	_key(KEY_Q, true)
-	await _wait_ticks(1)
-	_key(KEY_Q, false)
-	Input.action_release(&"attack")
-	await _wait_ticks(3)
-	_check(player.draw_time < 0.0 and arrows.is_empty(), "Switching weapons must cancel the draw without firing.")
-	_key(KEY_Q, true)
-	await _wait_ticks(1)
-	_key(KEY_Q, false)
-
-	# A full draw deals full damage; a tap fires a weak arrow.
+	# Taps run the three-shot combo: shot, quicker shot, finisher, then it starts over.
 	var enemy: Enemy = _still_enemy(run, player.global_position + Vector2(200.0, 0.0))
 	await _aim_at(enemy.global_position)
-	Input.action_press(&"attack")
-	await _wait_ticks(roundi(player.bow_draw_time * 60.0) + 6)
-	_check(player.draw_charge() == 1.0, "A long hold must reach full charge.")
-	Input.action_release(&"attack")
+	await _tap_attack()
+	_check(arrows == [0], "The first tap must fire combo step 0 (got %s)." % [arrows])
+	await _hud_frame()
+	_check(run.hud.weapon_label.text.begins_with("BOW  1 / 3"), "The HUD must show the bow combo step (got %s)." % run.hud.weapon_label.text)
+	await _wait_ticks(roundi(player.bow_cooldown * 60.0) + 1)
+	await _tap_attack()
+	_check(arrows == [0, 1], "A tap inside the combo window must fire step 1 (got %s)." % [arrows])
+	_check(player.cooldown_left < player.bow_cooldown * 0.85, "The second shot must recover faster than the first.")
+	await _wait_ticks(roundi(player.bow_cooldown * 60.0) + 1)
+	await _tap_attack()
+	_check(arrows == [0, 1, 2], "The third tap must fire the finisher (got %s)." % [arrows])
+	await _wait_ticks(roundi(player.bow_finisher_cooldown * 60.0) + 1)
+	await _tap_attack()
+	_check(arrows == [0, 1, 2, 0], "After the finisher the combo must start over (got %s)." % [arrows])
 	await _wait_ticks(30)
-	_check(arrows.size() == 1 and arrows[0] == 1.0, "Releasing must fire one fully charged arrow.")
-	_check(enemy.health == 50 - player.bow_max_damage, "A charged arrow must deal full bow damage (health %d)." % enemy.health)
-	Input.action_press(&"attack")
+	_check(enemy.health == 50 - 4 * player.bow_damage, "Every combo arrow must deal bow damage (health %d)." % enemy.health)
+
+	# A pause longer than the combo window starts over at step 0.
+	await _wait_ticks(roundi((player.bow_cooldown + player.combo_window) * 60.0) + 4)
+	await _tap_attack()
+	_check(arrows.back() == 0, "A late tap must restart the combo.")
+
+	# Switching weapons cancels the combo without firing.
+	await _wait_ticks(roundi(player.bow_cooldown * 60.0) + 1)
+	_key(KEY_Q, true)
 	await _wait_ticks(1)
-	Input.action_release(&"attack")
-	await _wait_ticks(30)
-	_check(arrows.size() == 2 and arrows[1] < 0.2, "A tap must still fire a minimum-draw arrow.")
-	_check(enemy.health == 50 - player.bow_max_damage - player.bow_min_damage, "A tap arrow must deal minimum damage.")
+	_key(KEY_Q, false)
+	_key(KEY_Q, true)
+	await _wait_ticks(1)
+	_key(KEY_Q, false)
+	var fired: int = arrows.size()
+	await _tap_attack()
+	_check(arrows.size() == fired + 1 and arrows.back() == 0, "Switching weapons must reset the bow combo.")
 	enemy.queue_free()
 	run.enemy_count = 0
 
@@ -126,7 +140,7 @@ func _run() -> void:
 	var hidden: Enemy = _still_enemy(run, Vector2(900.0, 300.0))
 	await _wait_ticks(3)
 	await _aim_at(hidden.global_position)
-	var arrow: Arrow = player.fire_arrow(1.0)
+	var arrow: Arrow = player.fire_arrow()
 	await _wait_ticks(40)
 	_check(not is_instance_valid(arrow), "An arrow must be freed when it hits a wall.")
 	_check(hidden.health == 50, "A wall must stop the arrow before the enemy behind it.")
@@ -137,8 +151,8 @@ func _run() -> void:
 	player.global_position = Vector2(0.0, -300.0)
 	await _wait_ticks(3)
 	await _aim_at(Vector2(0.0, -1000.0))
-	arrow = player.fire_arrow(0.0)
-	await _wait_ticks(roundi(player.bow_min_range / player.arrow_speed * 60.0) + 4)
+	arrow = player.fire_arrow()
+	await _wait_ticks(roundi(player.bow_range / player.arrow_speed * 60.0) + 4)
 	_check(not is_instance_valid(arrow), "An arrow must be freed at the end of its range.")
 
 	# A dash pressed shortly before its cooldown ends still fires.
@@ -184,5 +198,5 @@ func _run() -> void:
 	# Let the audio server release playbacks before quitting.
 	await _wait_ticks(15)
 	if failures == 0:
-		print("PASS: Q/wheel weapon switch, draw cancel, charged and tap arrows, wall-stopped and range-expired arrows, buffered dash, spear hit-stop.")
+		print("PASS: Q/wheel weapon switch, bow three-shot combo and reset, combo cancel on switch, wall-stopped and range-expired arrows, buffered dash, spear hit-stop.")
 	quit(1 if failures > 0 else 0)

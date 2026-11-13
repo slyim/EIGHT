@@ -31,10 +31,8 @@ func _ready() -> void:
 	set_meta(&"light", LIGHTS[kind])
 	set_meta(&"light_radius", LIGHT_RADIUS)
 	add_to_group(&"light")
+	# Always 2x so every art pixel matches; bigger drops need bigger art to read bigger.
 	scale = Vector2(2.0, 2.0)
-	# Bigger experience drops (brutes, bosses) read bigger.
-	if kind == Kind.XP and value > 1:
-		scale *= minf(1.0 + value * 0.1, 2.0)
 	play(&"idle")
 	frame = randi() % sprite_frames.get_frame_count(&"idle")
 

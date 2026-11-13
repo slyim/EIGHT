@@ -151,6 +151,15 @@ const CHEST_COUNT: int = 3
 const CHEST_CLEARANCE: float = 500.0
 ## Experience given by a relic once every side weapon is at its highest level.
 const SPARE_RELIC_XP: int = 10
+## PLACEHOLDER feathers (the shop's currency) earned in a run: per kill, per guard, per shrine,
+## for the sin (Satan pays more), and per feather gem picked up. Banked by the host when the run
+## ends: all of it on a win, half (rounded down) on a defeat.
+const FEATHERS_PER_KILL: int = 1
+const FEATHERS_PER_GUARD: int = 10
+const FEATHERS_PER_SHRINE: int = 15
+const FEATHERS_PER_SIN: int = 50
+const FEATHERS_PER_SATAN: int = 100
+const FEATHER_GEM_VALUE: int = 5
 
 ## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
 ## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
@@ -213,6 +222,8 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 @export_range(10, 1000, 10) var max_enemies: int = 220
 @export_range(0.0, 1.0, 0.005) var heart_drop_chance: float = 0.03
 @export_range(0.0, 1.0, 0.001) var item_drop_chance: float = 0.006
+## PLACEHOLDER chance a horde enemy drops a feather gem (scaled by luck).
+@export_range(0.0, 1.0, 0.005) var feather_drop_chance: float = 0.03
 ## PLACEHOLDER chance a horde enemy drops an evolution item (guards always drop one).
 @export_range(0.0, 1.0, 0.0005) var evolution_drop_chance: float = 0.002
 ## Authored lava: one entry per pool, each a list of [center, radius] blobs. Empty means
@@ -245,6 +256,10 @@ var pending_level_ups: int = 0
 var level_up_options: Array[Dictionary] = []
 ## The weapon whose evolution choice is open, or -1.
 var evolution_weapon: int = -1
+## Feathers earned this run (banked by the host when the run ends).
+var feathers_earned: int = 0
+## True once the end card is up (after the fall or the ascension); restart waits for it.
+var ending_done: bool = false
 ## The newest side-weapon find, for the HUD to announce: [kind, level], or empty.
 var last_relic: Array = []
 var items: Array[Dictionary] = []
@@ -524,6 +539,7 @@ func _on_obstacle_broken(obstacle: Breakable) -> void:
 ## The world heals around a fallen shrine; the last one summons the sin and stops the countdown.
 func _on_shrine_destroyed(shrine: Breakable) -> void:
 	shrines_left -= 1
+	feathers_earned += FEATHERS_PER_SHRINE
 	healed_spots.append(shrine.position)
 	var light: Node2D = Node2D.new()
 	light.name = &"HealedLight"
@@ -600,6 +616,7 @@ func _spawn_guards() -> void:
 
 func _on_guard_died(guard: Enemy) -> void:
 	kills += 1
+	feathers_earned += FEATHERS_PER_GUARD
 	guards.erase(guard)
 	play_sfx(&"boss_death", 0.0)
 	_spawn_poof(guard.global_position)
@@ -779,6 +796,7 @@ func _on_enemy_hit(_enemy: Enemy) -> void:
 func _on_enemy_died(enemy: Enemy) -> void:
 	enemy_count -= 1
 	kills += 1
+	feathers_earned += FEATHERS_PER_KILL
 	play_sfx(&"enemy_death")
 	_spawn_poof(enemy.global_position)
 	spawn_pickup(Pickup.Kind.XP, enemy.global_position, enemy.xp_value)
@@ -786,6 +804,8 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
 	if randf() < item_drop_chance * player.luck:
 		spawn_pickup(Pickup.Kind.ITEM, enemy.global_position, randi() % ITEMS.size())
+	if randf() < feather_drop_chance * player.luck:
+		spawn_pickup(Pickup.Kind.FEATHER, enemy.global_position + Vector2(0.0, 12.0), FEATHER_GEM_VALUE)
 	if randf() < evolution_drop_chance * player.luck:
 		drop_evolution(enemy.global_position + Vector2(-12.0, 0.0))
 
@@ -794,6 +814,7 @@ func _on_enemy_died(enemy: Enemy) -> void:
 ## then the horde keeps scaling and the angel keeps growing.
 func _on_boss_died(enemy: Enemy) -> void:
 	kills += 1
+	feathers_earned += FEATHERS_PER_SATAN if sin_index == SATAN else FEATHERS_PER_SIN
 	var at: Vector2 = enemy.global_position
 	current_boss = null
 	sin_boss_defeated = true
@@ -844,6 +865,9 @@ func _on_pickup_collected(pickup: Pickup) -> void:
 		Pickup.Kind.RELIC:
 			play_sfx(&"pickup_item", 0.0)
 			grant_relic()
+		Pickup.Kind.FEATHER:
+			play_sfx(&"pickup_xp", 0.1)
+			feathers_earned += pickup.value
 		Pickup.Kind.EVOLUTION:
 			play_sfx(&"pickup_item", 0.0)
 			# Once per weapon per run: a spare item is experience instead.
@@ -947,6 +971,9 @@ func _apply_bonus(stat: String, amount: float) -> void:
 			player.haste = maxf(MountedPlayer.HASTE_FLOOR, player.haste * amount)
 		"luck":
 			player.luck += amount
+		"flight":
+			player.flight_time += amount
+			player.flight_stamina = player.flight_time
 		_:
 			push_error("Unknown bonus stat: %s" % stat)
 
@@ -1005,6 +1032,7 @@ func _on_ascended() -> void:
 
 
 func _show_ending(won: bool) -> void:
+	ending_done = true
 	hud.show_end(won)
 	finished.emit(won)
 

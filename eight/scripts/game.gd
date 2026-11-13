@@ -56,6 +56,8 @@ func _ready() -> void:
 	(run.hud.get_node(^"SaveFailed/Retry") as Button).pressed.connect(_save_win)
 	(run.hud.get_node(^"SaveFailed/Leave") as Button).pressed.connect(go_to_hub.bind(get_tree()))
 	run.player.camera.zoom = Vector2(WORLD_ZOOM, WORLD_ZOOM)
+	# Shop ranks apply to hub-launched runs only (F6 and tests stay unaffected).
+	Progress.load_saved().apply_upgrades(run)
 	get_window().size_changed.connect(_on_size_changed)
 	_on_size_changed()
 
@@ -63,7 +65,15 @@ func _ready() -> void:
 func _on_finished(victory: bool) -> void:
 	if victory:
 		_save_win()
-	# A defeat's end card offers Retry and Return to the pentagram.
+		return
+	# A defeat keeps half the feathers; the end card says how many (and offers Retry or the hub).
+	var kept: int = run.feathers_earned / 2
+	var progress: Progress = Progress.load_saved()
+	progress.feathers += kept
+	var error: Error = progress.save()
+	if error != OK:
+		push_error("Could not save feathers (error %d)." % error)
+	run.hud.show_feathers(kept, run.feathers_earned, error == OK)
 
 
 ## A win is saved before anything else; only then does the hub show the new relic. If the
@@ -71,12 +81,14 @@ func _on_finished(victory: bool) -> void:
 func _save_win() -> void:
 	var progress: Progress = Progress.load_saved()
 	progress.record_win(run.sin_index)
+	progress.feathers += run.feathers_earned
 	var error: Error = progress.save()
 	if error != OK:
 		push_error("Could not save progress (error %d)." % error)
 		run.hud.show_save_failed(error)
 		return
 	run.hud.save_failed.hide()
+	run.hud.show_feathers(run.feathers_earned, run.feathers_earned, true)
 	Hub.just_sealed = run.sin_index
 	# A static callable, so nothing resumes on this Game if the scene is gone by then.
 	get_tree().create_timer(WIN_LINGER).timeout.connect(go_to_hub.bind(get_tree()))

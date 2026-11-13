@@ -85,3 +85,32 @@ grow_vertical = 0
 focus_mode = 0
 theme_override_font_sizes/font_size = 18
 text = "QUIT"
+
+[node name="Shop" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -64.0
+offset_right = 176.0
+offset_bottom = -16.0
+grow_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "SHOP  [B]"
+
+[node name="Feathers" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 192.0
+offset_top = -60.0
+offset_right = 432.0
+offset_bottom = -20.0
+grow_vertical = 0
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 18
+text = "FEATHERS  0"
+vertical_alignment = 1

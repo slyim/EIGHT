@@ -49,6 +49,8 @@ func _ready() -> void:
 	satan_button.pressed.connect(summon_satan)
 	add_child(satan_button)
 	($Quit as Button).pressed.connect(get_tree().quit)
+	($Shop as Button).pressed.connect(open_shop)
+	($Feathers as Label).text = "FEATHERS  %d" % progress.feathers
 	pentagram.draw.connect(_draw_pentagram)
 	_refresh()
 	resized.connect(_layout)
@@ -120,6 +122,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif key.physical_keycode == KEY_S:
 		get_viewport().set_input_as_handled()
 		summon_satan()
+	elif key.physical_keycode == KEY_B:
+		get_viewport().set_input_as_handled()
+		open_shop()
+
+
+func open_shop() -> void:
+	get_tree().change_scene_to_file("res://scenes/shop.tscn")
 
 
 func enter_sin(index: int) -> void:

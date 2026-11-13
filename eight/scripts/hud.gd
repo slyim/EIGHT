@@ -197,7 +197,7 @@ func _process(_delta: float) -> void:
 		debug_label.text = _stats_text()
 	var minutes: int = int(run.elapsed) / 60
 	var seconds: int = int(run.elapsed) % 60
-	stats_label.text = "KILLS %d" % run.kills
+	stats_label.text = "KILLS %s    FEATHERS %s" % [compact(run.kills), compact(run.feathers_earned)]
 	if run.shrine_total > 0:
 		stats_label.text += "    SHRINES %d / %d" % [run.shrine_total - run.shrines_left, run.shrine_total]
 	difficulty_label.text = "TIME %02d:%02d   DIFFICULTY %d" % [minutes, seconds, run.difficulty_tier()]
@@ -520,13 +520,29 @@ func set_paused(open: bool) -> void:
 		_pop_in(pause_menu, 0.0)
 
 
-## Retry. Refused during the win ascension, and after a hosted win (its save and return to the
-## hub must finish); an unhosted run (F6) may start again once the ascension is over.
+## Retry. Refused while an ending plays (the fall or the ascension), so a hosted defeat always
+## banks its feathers first, and after a hosted win (its save and return to the hub must
+## finish); an unhosted run (F6) may start again once its ending is over.
 func restart() -> void:
-	if run != null and run.ended and run.victory and (world_view != null or run.player.is_descending()):
+	if run != null and run.ended and (not run.ending_done or (run.victory and world_view != null)):
 		return
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+## Counts above 9999 shorten to thousands ("12.3K"), so the status line always fits.
+static func compact(count: int) -> String:
+	return str(count) if count < 10000 else "%.1fK" % (count / 1000.0)
+
+
+## Adds the banked feathers to the end card: all of them on a win, half on a defeat.
+func show_feathers(kept: int, earned: int, saved: bool) -> void:
+	if not saved:
+		end_label.text += "\nFEATHERS COULD NOT BE SAVED"
+	elif kept == earned:
+		end_label.text += "\n+%d FEATHERS" % kept
+	else:
+		end_label.text += "\nKEPT %d OF %d FEATHERS" % [kept, earned]
 
 
 ## The win could not be written: say so, and offer to try again or leave knowingly unsaved.

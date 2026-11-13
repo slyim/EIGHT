@@ -46,6 +46,8 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 ## PLACEHOLDER chain-light streak: bright, even-width, no antialiasing.
 const CHAIN_COLOR: Color = Color(1.4, 1.9, 1.8, 1.0)
 const CHAIN_TIME: float = 0.2
+## The fastest haste allows: cooldowns at 40% of their base.
+const HASTE_FLOOR: float = 0.4
 
 @export_group("Movement")
 @export_range(80.0, 600.0, 10.0) var movement_speed: float = 260.0
@@ -126,6 +128,16 @@ const CHAIN_TIME: float = 0.2
 ## Movement speed multiplier at hover height (blended in during the climb).
 @export_range(0.25, 2.0, 0.05) var flight_speed_multiplier: float = 1.0
 
+@export_group("Stats")
+## Level-up stats (PLACEHOLDER base values). might multiplies every damage the angel deals;
+## haste multiplies every attack and side-weapon cooldown (lower is faster); armor takes a flat
+## amount off each enemy hit (never below 1; lava burns are not hits); luck multiplies the
+## chance of heart, item, and evolution drops.
+@export_range(0.1, 10.0, 0.05) var might: float = 1.0
+@export_range(0.4, 2.0, 0.01) var haste: float = 1.0
+@export_range(0, 100, 1) var armor: int = 0
+@export_range(0.1, 10.0, 0.05) var luck: float = 1.0
+
 @export_group("Life")
 @export_range(1, 500, 1) var max_health: int = 100
 @export_range(0.1, 3.0, 0.05) var hurt_invulnerability: float = 1.0
@@ -188,12 +200,16 @@ var hit_stop_timer: SceneTreeTimer
 @onready var lamp: PointLight2D = $Lamp
 @onready var camera: Camera2D = $Camera2D
 @onready var sprite_base: Vector2 = sprite.position
+var side_weapons: SideWeapons
 
 
 func _ready() -> void:
 	health = max_health
 	flight_stamina = flight_time
 	bow.draw.connect(_draw_bow)
+	side_weapons = SideWeapons.new()
+	side_weapons.name = &"SideWeapons"
+	add_child(side_weapons)
 
 
 func _exit_tree() -> void:
@@ -218,6 +234,11 @@ func switch_weapon() -> void:
 	finisher_resolved = true
 	attack_buffer_left = 0.0
 	weapon_switched.emit(weapon)
+
+
+## A base damage after might, never below 1.
+func dealt(base: int) -> int:
+	return maxi(1, roundi(base * might))
 
 
 ## Takes an evolution path for a weapon (path 1 or 2; see SpearPath and BowPath).
@@ -429,13 +450,13 @@ func _update_attack(delta: float) -> void:
 		thrust_direction = aim_direction
 		if attack_step == COMBO_LENGTH - 1:
 			attack_duration = finisher_duration
-			cooldown_left = finisher_cooldown
+			cooldown_left = finisher_cooldown * haste
 			finisher_resolved = false
 			_spawn_slash()
 		else:
 			attack_duration = thrust_duration
 			# The second thrust follows faster than the first.
-			cooldown_left = thrust_cooldown * (0.8 if attack_step == 1 else 1.0)
+			cooldown_left = thrust_cooldown * (0.8 if attack_step == 1 else 1.0) * haste
 			thrust_hits_left = spear_pierce
 			spear_cast.clear_exceptions()
 		attack_time_left = attack_duration
@@ -478,10 +499,10 @@ func _update_bow() -> void:
 	else:
 		fire_arrow(attack_step)
 	if attack_step == COMBO_LENGTH - 1:
-		cooldown_left = bow_finisher_cooldown
+		cooldown_left = bow_finisher_cooldown * haste
 		combo_window_left = 0.0
 	else:
-		cooldown_left = bow_cooldown * (0.8 if attack_step == 1 else 1.0)
+		cooldown_left = bow_cooldown * (0.8 if attack_step == 1 else 1.0) * haste
 		combo_window_left = cooldown_left + combo_window
 
 
@@ -490,7 +511,7 @@ func fire_arrow(step: int = 0) -> Arrow:
 	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
 	arrow.direction = aim_direction
 	arrow.speed = arrow_speed
-	arrow.damage = bow_damage
+	arrow.damage = dealt(bow_damage)
 	arrow.range_left = bow_range
 	arrow.pierce = bow_pierce
 	if step == COMBO_LENGTH - 1 and bow_path == BowPath.RICOCHET:
@@ -508,7 +529,7 @@ func call_rain() -> LightRain:
 	var rain: LightRain = LightRain.new()
 	rain.radius = rain_radius
 	rain.delay = rain_delay
-	rain.damage = maxi(1, roundi(bow_damage * rain_damage_multiplier))
+	rain.damage = maxi(1, roundi(bow_damage * rain_damage_multiplier * might))
 	rain.position = global_position + aim_direction * minf(aim_distance, bow_range)
 	get_parent().add_child(rain)
 	arrow_fired.emit(COMBO_LENGTH - 1)
@@ -524,11 +545,11 @@ func _resolve_spear_hits() -> void:
 		var collider: Object = spear_cast.get_collider()
 		if not collider.has_method(&"take_hit"):
 			if collider is Breakable:
-				(collider as Breakable).take_blow(spear_damage)
+				(collider as Breakable).take_blow(dealt(spear_damage))
 				_on_attack_connected(false)
 				thrust_hits_left = 0
 			return
-		collider.call(&"take_hit", spear_damage)
+		collider.call(&"take_hit", dealt(spear_damage))
 		_push(collider, spear_knockback_scale)
 		_on_attack_connected(false)
 		thrust_hits_left -= 1
@@ -549,7 +570,7 @@ func _resolve_finisher() -> void:
 	query.collision_mask = spear_cast.collision_mask & ~1
 	query.exclude = [get_rid()]
 	var half: float = deg_to_rad(finisher_arc()) * 0.5
-	var damage: int = maxi(1, roundi(spear_damage * finisher_damage_multiplier))
+	var damage: int = maxi(1, roundi(spear_damage * finisher_damage_multiplier * might))
 	var struck_targets: Array[Node2D] = []
 	for result: Dictionary in space.intersect_shape(query, 128):
 		var collider: Node2D = result["collider"] as Node2D
@@ -710,7 +731,7 @@ func take_damage(amount: int, from_air: bool = false) -> bool:
 		return false
 	if is_airborne() and not from_air:
 		return false
-	health = maxi(0, health - amount)
+	health = maxi(0, health - maxi(1, amount - armor))
 	invulnerable_left = hurt_invulnerability
 	health_changed.emit(health, max_health)
 	hurt.emit()

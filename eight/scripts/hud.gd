@@ -36,6 +36,9 @@ var boss_tag: Label
 var portal_tag: Label
 ## Draws the edge markers toward off-view shrines.
 var shrine_markers: Control
+## Side weapons carried (bottom left) and the announcement of a new find (center).
+var side_label: Label
+var relic_label: Label
 var stats_refresh_left: float = 0.0
 ## Active weapon and its combo step, built from the flight gauge so it matches the other gauges.
 var weapon_bar: ProgressBar
@@ -106,6 +109,30 @@ func _ready() -> void:
 	shrine_markers.draw.connect(_draw_shrine_markers)
 	add_child(shrine_markers)
 	move_child(shrine_markers, 0)
+	side_label = Label.new()
+	side_label.name = &"SideWeapons"
+	side_label.add_theme_font_size_override(&"font_size", 15)
+	side_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	side_label.offset_left = 16.0
+	side_label.offset_right = 300.0
+	side_label.offset_top = -150.0
+	side_label.offset_bottom = -40.0
+	side_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	side_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(side_label)
+	relic_label = Label.new()
+	relic_label.name = &"RelicFound"
+	relic_label.theme_type_variation = &"HeadingLabel"
+	relic_label.add_theme_font_size_override(&"font_size", 22)
+	relic_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	relic_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	relic_label.offset_left = -300.0
+	relic_label.offset_right = 300.0
+	relic_label.offset_top = -170.0
+	relic_label.offset_bottom = -136.0
+	relic_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	relic_label.visible = false
+	add_child(relic_label)
 	boss_tag = _world_tag(&"BossTag", &"HeadingLabel", 18)
 	portal_tag = _world_tag(&"PortalTag", &"Label", 18)
 	portal_tag.text = "EXIT  [HOLD E]"
@@ -186,6 +213,7 @@ func _process(_delta: float) -> void:
 	_update_flight(player)
 	_update_weapon(player)
 	burn_label.visible = run.lava != null and run.lava.burning and not run.ended
+	_update_side_weapons(player)
 	# Once the run ends the play gauges and controls step aside for the ending.
 	($Abilities as Control).visible = not run.ended
 	($Controls as Control).visible = not run.ended
@@ -399,7 +427,7 @@ func _stats_text() -> String:
 			run.current_boss.boss_name.get_slice(" ", 0),
 			roundi(100.0 * run.current_boss.health / run.current_boss.max_health),
 		]
-	var attack_rate: float = 1.0 / maxf(player.thrust_cooldown, player.thrust_duration)
+	var attack_rate: float = 1.0 / maxf(player.thrust_cooldown * player.haste, player.thrust_duration)
 	var lines: PackedStringArray = PackedStringArray([
 		"FPS %3d   FRAME %5.1f ms" % [roundi(fps), frame_ms],
 		"CPU %5.1f ms  PHYS %5.1f ms" % [process_ms, physics_ms],
@@ -411,7 +439,7 @@ func _stats_text() -> String:
 		"SHOTS   %3d   DROPS %3d" % [get_tree().get_node_count_in_group(&"enemy_projectiles"), run.pickups.get_child_count()],
 		"KILLS   %4d  LEVEL %2d" % [run.kills, run.level],
 		"",
-		"DMG %d  ATK %.1f/s  REACH %d" % [player.spear_damage, attack_rate, roundi(player.spear_reach)],
+		"DMG %d  ATK %.1f/s  REACH %d" % [player.dealt(player.spear_damage), attack_rate, roundi(player.spear_reach)],
 		"PIERCE %d  SPEED %d  PULL %d" % [player.spear_pierce, roundi(player.movement_speed), roundi(player.pickup_radius)],
 		"COMBO %d/%d  DASH %s  FLIGHT %d%%" % [
 			player.combo_step() + 1,
@@ -546,6 +574,27 @@ func _flash() -> void:
 	var tween: Tween = flash.create_tween().set_ignore_time_scale()
 	tween.tween_property(flash, ^"color:a", 0.0, 0.35).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(flash.queue_free)
+
+
+func _update_side_weapons(player: MountedPlayer) -> void:
+	var lines: PackedStringArray = []
+	for kind: int in range(player.side_weapons.levels.size()):
+		if player.side_weapons.levels[kind] > 0:
+			lines.append(player.side_weapons.label(kind).to_upper())
+	side_label.visible = not lines.is_empty() and not run.ended
+	side_label.text = "SIDE WEAPONS\n" + "\n".join(lines)
+
+
+## Names a side-weapon find for a moment above the gauges.
+func announce_relic(kind: int) -> void:
+	var weapons: SideWeapons = run.player.side_weapons
+	relic_label.text = ("NEW: %s" if weapons.levels[kind] == 1 else "UPGRADED: %s") % weapons.label(kind).to_upper()
+	relic_label.show()
+	_pop_in(relic_label, 0.0)
+	var tween: Tween = relic_label.create_tween().set_ignore_time_scale()
+	tween.tween_interval(2.0)
+	tween.tween_property(relic_label, ^"modulate:a", 0.0, 0.4)
+	tween.tween_callback(relic_label.hide)
 
 
 func hide_level_up() -> void:

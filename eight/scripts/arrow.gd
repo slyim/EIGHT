@@ -24,6 +24,8 @@ var height: float = 0.0
 ## Ricochet: after a hit, turn toward the nearest unhit target within bounce_range this many
 ## more times (a bounce does not spend pierce), with a fresh bounce_range of flight each time.
 var bounces: int = 0
+## PLACEHOLDER tint: light for bow arrows, gold for side-weapon feathers.
+var color: Color = COLOR
 var bounce_range: float = 280.0
 
 
@@ -100,5 +102,5 @@ func _bounce_from(at: Vector2) -> bool:
 func _draw() -> void:
 	# PLACEHOLDER arrow: a light shaft with a small head, lifted to screen-up by height.
 	draw_set_transform(Vector2(0.0, -height).rotated(-global_rotation))
-	draw_line(Vector2(-LENGTH, 0.0), Vector2.ZERO, COLOR, 2.0)
-	draw_colored_polygon(PackedVector2Array([Vector2(4.0, 0.0), Vector2(-4.0, -4.0), Vector2(-4.0, 4.0)]), COLOR)
+	draw_line(Vector2(-LENGTH, 0.0), Vector2.ZERO, color, 2.0)
+	draw_colored_polygon(PackedVector2Array([Vector2(4.0, 0.0), Vector2(-4.0, -4.0), Vector2(-4.0, 4.0)]), color)

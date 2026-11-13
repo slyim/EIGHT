@@ -141,7 +141,16 @@ const UPGRADES: Array[Dictionary] = [
 	{"name": "Heavier arrows", "text": "+1 arrow damage", "stat": "bow_damage", "amount": 1.0},
 	{"name": "Quicker shots", "text": "Bow fires 15% faster", "stat": "bow_speed", "amount": 0.85},
 	{"name": "Piercing arrows", "text": "Arrows hit +1 more enemy", "stat": "bow_pierce", "amount": 1.0},
+	{"name": "Might", "text": "+10% damage from every weapon", "stat": "might", "amount": 0.1},
+	{"name": "Armor", "text": "Enemy hits deal 1 less damage", "stat": "armor", "amount": 1.0},
+	{"name": "Haste", "text": "All cooldowns 8% shorter", "stat": "haste", "amount": 0.92},
+	{"name": "Luck", "text": "+20% heart, item, and evolution drops", "stat": "luck", "amount": 0.2},
 ]
+## PLACEHOLDER chests per map when its scene authors none, placed from the map's seed.
+const CHEST_COUNT: int = 3
+const CHEST_CLEARANCE: float = 500.0
+## Experience given by a relic once every side weapon is at its highest level.
+const SPARE_RELIC_XP: int = 10
 
 ## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
 ## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
@@ -236,6 +245,8 @@ var pending_level_ups: int = 0
 var level_up_options: Array[Dictionary] = []
 ## The weapon whose evolution choice is open, or -1.
 var evolution_weapon: int = -1
+## The newest side-weapon find, for the HUD to announce: [kind, level], or empty.
+var last_relic: Array = []
 var items: Array[Dictionary] = []
 var ended: bool = false
 var victory: bool = false
@@ -248,6 +259,7 @@ var has_landed: bool = false
 
 @onready var geometry: StaticBody2D = $Geometry
 @onready var obstacles: Node2D = $Obstacles
+@onready var chests: Node2D = $Chests
 @onready var pickups: Node2D = $Pickups
 @onready var actors: Node2D = $Actors
 @onready var player: MountedPlayer = $MountedPlayer
@@ -294,6 +306,7 @@ func _ready() -> void:
 		lava.set_pools(lava_layout)
 	_scatter_decor()
 	_spawn_guards()
+	_place_chests()
 	player.ascended.connect(_on_ascended)
 	if intro_enabled:
 		player.begin_descent(DESCENT_HEIGHT, DESCENT_TIME)
@@ -420,6 +433,9 @@ func _blocked_rect(x: float, y: float, margin: float) -> bool:
 		var obstacle: Breakable = child as Breakable
 		if obstacle != null and obstacle.is_standing() and obstacle.footprint().grow(margin).has_point(Vector2(x, y)):
 			return true
+	for child: Node in chests.get_children():
+		if (child as Chest).footprint().grow(margin).has_point(Vector2(x, y)):
+			return true
 	return false
 
 
@@ -522,6 +538,49 @@ func _on_shrine_destroyed(shrine: Breakable) -> void:
 		spawn_sin_boss()
 
 
+## Authored chests are kept; a map without any gets CHEST_COUNT from its seed, on open ground
+## away from the landing site and out of lava.
+func _place_chests() -> void:
+	if chests.get_child_count() == 0:
+		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+		rng.seed = 404 + sin_index * 2749
+		var placed: int = 0
+		for attempt: int in range(200):
+			if placed >= CHEST_COUNT:
+				break
+			var room: Rect2 = ARENA_RECT.grow(-OBSTACLE_LANE)
+			var at: Vector2 = Vector2(rng.randf_range(room.position.x, room.end.x), rng.randf_range(room.position.y, room.end.y))
+			if at.length() < CHEST_CLEARANCE or _blocked_rect(at.x, at.y, 40.0) or lava.point_in_lava(at, -40.0):
+				continue
+			var chest: Chest = Chest.new()
+			chest.name = "Chest%d" % (placed + 1)
+			chest.position = SideWeapons.on_grid(at)
+			chests.add_child(chest)
+			placed += 1
+	for child: Node in chests.get_children():
+		var chest: Chest = child as Chest
+		chest.target = player
+		chest.opened.connect(_on_chest_opened)
+
+
+func _on_chest_opened(chest: Chest) -> void:
+	play_sfx(&"pickup_item", 0.0)
+	_spawn_poof(chest.global_position)
+	spawn_pickup(Pickup.Kind.RELIC, chest.global_position + Vector2(0.0, 30.0), 0)
+
+
+## A relic: a random side weapon the angel lacks or can still level; experience once all are maxed.
+func grant_relic() -> void:
+	var open: Array[int] = player.side_weapons.can_grow()
+	if open.is_empty():
+		add_xp(SPARE_RELIC_XP)
+		return
+	var kind: int = open.pick_random()
+	player.side_weapons.add(kind)
+	last_relic = [kind, player.side_weapons.levels[kind]]
+	hud.announce_relic(kind)
+
+
 ## One guard per shrine, standing on its outer side.
 func _spawn_guards() -> void:
 	guards.clear()
@@ -546,6 +605,7 @@ func _on_guard_died(guard: Enemy) -> void:
 	_spawn_poof(guard.global_position)
 	spawn_pickup(Pickup.Kind.XP, guard.global_position, guard.xp_value)
 	drop_evolution(guard.global_position + Vector2(0.0, 30.0))
+	spawn_pickup(Pickup.Kind.RELIC, guard.global_position + Vector2(30.0, 0.0), 0)
 
 
 ## Drops an evolution item for a weapon that has not evolved yet (none once both have).
@@ -722,11 +782,11 @@ func _on_enemy_died(enemy: Enemy) -> void:
 	play_sfx(&"enemy_death")
 	_spawn_poof(enemy.global_position)
 	spawn_pickup(Pickup.Kind.XP, enemy.global_position, enemy.xp_value)
-	if randf() < heart_drop_chance:
+	if randf() < heart_drop_chance * player.luck:
 		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
-	if randf() < item_drop_chance:
+	if randf() < item_drop_chance * player.luck:
 		spawn_pickup(Pickup.Kind.ITEM, enemy.global_position, randi() % ITEMS.size())
-	if randf() < evolution_drop_chance:
+	if randf() < evolution_drop_chance * player.luck:
 		drop_evolution(enemy.global_position + Vector2(-12.0, 0.0))
 
 
@@ -781,6 +841,9 @@ func _on_pickup_collected(pickup: Pickup) -> void:
 			var item: Dictionary = ITEMS[pickup.item_index]
 			items.append(item)
 			_apply_bonus(item["stat"] as String, float(item["amount"]))
+		Pickup.Kind.RELIC:
+			play_sfx(&"pickup_item", 0.0)
+			grant_relic()
 		Pickup.Kind.EVOLUTION:
 			play_sfx(&"pickup_item", 0.0)
 			# Once per weapon per run: a spare item is experience instead.
@@ -823,6 +886,9 @@ func add_xp(amount: int) -> void:
 
 func _offer_level_up() -> void:
 	var pool: Array[Dictionary] = UPGRADES.duplicate()
+	# Haste at its floor would do nothing.
+	if player.haste <= MountedPlayer.HASTE_FLOOR + 0.001:
+		pool = pool.filter(func(upgrade: Dictionary) -> bool: return upgrade["stat"] != "haste")
 	pool.shuffle()
 	level_up_options.assign(pool.slice(0, 3))
 	get_tree().paused = true
@@ -873,6 +939,14 @@ func _apply_bonus(stat: String, amount: float) -> void:
 			player.bow_pierce += int(amount)
 		"heal":
 			player.heal(player.max_health)
+		"might":
+			player.might += amount
+		"armor":
+			player.armor += int(amount)
+		"haste":
+			player.haste = maxf(MountedPlayer.HASTE_FLOOR, player.haste * amount)
+		"luck":
+			player.luck += amount
 		_:
 			push_error("Unknown bonus stat: %s" % stat)
 
@@ -886,6 +960,12 @@ func _end_run(won: bool) -> void:
 		return
 	ended = true
 	victory = won
+	# Nothing already in flight may act on the ended run: arrows, feathers, and falling light.
+	for child: Node in get_children():
+		if child is Arrow or child is LightRain:
+			child.queue_free()
+	for child: Node in chests.get_children():
+		child.set_physics_process(false)
 	music.stop()
 	play_sfx(&"victory" if won else &"defeat", 0.0)
 	var tween: Tween = create_tween()

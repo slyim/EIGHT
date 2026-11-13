@@ -134,6 +134,8 @@ shape = SubResource("RectangleShape2D_vertical_wall")
 
 [node name="Obstacles" type="Node2D" parent="."]
 
+[node name="Chests" type="Node2D" parent="."]
+
 [node name="Lava" type="Node2D" parent="."]
 script = ExtResource("6_lava")
 

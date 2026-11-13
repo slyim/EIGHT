@@ -1,6 +1,6 @@
 extends SceneTree
 ## Breakable obstacles in the survival run: toughness per kind, weapon interaction, blocking,
-## per-stage layout, and safe portal/spawn placement; native Godot only.
+## per-map layout, and safe portal/spawn placement; native Godot only.
 
 const RUN_SCENE: PackedScene = preload("res://scenes/run.tscn")
 
@@ -149,7 +149,7 @@ func _run() -> void:
 		_check(not is_instance_valid(obstacle), "A broken obstacle must free itself after its debris.")
 	await _clear(run)
 
-	# 2. The finisher (double damage) and charged arrows break things faster than thrusts.
+	# 2. The finisher (double damage) and heavier arrows break things faster than thrusts.
 	var wall: Breakable = run._add_obstacle(Breakable.Kind.WALL, Vector2(70.0, 0.0), true)
 	var health: Array[int] = [wall.max_health]
 	wall.hit.connect(func(struck: Breakable) -> void: health[0] = struck.health)
@@ -163,26 +163,28 @@ func _run() -> void:
 	health[0] = tree.max_health
 	tree.hit.connect(func(struck: Breakable) -> void: health[0] = struck.health)
 	await _wait_ticks(2)
-	player.fire_arrow(0.0)
+	player.fire_arrow()
 	await _wait_ticks(30)
-	_check(health[0] == int(Breakable.KINDS[Breakable.Kind.TREE]["health"]) - player.bow_min_damage, "A tap arrow must deal minimum bow damage to an obstacle.")
-	player.fire_arrow(1.0)
+	_check(health[0] == int(Breakable.KINDS[Breakable.Kind.TREE]["health"]) - player.bow_damage, "An arrow must deal bow damage to an obstacle.")
+	player.bow_damage = 5
+	player.fire_arrow()
 	await _wait_ticks(30)
-	_check(_broken(tree), "A charged arrow must break a tree in one shot.")
+	_check(_broken(tree), "A heavy arrow must break a tree in one shot.")
 	await _clear(run)
 
 	# 3. An arrow spends itself on an obstacle whatever its pierce; once broken, it flies on.
 	wall = run._add_obstacle(Breakable.Kind.WALL, Vector2(200.0, 0.0), true)
 	var behind: Enemy = _still_enemy(run, Vector2(320.0, 0.0))
 	await _wait_ticks(2)
-	var arrow: Arrow = player.fire_arrow(1.0)
+	player.bow_pierce = 3
+	var arrow: Arrow = player.fire_arrow()
 	await _wait_ticks(30)
 	_check(not is_instance_valid(arrow), "An arrow must be freed at the obstacle it hits.")
-	_check(wall.health == wall.max_health - player.bow_max_damage and behind.health == 50, "A piercing arrow must stop at an obstacle and spare the enemy behind it (wall %d, enemy %d)." % [wall.health, behind.health])
+	_check(wall.health == wall.max_health - player.bow_damage and behind.health == 50, "A piercing arrow must stop at an obstacle and spare the enemy behind it (wall %d, enemy %d)." % [wall.health, behind.health])
 	wall.take_blow(100)
-	player.fire_arrow(1.0)
+	player.fire_arrow()
 	await _wait_ticks(30)
-	_check(behind.health == 50 - player.bow_max_damage, "Once the obstacle breaks, an arrow must reach the enemy behind it.")
+	_check(behind.health == 50 - player.bow_damage, "Once the obstacle breaks, an arrow must reach the enemy behind it.")
 	await _clear(run)
 
 	# 4. The spear and finisher stop at an obstacle and spare the enemy behind it.
@@ -260,7 +262,7 @@ func _run() -> void:
 	await _aim_at(Vector2(0.0, -1990.0))
 	await _spear_attack(player, 0)
 	await _spear_attack(player, 2)
-	arrow = player.fire_arrow(1.0)
+	arrow = player.fire_arrow()
 	await _wait_ticks(10)
 	_check(not is_instance_valid(arrow), "An arrow must stop at the boundary wall.")
 	_check(not (run.geometry is Breakable) and not run.geometry.has_method(&"take_blow") and not run.geometry.has_method(&"take_hit"), "The boundary walls must have no way to take damage.")
@@ -268,32 +270,36 @@ func _run() -> void:
 	await _clear(run)
 	await _aim_at(Vector2(400.0, 0.0))
 
-	# 9. The layout is deterministic per stage, differs between stages, keeps the landing site
+	# 9. The layout is deterministic per sin map, differs between maps, keeps the landing site
 	# and lanes open, and leaves portals and spawns outside every obstacle.
 	var layouts: Array = []
 	var room: Rect2 = Run.ARENA_RECT.grow(-Run.OBSTACLE_LANE)
-	for stage: int in range(Run.BOSSES.size()):
-		run.stage_index = stage
+	for map: int in range(Run.BOSSES.size()):
+		run.sin_index = map
 		run._place_obstacles()
 		var layout: Array = _layout(run)
 		run._place_obstacles()
 		run._scatter_decor()
-		_check(_layout(run) == layout, "Stage %d's layout must be the same every time it is built." % stage)
-		_check(layout.size() == Run.STRUCTURE_SPOTS.size() + Run.WALL_COUNT + Run.TREE_COUNT, "Stage %d must place every obstacle, got %d." % [stage, layout.size()])
-		_check(stage == 0 or layout != layouts[stage - 1], "Stage %d's layout must differ from the last stage's." % stage)
+		_check(_layout(run) == layout, "Map %d's layout must be the same every time it is built." % map)
+		# Satan's map has no shrines.
+		var shrine_count: int = 0 if map == Run.SATAN else Run.SHRINE_COUNT
+		_check(layout.size() == shrine_count + Run.STRUCTURE_SPOTS.size() + Run.WALL_COUNT + Run.TREE_COUNT, "Map %d must place every obstacle, got %d." % [map, layout.size()])
+		for shrine: int in range(shrine_count):
+			_check(layout[shrine][0] == Breakable.Kind.SHRINE and (layout[shrine][1] as Vector2).is_equal_approx(Run.shrine_spots()[shrine]), "Map %d must open with the shrines on their pentagram points." % map)
+		_check(map == 0 or layout != layouts[map - 1], "Map %d's layout must differ from the last map's." % map)
 		layouts.append(layout)
 		var rects: Array[Rect2] = []
 		for child: Node in run.obstacles.get_children():
 			rects.append((child as Breakable).footprint())
 		for index: int in range(rects.size()):
 			var rect: Rect2 = rects[index]
-			_check(Vector2.ZERO.clamp(rect.position, rect.end).length() >= Run.LANDING_CLEARANCE, "Stage %d keeps an obstacle on the landing site at %s." % [stage, rect])
-			_check(room.encloses(rect), "Stage %d crowds the arena wall with %s." % [stage, rect])
+			_check(Vector2.ZERO.clamp(rect.position, rect.end).length() >= Run.LANDING_CLEARANCE, "Map %d keeps an obstacle on the landing site at %s." % [map, rect])
+			_check(room.encloses(rect), "Map %d crowds the arena wall with %s." % [map, rect])
 			for other: int in range(index + 1, rects.size()):
-				_check(not rect.grow(Run.OBSTACLE_LANE - 0.5).intersects(rects[other]), "Stage %d leaves no lane between %s and %s." % [stage, rect, rects[other]])
+				_check(not rect.grow(Run.OBSTACLE_LANE - 0.5).intersects(rects[other]), "Map %d leaves no lane between %s and %s." % [map, rect, rects[other]])
 		for prop: Array in run.decor_props:
 			var at: Vector2 = prop[1]
-			_check(not run._blocked_rect(at.x, at.y, 0.0), "Stage %d scatters decoration inside an obstacle at %s." % [stage, at])
+			_check(not run._blocked_rect(at.x, at.y, 0.0), "Map %d scatters decoration inside an obstacle at %s." % [map, at])
 		var sites: Array[Vector2] = []
 		for x: int in range(-2000, 2001, 400):
 			for y: int in range(-2000, 2001, 400):
@@ -302,41 +308,29 @@ func _run() -> void:
 			sites.append(rect.get_center())
 		for site: Vector2 in sites:
 			var portal: Vector2 = run._portal_position(site)
-			_check(Run.ARENA_RECT.grow(-ExitPortal.RADIUS).has_point(portal) and not run._blocked_rect(portal.x, portal.y, ExitPortal.RADIUS), "Stage %d puts a portal inside an obstacle at %s." % [stage, portal])
+			_check(Run.ARENA_RECT.grow(-ExitPortal.RADIUS).has_point(portal) and not run._blocked_rect(portal.x, portal.y, ExitPortal.RADIUS), "Map %d puts a portal inside an obstacle at %s." % [map, portal])
 		for sample: int in range(40):
 			player.global_position = sites[sample * 7 % sites.size()]
 			var spawn: Vector2 = run._random_offscreen_point()
-			_check(not run._blocked_rect(spawn.x, spawn.y, 22.0), "Stage %d spawns an enemy inside an obstacle at %s." % [stage, spawn])
+			_check(not run._blocked_rect(spawn.x, spawn.y, 22.0), "Map %d spawns an enemy inside an obstacle at %s." % [map, spawn])
 	player.global_position = Vector2.ZERO
 
 	# A broken obstacle no longer occupies its spot for anything placed later.
-	run.stage_index = 0
+	run.sin_index = 0
 	run._place_obstacles()
-	var first: Breakable = run.obstacles.get_child(Run.STRUCTURE_SPOTS.size()) as Breakable
+	var first: Breakable = run.obstacles.get_child(Run.SHRINE_COUNT + Run.STRUCTURE_SPOTS.size()) as Breakable
 	var spot: Vector2 = first.position
 	_check(run._blocked_rect(spot.x, spot.y, 0.0), "A standing obstacle must occupy its spot.")
 	first.take_blow(100)
 	_check(not run._blocked_rect(spot.x, spot.y, 0.0) and run._portal_position(spot) == spot, "A broken obstacle must free its spot at once.")
-	(run.obstacles.get_child(0) as Breakable).take_blow(3)
 
-	# 10. Advancing the stage rebuilds the next stage's layout fresh, with broken ones back.
-	var boss: Boss = run.spawn_next_boss()
+	# 10. The sin boss never spawns inside an obstacle.
+	var boss: Boss = run.spawn_sin_boss()
 	_check(not run._blocked_rect(boss.position.x, boss.position.y, boss.radius), "A boss must not spawn inside an obstacle.")
-	boss.take_hit(boss.max_health)
-	await _wait_ticks(2)
-	_check(is_instance_valid(run.exit_portal), "The slain sin must open a portal.")
-	run._advance_stage()
-	await _wait_ticks(2)
-	_check(run.stage_index == 1 and _layout(run) == layouts[1], "Advancing must build the next stage's layout.")
-	var whole: bool = true
-	for child: Node in run.obstacles.get_children():
-		var obstacle: Breakable = child as Breakable
-		whole = whole and obstacle.is_standing() and obstacle.health == obstacle.max_health and obstacle.collision_layer == 1
-	_check(whole and run.obstacles.get_child_count() == layouts[1].size(), "Every obstacle in a new stage must stand at full health.")
 
 	run.queue_free()
 	# Let the audio server release playbacks before quitting.
 	await _wait_ticks(15)
 	if failures == 0:
-		print("PASS: obstacle toughness per kind, one blow per thrust, hit feedback and hit-stop, finisher and charged arrow, arrow and spear stopped then through, angel blocked on ground and in flight, enemy held then through, ground vs flying shots, no enemy damage, unbreakable boundary, deterministic per-stage layout with clear landing and lanes, safe portals and spawns, freed spots, fresh layout on stage advance.")
+		print("PASS: obstacle toughness per kind, one blow per thrust, hit feedback and hit-stop, finisher and heavy arrow, arrow and spear stopped then through, angel blocked on ground and in flight, enemy held then through, ground vs flying shots, no enemy damage, unbreakable boundary, deterministic per-map layout opening with the pentagram shrines, clear landing and lanes, safe portals and spawns, freed spots, boss clear of obstacles.")
 	quit(1 if failures > 0 else 0)

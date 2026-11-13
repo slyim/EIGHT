@@ -21,6 +21,10 @@ var windup_left: float = 0.0
 var charge_left: float = 0.0
 var charge_direction: Vector2 = Vector2.RIGHT
 var attack_pose_left: float = 0.0
+## Guards only: they fight while the target is within leash of home, otherwise walk back.
+## 0 means no leash.
+var home: Vector2 = Vector2.ZERO
+var leash: float = 0.0
 
 
 func _base_animation() -> StringName:
@@ -32,7 +36,15 @@ func _physics_process(delta: float) -> void:
 		return
 	_tick_flash(delta)
 	attack_pose_left = maxf(0.0, attack_pose_left - delta)
-	if windup_left > 0.0:
+	var leashed: bool = leash > 0.0 and target.global_position.distance_to(home) > leash
+	if leashed and (windup_left > 0.0 or charge_left > 0.0):
+		windup_left = 0.0
+		charge_left = 0.0
+		queue_redraw()
+	if leashed:
+		var to_home: Vector2 = home - global_position
+		velocity = to_home.normalized() * speed if to_home.length() > speed * delta * 2.0 else Vector2.ZERO
+	elif windup_left > 0.0:
 		windup_left -= delta
 		velocity = Vector2.ZERO
 		if windup_left <= 0.0:
@@ -84,10 +96,6 @@ func _fire(direction: Vector2) -> void:
 
 
 func _draw() -> void:
-	# PLACEHOLDER charge telegraph and name tag.
+	# PLACEHOLDER charge telegraph. The name tag is crisp UI drawn by the HUD.
 	if windup_left > 0.0:
 		draw_line(Vector2.ZERO, charge_direction * 260.0, Color(0.6, 0.32, 0.33, 0.7), 4.0)
-	var font: Font = ThemeDB.fallback_font
-	var at: Vector2 = Vector2(-120.0, -radius - 34.0)
-	draw_string_outline(font, at, boss_name, HORIZONTAL_ALIGNMENT_CENTER, 240.0, 16, 6, Color("070109"))
-	draw_string(font, at, boss_name, HORIZONTAL_ALIGNMENT_CENTER, 240.0, 16, Color("e6e29e"))

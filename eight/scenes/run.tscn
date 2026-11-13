@@ -11,15 +11,18 @@
 [ext_resource type="Shader" path="res://shaders/lighting.gdshader" id="7_lighting"]
 [ext_resource type="Shader" path="res://shaders/light.gdshader" id="8_light"]
 [ext_resource type="Script" path="res://scripts/lights.gd" id="9_lights"]
+[ext_resource type="Shader" path="res://shaders/lava.gdshader" id="11_lava"]
+[ext_resource type="Theme" path="res://resources/ui_theme.tres" id="10_theme"]
 
 [sub_resource type="Environment" id="Environment_glow"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable tight canvas glow"
 background_mode = 3
 background_canvas_max_layer = 0
 glow_enabled = true
 glow_levels/1 = 1.0
 glow_levels/2 = 0.45
-glow_levels/3 = 0.0
+glow_levels/3 = 0.3
 glow_levels/4 = 0.0
 glow_levels/5 = 0.0
 glow_intensity = 0.65
@@ -28,14 +31,22 @@ glow_blend_mode = 0
 glow_hdr_threshold = 1.0
 
 [sub_resource type="ShaderMaterial" id="Material_atmosphere"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable atmosphere"
 shader = ExtResource("6_atmosphere")
 
 [sub_resource type="ShaderMaterial" id="Material_lighting"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable darkness and light bands"
 shader = ExtResource("7_lighting")
 
+[sub_resource type="ShaderMaterial" id="Material_lava"]
+resource_local_to_scene = true
+resource_name = "PLACEHOLDER-tunable lava shimmer"
+shader = ExtResource("11_lava")
+
 [sub_resource type="ShaderMaterial" id="Material_light"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable light falloff"
 shader = ExtResource("8_light")
 
@@ -54,17 +65,6 @@ size = Vector2(4096, 48)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_wall"]
 size = Vector2(48, 4000)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.0275, 0.0039, 0.0353, 0.94)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.4314, 0.2471, 0.3725, 1)
-content_margin_left = 20.0
-content_margin_top = 16.0
-content_margin_right = 20.0
-content_margin_bottom = 16.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_background"]
 bg_color = Color(0.0275, 0.0039, 0.0353, 0.9)
@@ -100,40 +100,8 @@ content_margin_top = 4.0
 content_margin_right = 10.0
 content_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_choice"]
-bg_color = Color(0.1176, 0.0941, 0.1804, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.4314, 0.2471, 0.3725, 1)
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 36.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_choice_hover"]
-bg_color = Color(0.2275, 0.1294, 0.251, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.902, 0.886, 0.6196, 1)
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 36.0
 
-[sub_resource type="Theme" id="Theme_hud"]
-Button/colors/font_color = Color(0.902, 0.886, 0.6196, 1)
-Button/colors/font_hover_color = Color(1, 1, 1, 1)
-Button/colors/font_pressed_color = Color(1, 1, 1, 1)
-Button/styles/hover = SubResource("StyleBoxFlat_choice_hover")
-Button/styles/normal = SubResource("StyleBoxFlat_choice")
-Button/styles/pressed = SubResource("StyleBoxFlat_choice_hover")
-Label/colors/font_color = Color(0.7922, 0.9216, 0.8784, 1)
-Label/colors/font_outline_color = Color(0.0275, 0.0039, 0.0353, 1)
-Label/constants/outline_size = 5
 
 [node name="Run" type="Node2D"]
 script = ExtResource("1_run")
@@ -175,7 +143,10 @@ shape = SubResource("RectangleShape2D_vertical_wall")
 
 [node name="Obstacles" type="Node2D" parent="."]
 
+[node name="Chests" type="Node2D" parent="."]
+
 [node name="Lava" type="Node2D" parent="."]
+material = SubResource("Material_lava")
 script = ExtResource("6_lava")
 
 [node name="Pickups" type="Node2D" parent="."]
@@ -223,7 +194,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme = SubResource("Theme_hud")
+theme = ExtResource("10_theme")
 script = ExtResource("3_hud")
 
 [node name="XPBar" type="ProgressBar" parent="HUD/Hud"]
@@ -429,6 +400,7 @@ theme_override_constants/separation = 2
 
 [node name="BossName" type="Label" parent="HUD/Hud/BossPanel"]
 layout_mode = 2
+theme_type_variation = &"HeadingLabel"
 theme_override_colors/font_color = Color(0.902, 0.886, 0.6196, 1)
 theme_override_font_sizes/font_size = 20
 text = "BOSS"
@@ -519,7 +491,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
 theme_override_font_sizes/font_size = 13
-text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   F3 stats   |   R restart   |   Hold E exit"
+text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   Esc pause   |   F3 stats   |   R restart   |   Hold E exit"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -536,7 +508,7 @@ offset_right = 270.0
 offset_bottom = 176.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_type_variation = &"MenuPanel"
 
 [node name="Box" type="VBoxContainer" parent="HUD/Hud/LevelUp"]
 layout_mode = 2
@@ -544,6 +516,7 @@ theme_override_constants/separation = 10
 
 [node name="Heading" type="Label" parent="HUD/Hud/LevelUp/Box"]
 layout_mode = 2
+theme_type_variation = &"HeadingLabel"
 theme_override_colors/font_color = Color(0.902, 0.886, 0.6196, 1)
 theme_override_font_sizes/font_size = 24
 text = "LEVEL UP - CHOOSE ONE"
@@ -559,6 +532,7 @@ horizontal_alignment = 1
 [node name="Choice1" type="Button" parent="HUD/Hud/LevelUp/Box"]
 custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
+theme_type_variation = &"ChoiceButton"
 focus_mode = 0
 theme_override_font_sizes/font_size = 20
 alignment = 0
@@ -582,6 +556,7 @@ vertical_alignment = 1
 [node name="Choice2" type="Button" parent="HUD/Hud/LevelUp/Box"]
 custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
+theme_type_variation = &"ChoiceButton"
 focus_mode = 0
 theme_override_font_sizes/font_size = 20
 alignment = 0
@@ -605,6 +580,7 @@ vertical_alignment = 1
 [node name="Choice3" type="Button" parent="HUD/Hud/LevelUp/Box"]
 custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
+theme_type_variation = &"ChoiceButton"
 focus_mode = 0
 theme_override_font_sizes/font_size = 20
 alignment = 0
@@ -627,6 +603,7 @@ vertical_alignment = 1
 
 [node name="EndLabel" type="Label" parent="HUD/Hud"]
 layout_mode = 1
+theme_type_variation = &"HeadingLabel"
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -646,3 +623,223 @@ theme_override_font_sizes/font_size = 34
 text = "YOU HAVE FALLEN"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PauseMenu" type="PanelContainer" parent="HUD/Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -192.0
+offset_right = 200.0
+offset_bottom = 192.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(200, 192)
+theme_type_variation = &"MenuPanel"
+
+[node name="Box" type="VBoxContainer" parent="HUD/Hud/PauseMenu"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="HUD/Hud/PauseMenu/Box"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 34
+text = "PAUSED"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="HUD/Hud/PauseMenu/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 14
+text = "Esc to resume"
+horizontal_alignment = 1
+
+[node name="Resume" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "RESUME"
+
+[node name="Restart" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "RESTART RUN  [R]"
+
+[node name="Settings" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "SETTINGS"
+
+[node name="Hub" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "RETURN TO THE PENTAGRAM"
+
+[node name="EndButtons" type="VBoxContainer" parent="HUD/Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = 76.0
+offset_right = 200.0
+offset_bottom = 196.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Retry" type="Button" parent="HUD/Hud/EndButtons"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "RETRY  [R]"
+
+[node name="Hub" type="Button" parent="HUD/Hud/EndButtons"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "RETURN TO THE PENTAGRAM"
+
+[node name="SaveFailed" type="VBoxContainer" parent="HUD/Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = 76.0
+offset_right = 220.0
+offset_bottom = 196.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Retry" type="Button" parent="HUD/Hud/SaveFailed"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "TRY SAVING AGAIN"
+
+[node name="Leave" type="Button" parent="HUD/Hud/SaveFailed"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "RETURN WITHOUT SAVING"
+
+[node name="Evolution" type="PanelContainer" parent="HUD/Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -128.0
+offset_right = 340.0
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"MenuPanel"
+
+[node name="Box" type="VBoxContainer" parent="HUD/Hud/Evolution"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="HUD/Hud/Evolution/Box"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 28
+text = "EVOLUTION"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="HUD/Hud/Evolution/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 14
+text = "Choose a path for this run: click or press 1 - 2"
+horizontal_alignment = 1
+
+[node name="Paths" type="HBoxContainer" parent="HUD/Hud/Evolution/Box"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Path1" type="Button" parent="HUD/Hud/Evolution/Box/Paths"]
+custom_minimum_size = Vector2(300, 150)
+layout_mode = 2
+focus_mode = 0
+
+[node name="Text" type="VBoxContainer" parent="HUD/Hud/Evolution/Box/Paths/Path1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = -18.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path1/Text"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 22
+
+[node name="Detail" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path1/Text"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
+[node name="Path2" type="Button" parent="HUD/Hud/Evolution/Box/Paths"]
+custom_minimum_size = Vector2(300, 150)
+layout_mode = 2
+focus_mode = 0
+
+[node name="Text" type="VBoxContainer" parent="HUD/Hud/Evolution/Box/Paths/Path2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = -18.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path2/Text"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 22
+
+[node name="Detail" type="Label" parent="HUD/Hud/Evolution/Box/Paths/Path2/Text"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3

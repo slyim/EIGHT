@@ -57,6 +57,8 @@ func _check_layout(hud: Hud, names: PackedStringArray) -> void:
 
 
 func _run() -> void:
+	# The UI renders at native window size (no stretch), so lay it out at the minimum window.
+	root.size = Vector2i(1280, 720)
 	var run: Run = RUN_SCENE.instantiate() as Run
 	run.spawning_enabled = false
 	run.intro_enabled = false
@@ -127,23 +129,57 @@ func _run() -> void:
 	player.health = player.max_health
 
 	_check(hud.difficulty_label.text.contains("TIME") and hud.difficulty_label.text.contains("DIFFICULTY 1"), "Clock and difficulty must stay visible.")
-	_check(hud.stage_label.text == "STAGE 1 / 8 - PRIDE", "Stage and sin must show.")
-	# The countdown and the boss bar share a slot, so exactly one shows.
-	_check(hud.boss_status_label.visible and hud.boss_status_label.text.begins_with("NEXT BOSS: PRIDE IN"), "The next boss must be named.")
-	run.boss_left = 5.0
+	_check(hud.stage_label.text == "REALM OF PRIDE", "The sin's realm must show.")
+	_check(hud.stats_label.text.contains("SHRINES 0 / 5"), "Broken shrines must be counted, got %s." % hud.stats_label.text)
+	# The shrine countdown and the boss bar share a slot, so exactly one shows.
+	_check(hud.boss_status_label.visible and hud.boss_status_label.text.begins_with("DESTROY SATAN'S SHRINES   5 LEFT") and hud.boss_status_label.text.contains("8:00"), "The shrines and countdown must show, got %s." % hud.boss_status_label.text)
+	_check(hud.boss_status_label.self_modulate == Color.WHITE, "A long countdown must not be flagged.")
+	run.shrine_time_left = 30.0
 	await process_frame
-	_check(hud.boss_status_label.self_modulate == Hud.BOSS_WARNING_TINT, "An imminent boss must be flagged.")
-	run.spawn_next_boss()
+	_check(hud.boss_status_label.self_modulate == Hud.ALERT_TINT and hud.boss_status_label.text.contains("0:30"), "The last minute must be flagged.")
+	# Off-view shrines get edge markers; the player at the landing site sees none of them.
+	var tips: Array[Array] = hud.shrine_marker_tips()
+	_check(hud.shrine_markers.is_visible_in_tree() and tips.size() == Run.SHRINE_COUNT, "Every off-view shrine needs a marker (got %d)." % tips.size())
+	var angel: Vector2 = hud.world_to_hud(player.global_position)
+	var spots: Array[Vector2] = Run.shrine_spots()
+	for index: int in range(tips.size()):
+		var tip: Vector2 = tips[index][0]
+		_check(is_equal_approx(tip.distance_to(angel), Hud.SHRINE_MARKER_RING), "A marker must ride the ring around the angel.")
+		_check((tips[index][1] as Vector2).dot((spots[index] - player.global_position).normalized()) > 0.99, "A marker must point toward its shrine.")
+		for node_name: String in ["StatusPanel", "BossStatus", "StageStatus", "Difficulty", "Logo", "Title", "AssetNotice", "Abilities", "Controls"]:
+			_check(not (hud.get_node(node_name) as Control).get_global_rect().grow(12.0).has_point(tip), "A marker must not sit on %s (at %s)." % [node_name, tip])
+	player.global_position = Run.shrine_spots()[0] + Vector2(0.0, 120.0)
+	await _wait_ticks(2)
+	_check(hud.shrine_marker_tips().size() == Run.SHRINE_COUNT - 1, "A shrine on screen needs no marker.")
+	player.global_position = Vector2.ZERO
+	await _wait_ticks(2)
+	run.spawn_sin_boss()
 	await process_frame
 	_check(hud.boss_panel.visible and not hud.boss_status_label.visible, "The boss bar must replace the countdown.")
 	_check(hud.boss_name_label.text.ends_with("100%"), "The boss bar must show health, got %s." % hud.boss_name_label.text)
 	_check_layout(hud, PackedStringArray(["StatusPanel", "BossPanel", "AssetNotice", "Abilities", "Controls", "LevelUp"]))
 	var boss: Boss = run.current_boss
+	# Opened directly (no pixel host), the boss tag follows the camera at 1:1 screen pixels.
+	boss.speed = 0.0
+	boss.global_position = player.global_position + Vector2(200.0, 60.0)
+	await _wait_ticks(2)
+	var anchor: Vector2 = boss.global_position - Vector2(0.0, boss.radius + 18.0)
+	var expected: Vector2 = root.get_visible_rect().size * 0.5 + (anchor - player.camera.get_screen_center_position())
+	var tag_rect: Rect2 = hud.boss_tag.get_global_rect()
+	_check(hud.boss_tag.visible and absf(tag_rect.get_center().x - expected.x) < 1.5 and absf(tag_rect.end.y - expected.y) < 1.5, "Unhosted, the boss tag must sit centered on %s (tag %s)." % [expected, tag_rect])
 	boss.take_hit(boss.max_health)
 	await process_frame
-	_check(hud.boss_status_label.text.contains("EXIT OPEN") and hud.boss_status_label.text.contains("HOLD E"), "The exit prompt must explain confirmation.")
-	run._advance_stage()
-	await process_frame
+	_check(hud.boss_status_label.text.begins_with("PRIDE DEFEATED") and hud.boss_status_label.text.contains("HOLD E"), "The exit prompt must explain leaving.")
+	# An exit off the view gets its own marker on the ring, pointing at it; none once in view.
+	player.global_position = run.exit_portal.global_position + Vector2(0.0, 900.0)
+	await _wait_ticks(3)
+	var exit: Array = hud.exit_marker_tip()
+	_check(not exit.is_empty() and (exit[1] as Vector2).dot(Vector2.UP) > 0.99, "An off-screen exit must get a marker pointing at it (got %s)." % [exit])
+	player.global_position = run.exit_portal.global_position + Vector2(0.0, 120.0)
+	await _wait_ticks(3)
+	_check(hud.exit_marker_tip().is_empty(), "An exit in view needs no marker.")
+	player.global_position = Vector2.ZERO
+	await _wait_ticks(2)
 
 	# Items stay out of the way until there is something to list.
 	_check(not hud.items_label.visible, "An empty item list must stay hidden.")
@@ -159,10 +195,8 @@ func _run() -> void:
 	# Worst-case status text still fits beside a full item list.
 	run.elapsed = 5999.0
 	run.kills = 99999
-	run.boss_index = 7
 	await _wait_ticks(1)
 	_check_layout(hud, PackedStringArray(["StatusPanel", "BossStatus", "AssetNotice", "Items", "Abilities", "Controls", "LevelUp"]))
-	run.boss_index = 0
 
 	# Level-up choices separate the name from its effect, and flag queued choices.
 	run.add_xp(run.xp_needed() + 100)

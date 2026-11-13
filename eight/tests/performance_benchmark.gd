@@ -28,7 +28,7 @@ func _run() -> void:
 	for frame_index: int in range(720):
 		# Exercise allocation and animation expiry continuously.
 		for effect_index: int in range(8):
-			run._spawn_poof(Vector2(200 + effect_index * 30, 200), 2.0)
+			run._spawn_poof(Vector2(200 + effect_index * 30, 200))
 		await process_frame
 		var now: int = Time.get_ticks_usec()
 		if frame_index >= 120:

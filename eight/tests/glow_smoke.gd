@@ -27,7 +27,13 @@ func _run() -> void:
 	var angel_light: CanvasItem = lighting.get_node("AngelLight")
 	check(lamp.range_item_cull_mask == angel_light.light_mask, "The Lamp must light only AngelLight")
 	check(lamp.shadow_enabled and lamp.shadow_item_cull_mask & angel_light.light_mask != 0, "AngelLight must receive shadows")
-	var obstacle: Breakable = run.obstacles.get_child(0)
+	var obstacle: Breakable = null
+	for child: Node in run.obstacles.get_children():
+		var each: Breakable = child as Breakable
+		if each.kind == Breakable.Kind.SHRINE:
+			check(is_light(each) and is_instance_valid(each.light_occluder), "Every shrine must be a light and cast a shadow")
+		elif obstacle == null and each.kind == Breakable.Kind.STRUCTURE:
+			obstacle = each
 	check(lamp.shadow_item_cull_mask & obstacle.light_occluder.occluder_light_mask != 0, "Obstacles must shadow the Lamp")
 	check(obstacle.light_occluder.occluder.polygon == PackedVector2Array([Vector2(-52, -52), Vector2(52, -52), Vector2(52, 60), Vector2(-52, 60)]), "Structure shadow must match the pillar art")
 	obstacle.take_blow(1000)

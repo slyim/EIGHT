@@ -37,10 +37,8 @@ func is_nearby() -> bool:
 
 
 func _draw() -> void:
-	# PLACEHOLDER primitive portal; no imported art.
+	# PLACEHOLDER primitive portal; no imported art. Even widths, no antialiasing: whole art pixels.
 	draw_circle(Vector2.ZERO, RADIUS, Color("19182e"))
-	draw_arc(Vector2.ZERO, RADIUS, 0.0, TAU, 64, Color("99b9bd"), 4.0, true)
-	draw_arc(Vector2.ZERO, RADIUS - 10.0, -PI * 0.5, -PI * 0.5 + TAU * clampf(hold_left / hold_seconds, 0.001, 1.0), 64, Color("e6e29e"), 5.0, true)
-	var font: Font = ThemeDB.fallback_font
-	draw_string_outline(font, Vector2(-90, -64), "EXIT [HOLD E]", HORIZONTAL_ALIGNMENT_CENTER, 180, 18, 6, Color("070109"))
-	draw_string(font, Vector2(-90, -64), "EXIT [HOLD E]", HORIZONTAL_ALIGNMENT_CENTER, 180, 18, Color("caebe0"))
+	draw_arc(Vector2.ZERO, RADIUS, 0.0, TAU, 64, Color("99b9bd"), 4.0)
+	draw_arc(Vector2.ZERO, RADIUS - 10.0, -PI * 0.5, -PI * 0.5 + TAU * clampf(hold_left / hold_seconds, 0.001, 1.0), 64, Color("e6e29e"), 6.0)
+	# The "EXIT [HOLD E]" prompt is crisp UI drawn by the HUD.

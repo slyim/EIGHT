@@ -1,7 +1,7 @@
 class_name MountedPlayer
 extends CharacterBody2D
-## Mounted hero controller: movement, dash, flight, a three-hit light-spear combo, a
-## charged bow, and the descent from the sky that opens a run. Sprites and drawn effects
+## Mounted hero controller: movement, dash, flight, three-hit light-spear and bow combos,
+## and the descent from the sky that opens a run. Sprites and drawn effects
 ## (including the bow and arrows) are PLACEHOLDER art.
 
 signal health_changed(current: int, maximum: int)
@@ -14,11 +14,16 @@ signal dashed
 signal jumped
 ## Emitted on touchdown.
 signal landed
+## Emitted when the winning ascension reaches the sky.
+signal ascended
 signal weapon_switched(weapon: Weapon)
-## charge runs from 0 (minimum-draw tap) to 1 (full draw).
-signal arrow_fired(charge: float)
+## step is 0 and 1 for the opening shots, 2 for the finisher.
+signal arrow_fired(step: int)
 
 enum Weapon { SPEAR, BOW }
+## Evolution paths (once per weapon per run); each changes that weapon's finisher.
+enum SpearPath { NONE, WHIRLWIND, CHAIN_LIGHT }
+enum BowPath { NONE, RICOCHET, RAIN }
 
 const HURT_RADIUS: float = 20.0
 const COMBO_LENGTH: int = 3
@@ -38,6 +43,11 @@ const SPEAR_AIR_MASK: int = 1 | 16
 const FINISHER_RAY_SPACING: float = 24.0
 const SLASH_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_vfx_slash.aseprite")
 const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
+## PLACEHOLDER chain-light streak: bright, even-width, no antialiasing.
+const CHAIN_COLOR: Color = Color(1.4, 1.9, 1.8, 1.0)
+const CHAIN_TIME: float = 0.2
+## The fastest haste allows: cooldowns at 40% of their base.
+const HASTE_FLOOR: float = 0.4
 
 @export_group("Movement")
 @export_range(80.0, 600.0, 10.0) var movement_speed: float = 260.0
@@ -62,17 +72,29 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 @export_range(0.0, 5.0, 0.1) var finisher_knockback_scale: float = 2.0
 
 @export_group("Bow")
-## Seconds of holding attack to reach full charge.
-@export_range(0.1, 3.0, 0.05) var bow_draw_time: float = 0.75
-## Seconds after a release before the next draw can start.
-@export_range(0.0, 2.0, 0.01) var bow_cooldown: float = 0.18
-@export_range(1, 20, 1) var bow_min_damage: int = 1
-@export_range(1, 40, 1) var bow_max_damage: int = 4
-@export_range(40.0, 2000.0, 10.0) var bow_min_range: float = 240.0
-@export_range(40.0, 2000.0, 10.0) var bow_max_range: float = 640.0
-## Targets a fully drawn arrow passes through; a tap pierces one.
-@export_range(1, 20, 1) var bow_max_pierce: int = 3
+## Three-shot combo on the spear's rhythm: shot, quicker shot, finisher. The finisher is a
+## plain arrow until a weapon evolution changes it. PLACEHOLDER values.
+## Seconds after a shot before the next; the second shot recovers faster.
+@export_range(0.05, 2.0, 0.01) var bow_cooldown: float = 0.26
+@export_range(0.05, 2.0, 0.01) var bow_finisher_cooldown: float = 0.45
+@export_range(1, 20, 1) var bow_damage: int = 1
+@export_range(40.0, 2000.0, 10.0) var bow_range: float = 520.0
+## Targets one arrow passes through.
+@export_range(1, 20, 1) var bow_pierce: int = 1
 @export_range(200.0, 3000.0, 10.0) var arrow_speed: float = 950.0
+
+@export_group("Evolution")
+## PLACEHOLDER values for the evolved finishers.
+## Chain Light: extra enemies the finisher's lightning jumps to, and how far each jump reaches.
+@export_range(1, 10, 1) var chain_jumps: int = 3
+@export_range(40.0, 600.0, 10.0) var chain_range: float = 200.0
+## Ricochet: how many more enemies the finishing arrow bounces to, and how far it looks.
+@export_range(1, 10, 1) var ricochet_bounces: int = 4
+@export_range(40.0, 800.0, 10.0) var ricochet_range: float = 280.0
+## Rain of Light: the circle's radius, the delay before it strikes, and its damage per bow damage.
+@export_range(20.0, 400.0, 5.0) var rain_radius: float = 110.0
+@export_range(0.0, 2.0, 0.05) var rain_delay: float = 0.35
+@export_range(0.5, 5.0, 0.1) var rain_damage_multiplier: float = 2.0
 
 @export_group("Feel")
 ## Seconds a dash, take-off, or attack press is remembered until it can fire.
@@ -106,12 +128,26 @@ const ARROW_SCENE: PackedScene = preload("res://scenes/arrow.tscn")
 ## Movement speed multiplier at hover height (blended in during the climb).
 @export_range(0.25, 2.0, 0.05) var flight_speed_multiplier: float = 1.0
 
+@export_group("Stats")
+## Level-up stats (PLACEHOLDER base values). might multiplies every damage the angel deals;
+## haste multiplies every attack and side-weapon cooldown (lower is faster); armor takes a flat
+## amount off each enemy hit (never below 1; lava burns are not hits); luck multiplies the
+## chance of heart, item, and evolution drops.
+@export_range(0.1, 10.0, 0.05) var might: float = 1.0
+@export_range(0.4, 2.0, 0.01) var haste: float = 1.0
+@export_range(0, 100, 1) var armor: int = 0
+@export_range(0.1, 10.0, 0.05) var luck: float = 1.0
+
 @export_group("Life")
 @export_range(1, 500, 1) var max_health: int = 100
 @export_range(0.1, 3.0, 0.05) var hurt_invulnerability: float = 1.0
 @export_range(16.0, 600.0, 4.0) var pickup_radius: float = 90.0
 
 var aim_direction: Vector2 = Vector2.RIGHT
+## How far the mouse is from the angel (Rain of Light lands there, within bow range).
+var aim_distance: float = 0.0
+var spear_path: SpearPath = SpearPath.NONE
+var bow_path: BowPath = BowPath.NONE
 var mount_direction: Vector2 = Vector2.RIGHT
 var thrust_direction: Vector2 = Vector2.RIGHT
 var spear_direction: Vector2 = Vector2.RIGHT
@@ -139,15 +175,14 @@ var height: float = 0.0
 var descent_height: float = 0.0
 var descent_duration: float = 0.0
 var descent_left: float = 0.0
+## The descent runs in reverse: the angel rises into the sky (the win ending).
+var ascending: bool = false
 var shake_left: float = 0.0
 var shake_strength: float = 0.0
 var health: int = 0
 var invulnerable_left: float = 0.0
 var is_dead: bool = false
 var weapon: Weapon = Weapon.SPEAR
-## Seconds the bow has been drawn; negative while not drawing.
-var draw_time: float = -1.0
-var bow_cooldown_left: float = 0.0
 var attack_buffer_left: float = 0.0
 var dash_buffer_left: float = 0.0
 var jump_buffer_left: float = 0.0
@@ -165,12 +200,16 @@ var hit_stop_timer: SceneTreeTimer
 @onready var lamp: PointLight2D = $Lamp
 @onready var camera: Camera2D = $Camera2D
 @onready var sprite_base: Vector2 = sprite.position
+var side_weapons: SideWeapons
 
 
 func _ready() -> void:
 	health = max_health
 	flight_stamina = flight_time
 	bow.draw.connect(_draw_bow)
+	side_weapons = SideWeapons.new()
+	side_weapons.name = &"SideWeapons"
+	add_child(side_weapons)
 
 
 func _exit_tree() -> void:
@@ -186,10 +225,9 @@ func _input(event: InputEvent) -> void:
 		switch_weapon()
 
 
-## Toggles spear and bow. Cancels any draw or spear attack in progress.
+## Toggles spear and bow. Cancels any combo in progress; the recovery carries over.
 func switch_weapon() -> void:
 	weapon = Weapon.BOW if weapon == Weapon.SPEAR else Weapon.SPEAR
-	draw_time = -1.0
 	attack_time_left = 0.0
 	attack_step = -1
 	combo_window_left = 0.0
@@ -198,9 +236,31 @@ func switch_weapon() -> void:
 	weapon_switched.emit(weapon)
 
 
-## Bow draw from 0 to 1, or -1 while not drawing.
-func draw_charge() -> float:
-	return clampf(draw_time / bow_draw_time, 0.0, 1.0) if draw_time >= 0.0 else -1.0
+## A base damage after might, never below 1.
+func dealt(base: int) -> int:
+	return maxi(1, roundi(base * might))
+
+
+## Takes an evolution path for a weapon (path 1 or 2; see SpearPath and BowPath).
+func evolve(which: Weapon, path: int) -> void:
+	if which == Weapon.SPEAR:
+		spear_path = path as SpearPath
+	else:
+		bow_path = path as BowPath
+
+
+func is_evolved(which: Weapon) -> bool:
+	return (spear_path if which == Weapon.SPEAR else bow_path) != 0
+
+
+## The finisher's sweep: a full spin once evolved into Whirlwind.
+func finisher_arc() -> float:
+	return 360.0 if spear_path == SpearPath.WHIRLWIND else finisher_arc_degrees
+
+
+## Combo step of the current weapon (0..COMBO_LENGTH-1) while a combo is live, else -1.
+func combo_step() -> int:
+	return attack_step if attack_time_left > 0.0 or combo_window_left > 0.0 or cooldown_left > 0.0 else -1
 
 
 ## Opens a run: the angel falls from the sky and lands. Input waits until landing.
@@ -213,6 +273,14 @@ func begin_descent(from_height: float, duration: float) -> void:
 	height = from_height
 
 
+## Ends a won run: the angel rises in its beam. Input waits; ascended fires at the top.
+func begin_ascent(to_height: float, duration: float) -> void:
+	begin_descent(to_height, duration)
+	ascending = true
+	height = 0.0
+
+
+## True while descending into the run or ascending out of it.
 func is_descending() -> bool:
 	return descent_left > 0.0
 
@@ -242,10 +310,14 @@ func _physics_process(delta: float) -> void:
 	if is_descending():
 		descent_left = maxf(0.0, descent_left - delta)
 		var t: float = 1.0 - descent_left / descent_duration
-		height = descent_height * (1.0 - t * t)
+		height = descent_height * (t * t if ascending else 1.0 - t * t)
 		if descent_left == 0.0:
-			height = 0.0
-			_land(14.0)
+			if ascending:
+				set_physics_process(false)
+				ascended.emit()
+			else:
+				height = 0.0
+				_land(14.0)
 		_update_visuals(Vector2.ZERO, delta)
 		return
 	invulnerable_left = maxf(0.0, invulnerable_left - delta)
@@ -261,6 +333,7 @@ func _physics_process(delta: float) -> void:
 		&"move_left", &"move_right", &"move_up", &"move_down"
 	)
 	var mouse_offset: Vector2 = get_global_mouse_position() - global_position
+	aim_distance = mouse_offset.length()
 	if not mouse_offset.is_zero_approx():
 		aim_direction = mouse_offset.normalized()
 
@@ -367,7 +440,7 @@ func _update_attack(delta: float) -> void:
 	# The spear strikes what shares the angel's level: flying enemies in the air, the rest on the ground.
 	spear_cast.collision_mask = SPEAR_AIR_MASK if is_airborne() else SPEAR_GROUND_MASK
 	if weapon == Weapon.BOW:
-		_update_bow(delta)
+		_update_bow()
 		return
 	var wants_attack: bool = Input.is_action_pressed(&"attack") or attack_buffer_left > 0.0
 	if wants_attack and cooldown_left <= 0.0 and attack_time_left <= 0.0:
@@ -377,13 +450,13 @@ func _update_attack(delta: float) -> void:
 		thrust_direction = aim_direction
 		if attack_step == COMBO_LENGTH - 1:
 			attack_duration = finisher_duration
-			cooldown_left = finisher_cooldown
+			cooldown_left = finisher_cooldown * haste
 			finisher_resolved = false
 			_spawn_slash()
 		else:
 			attack_duration = thrust_duration
 			# The second thrust follows faster than the first.
-			cooldown_left = thrust_cooldown * (0.8 if attack_step == 1 else 1.0)
+			cooldown_left = thrust_cooldown * (0.8 if attack_step == 1 else 1.0) * haste
 			thrust_hits_left = spear_pierce
 			spear_cast.clear_exceptions()
 		attack_time_left = attack_duration
@@ -397,7 +470,7 @@ func _update_attack(delta: float) -> void:
 	attack_time_left = maxf(0.0, attack_time_left - delta)
 	var progress: float = 1.0 - attack_time_left / attack_duration
 	if attack_step == COMBO_LENGTH - 1:
-		var half: float = deg_to_rad(finisher_arc_degrees) * 0.5
+		var half: float = deg_to_rad(finisher_arc()) * 0.5
 		spear_length = spear_reach * 0.9
 		spear_direction = thrust_direction.rotated(lerpf(-half, half, progress))
 		if not finisher_resolved and progress >= 0.35:
@@ -413,34 +486,54 @@ func _update_attack(delta: float) -> void:
 		combo_window_left = combo_window if attack_step < COMBO_LENGTH - 1 else 0.0
 
 
-func _update_bow(delta: float) -> void:
-	bow_cooldown_left = maxf(0.0, bow_cooldown_left - delta)
-	if draw_time < 0.0:
-		if (Input.is_action_pressed(&"attack") or attack_buffer_left > 0.0) and bow_cooldown_left <= 0.0:
-			attack_buffer_left = 0.0
-			draw_time = 0.0
+## Same input and timing rules as the spear: press or hold attack; a press within
+## combo_window of the last shot's recovery continues the combo.
+func _update_bow() -> void:
+	var wants_attack: bool = Input.is_action_pressed(&"attack") or attack_buffer_left > 0.0
+	if not wants_attack or cooldown_left > 0.0:
 		return
-	if Input.is_action_pressed(&"attack"):
-		draw_time += delta
-		return
-	fire_arrow(draw_charge())
-	draw_time = -1.0
-	bow_cooldown_left = bow_cooldown
+	attack_buffer_left = 0.0
+	attack_step = (attack_step + 1) % COMBO_LENGTH if combo_window_left > 0.0 else 0
+	if attack_step == COMBO_LENGTH - 1 and bow_path == BowPath.RAIN:
+		call_rain()
+	else:
+		fire_arrow(attack_step)
+	if attack_step == COMBO_LENGTH - 1:
+		cooldown_left = bow_finisher_cooldown * haste
+		combo_window_left = 0.0
+	else:
+		cooldown_left = bow_cooldown * (0.8 if attack_step == 1 else 1.0) * haste
+		combo_window_left = cooldown_left + combo_window
 
 
-## Fires one arrow toward the aim; charge 0..1 scales damage, range, and pierce.
-func fire_arrow(charge: float) -> Arrow:
+## Fires one arrow toward the aim. The finishing arrow of a Ricochet bow bounces on.
+func fire_arrow(step: int = 0) -> Arrow:
 	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
 	arrow.direction = aim_direction
 	arrow.speed = arrow_speed
-	arrow.damage = roundi(lerpf(bow_min_damage, maxi(bow_min_damage, bow_max_damage), charge))
-	arrow.range_left = lerpf(bow_min_range, maxf(bow_min_range, bow_max_range), charge)
-	arrow.pierce = roundi(lerpf(1.0, bow_max_pierce, charge))
+	arrow.damage = dealt(bow_damage)
+	arrow.range_left = bow_range
+	arrow.pierce = bow_pierce
+	if step == COMBO_LENGTH - 1 and bow_path == BowPath.RICOCHET:
+		arrow.bounces = ricochet_bounces
+		arrow.bounce_range = ricochet_range
 	arrow.height = SPEAR_HEIGHT + height
 	arrow.position = global_position
 	get_parent().add_child(arrow)
-	arrow_fired.emit(charge)
+	arrow_fired.emit(step)
 	return arrow
+
+
+## Rain of Light: the finishing shot marks the aim point (within bow range) and light falls there.
+func call_rain() -> LightRain:
+	var rain: LightRain = LightRain.new()
+	rain.radius = rain_radius
+	rain.delay = rain_delay
+	rain.damage = maxi(1, roundi(bow_damage * rain_damage_multiplier * might))
+	rain.position = global_position + aim_direction * minf(aim_distance, bow_range)
+	get_parent().add_child(rain)
+	arrow_fired.emit(COMBO_LENGTH - 1)
+	return rain
 
 
 ## Each target is hit at most once per thrust; walls stop the spear. A breakable obstacle
@@ -452,11 +545,11 @@ func _resolve_spear_hits() -> void:
 		var collider: Object = spear_cast.get_collider()
 		if not collider.has_method(&"take_hit"):
 			if collider is Breakable:
-				(collider as Breakable).take_blow(spear_damage)
+				(collider as Breakable).take_blow(dealt(spear_damage))
 				_on_attack_connected(false)
 				thrust_hits_left = 0
 			return
-		collider.call(&"take_hit", spear_damage)
+		collider.call(&"take_hit", dealt(spear_damage))
 		_push(collider, spear_knockback_scale)
 		_on_attack_connected(false)
 		thrust_hits_left -= 1
@@ -476,14 +569,17 @@ func _resolve_finisher() -> void:
 	query.transform = Transform2D(0.0, global_position)
 	query.collision_mask = spear_cast.collision_mask & ~1
 	query.exclude = [get_rid()]
-	var half: float = deg_to_rad(finisher_arc_degrees) * 0.5
-	var damage: int = maxi(1, roundi(spear_damage * finisher_damage_multiplier))
+	var half: float = deg_to_rad(finisher_arc()) * 0.5
+	var damage: int = maxi(1, roundi(spear_damage * finisher_damage_multiplier * might))
+	var struck_targets: Array[Node2D] = []
 	for result: Dictionary in space.intersect_shape(query, 128):
 		var collider: Node2D = result["collider"] as Node2D
 		if collider == null or not collider.has_method(&"take_hit"):
 			continue
 		var offset: Vector2 = collider.global_position - global_position
-		if offset.length() > 24.0 and absf(thrust_direction.angle_to(offset)) > half:
+		# A full spin (Whirlwind) takes everything around; skip the angle test, whose edge is
+		# exactly behind the angel and would drop targets there to float rounding.
+		if finisher_arc() < 360.0 and offset.length() > 24.0 and absf(thrust_direction.angle_to(offset)) > half:
 			continue
 		var line_of_sight: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(
 			global_position, collider.global_position, 1
@@ -493,6 +589,9 @@ func _resolve_finisher() -> void:
 		collider.call(&"take_hit", damage)
 		_push(collider, finisher_knockback_scale)
 		_on_attack_connected(true)
+		struck_targets.append(collider)
+	if spear_path == SpearPath.CHAIN_LIGHT and not struck_targets.is_empty():
+		_chain_light(struck_targets, damage)
 	# Sample the sweep with rays no further apart at the tip than FINISHER_RAY_SPACING.
 	var rays: int = 2 + ceili(spear_reach * half * 2.0 / FINISHER_RAY_SPACING)
 	var struck: Array[Breakable] = []
@@ -507,15 +606,73 @@ func _resolve_finisher() -> void:
 		_on_attack_connected(true)
 
 
+## Chain Light: lightning jumps from the last struck enemy to the nearest unstruck one in
+## range, chain_jumps times, at the angel's level; each jump deals the finisher's damage.
+func _chain_light(struck_targets: Array[Node2D], damage: int) -> void:
+	var space: PhysicsDirectSpaceState2D = get_world_2d().direct_space_state
+	var circle: CircleShape2D = CircleShape2D.new()
+	circle.radius = chain_range
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = circle
+	query.collision_mask = spear_cast.collision_mask & ~1
+	var hit: Array[Node2D] = struck_targets.duplicate()
+	var from: Node2D = struck_targets[0]
+	var points: PackedVector2Array = [from.global_position]
+	for jump: int in range(chain_jumps):
+		query.transform = Transform2D(0.0, from.global_position)
+		var next: Node2D = null
+		for result: Dictionary in space.intersect_shape(query, 64):
+			var collider: Node2D = result["collider"] as Node2D
+			if collider == null or not collider.has_method(&"take_hit") or hit.has(collider):
+				continue
+			# Lightning does not jump through walls or standing obstacles.
+			if not space.intersect_ray(PhysicsRayQueryParameters2D.create(from.global_position, collider.global_position, 1)).is_empty():
+				continue
+			if next == null or from.global_position.distance_to(collider.global_position) < from.global_position.distance_to(next.global_position):
+				next = collider
+		if next == null:
+			break
+		next.call(&"take_hit", damage)
+		hit.append(next)
+		points.append(next.global_position)
+		from = next
+	if points.size() > 1:
+		_spawn_chain(points)
+
+
+## PLACEHOLDER lightning: a jagged line through the chain that fades out.
+func _spawn_chain(points: PackedVector2Array) -> void:
+	var line: Line2D = Line2D.new()
+	line.width = 2.0
+	line.default_color = CHAIN_COLOR
+	line.antialiased = false
+	for index: int in range(points.size() - 1):
+		var from: Vector2 = points[index]
+		var to: Vector2 = points[index + 1]
+		line.add_point(from)
+		# A kink midway, on whole art pixels.
+		var kink: Vector2 = (from + to) * 0.5 + (to - from).orthogonal().normalized() * 12.0 * (1.0 if index % 2 == 0 else -1.0)
+		line.add_point((kink / 2.0).round() * 2.0)
+	line.add_point(points[points.size() - 1])
+	get_parent().add_child(line)
+	var tween: Tween = line.create_tween()
+	tween.tween_property(line, ^"modulate:a", 0.0, CHAIN_TIME)
+	tween.tween_callback(line.queue_free)
+
+
 func _spawn_slash() -> void:
-	var arc: AnimatedSprite2D = AnimatedSprite2D.new()
-	arc.sprite_frames = SLASH_FRAMES
-	arc.position = Vector2(0.0, -SPEAR_HEIGHT - height)
-	arc.rotation = thrust_direction.angle()
-	arc.scale = Vector2(2.0, 2.0) * (spear_reach / 112.0)
-	arc.animation_finished.connect(arc.queue_free)
-	add_child(arc)
-	arc.play(&"slash")
+	# Whirlwind spins all the way round, so its slash shows on three sides.
+	var turns: int = 3 if spear_path == SpearPath.WHIRLWIND else 1
+	for turn: int in range(turns):
+		var arc: AnimatedSprite2D = AnimatedSprite2D.new()
+		arc.sprite_frames = SLASH_FRAMES
+		arc.position = Vector2(0.0, -SPEAR_HEIGHT - height)
+		arc.rotation = thrust_direction.angle() + TAU * turn / turns
+		# Always 2x so every art pixel matches; a longer reach does not stretch the art.
+		arc.scale = Vector2(2.0, 2.0)
+		arc.animation_finished.connect(arc.queue_free)
+		add_child(arc)
+		arc.play(&"slash")
 
 
 func _update_visuals(movement: Vector2, delta: float) -> void:
@@ -551,7 +708,9 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	camera.offset = Vector2(randf_range(-strength, strength), randf_range(-strength, strength))
 	# Whole screen pixels keep the world-locked light cells and dither from swimming.
 	camera.force_update_scroll()
-	var screen_transform: Transform2D = get_viewport().get_final_transform() * get_parent().get_global_transform_with_canvas()
+	var parent: CanvasItem = get_parent() as CanvasItem
+	var parent_canvas: Transform2D = parent.get_global_transform_with_canvas() if parent != null else get_canvas_transform()
+	var screen_transform: Transform2D = get_viewport().get_final_transform() * parent_canvas
 	camera.offset += (screen_transform.origin - screen_transform.origin.round()) / screen_transform.get_scale()
 
 	var blink: bool = invulnerable_left > 0.0 and int(invulnerable_left * 16.0) % 2 == 0
@@ -572,18 +731,31 @@ func take_damage(amount: int, from_air: bool = false) -> bool:
 		return false
 	if is_airborne() and not from_air:
 		return false
-	health = maxi(0, health - amount)
+	health = maxi(0, health - maxi(1, amount - armor))
 	invulnerable_left = hurt_invulnerability
 	health_changed.emit(health, max_health)
 	hurt.emit()
 	if health == 0:
-		is_dead = true
-		modulate = Color(0.45, 0.45, 0.45, 1.0)
-		sprite.stop()
-		spear.visible = false
-		bow.visible = false
-		died.emit()
+		_die()
 	return true
+
+
+## Dies at once whatever protects the angel (the shrine countdown running out).
+func kill() -> void:
+	if is_dead:
+		return
+	health = 0
+	health_changed.emit(health, max_health)
+	_die()
+
+
+func _die() -> void:
+	is_dead = true
+	modulate = Color(0.45, 0.45, 0.45, 1.0)
+	sprite.stop()
+	spear.visible = false
+	bow.visible = false
+	died.emit()
 
 
 func heal(amount: int) -> void:
@@ -607,20 +779,17 @@ func _draw() -> void:
 
 
 func _draw_bow() -> void:
-	# PLACEHOLDER bow, drawn in the Bow node's space (+x is the aim): a light arc whose
-	# string pulls back with the draw, and the nocked arrow while drawing.
+	# PLACEHOLDER bow, drawn in the Bow node's space (+x is the aim): a light arc, its string,
+	# and a nocked arrow once the next shot is ready. Widths are whole art pixels (2 units).
 	var color: Color = Arrow.COLOR
 	var grip: Vector2 = Vector2(30.0, 0.0)
 	var tip_top: Vector2 = grip + Vector2(-10.0, -18.0)
 	var tip_bottom: Vector2 = grip + Vector2(-10.0, 18.0)
-	bow.draw_polyline(PackedVector2Array([tip_top, grip + Vector2(-2.0, -10.0), grip, grip + Vector2(-2.0, 10.0), tip_bottom]), color, 3.0)
-	var charge: float = maxf(0.0, draw_charge())
-	var nock: Vector2 = grip + Vector2(-10.0 - 14.0 * charge, 0.0)
-	bow.draw_polyline(PackedVector2Array([tip_top, nock, tip_bottom]), color.lerp(Color.WHITE, charge), 1.0)
-	if draw_time >= 0.0:
+	bow.draw_polyline(PackedVector2Array([tip_top, grip + Vector2(-2.0, -10.0), grip, grip + Vector2(-2.0, 10.0), tip_bottom]), color, 4.0)
+	var nock: Vector2 = grip + Vector2(-10.0, 0.0)
+	bow.draw_polyline(PackedVector2Array([tip_top, nock, tip_bottom]), color, 2.0)
+	if cooldown_left <= 0.0:
 		bow.draw_line(nock, nock + Vector2(Arrow.LENGTH, 0.0), color, 2.0)
-		if charge >= 1.0:
-			bow.draw_circle(nock + Vector2(Arrow.LENGTH, 0.0), 3.0, Color.WHITE)
 
 
 ## PLACEHOLDER lava burn: ground damage on the lava's own rhythm. Guards and death
@@ -634,10 +803,5 @@ func apply_burn(amount: int) -> bool:
 	health_changed.emit(health, max_health)
 	hurt.emit()
 	if health == 0:
-		is_dead = true
-		modulate = Color(0.45, 0.45, 0.45, 1.0)
-		sprite.stop()
-		spear.visible = false
-		bow.visible = false
-		died.emit()
+		_die()
 	return true

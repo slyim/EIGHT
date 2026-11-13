@@ -282,10 +282,14 @@ var has_landed: bool = false
 @onready var effects: Node2D = $Effects
 @onready var music: AudioStreamPlayer = $Music
 @onready var lava: LavaPools = $Lava
+@onready var veil: ShaderMaterial = ($Atmosphere/Veil as ColorRect).material as ShaderMaterial
 
 
 func _ready() -> void:
 	shrine_time_left = shrine_time
+	# The sin-eye material is shared by every enemy; start each run from the scene default
+	# (HIGH). A hub-launched run then applies the player's quality (see Game and Settings).
+	Enemy.EYE_MATERIAL.set_shader_parameter(&"pulse", Settings.PULSE_ON)
 	var camera: Camera2D = player.get_node("Camera2D") as Camera2D
 	camera.limit_left = int(ARENA_RECT.position.x)
 	camera.limit_top = int(ARENA_RECT.position.y)
@@ -328,6 +332,13 @@ func _ready() -> void:
 	else:
 		has_landed = true
 		music.play()
+
+
+## Pins the haze to the world: the veil learns which world area the view shows this frame.
+func _process(_delta: float) -> void:
+	var canvas: Transform2D = get_viewport().get_canvas_transform()
+	veil.set_shader_parameter(&"world_origin", canvas.affine_inverse() * Vector2.ZERO)
+	veil.set_shader_parameter(&"world_size", get_viewport().get_visible_rect().size / canvas.get_scale())
 
 
 func _on_player_attack(step: int) -> void:

@@ -1,0 +1,103 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/settings_panel.gd" id="1_settings"]
+[ext_resource type="Theme" path="res://resources/ui_theme.tres" id="2_theme"]
+
+[node name="SettingsPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_settings")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0275, 0.0039, 0.0353, 0.7)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -200.0
+offset_right = 260.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"MenuPanel"
+
+[node name="Box" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="Panel/Box"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 30
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="QualityName" type="Label" parent="Panel/Box"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 20
+text = "QUALITY  HIGH"
+
+[node name="Quality" type="HSlider" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+focus_mode = 0
+max_value = 3.0
+step = 1.0
+value = 2.0
+tick_count = 4
+ticks_on_borders = true
+
+[node name="QualityNote" type="Label" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+
+[node name="VSync" type="CheckButton" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "VSYNC"
+
+[node name="FpsCap" type="OptionButton" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+
+[node name="Fullscreen" type="CheckButton" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "FULLSCREEN"
+
+[node name="Notice" type="Label" parent="Panel/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.42, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="Close" type="Button" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 20
+text = "CLOSE  [Esc]"

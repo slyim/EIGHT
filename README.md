@@ -68,6 +68,7 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 | 1-7 / click (hub) | Enter a sin's realm |
 | S / click center (hub) | Summon Satan once all seven relics are sealed |
 | B / click SHOP (hub) | Open the shop (Esc returns to the pentagram) |
+| SETTINGS (hub or pause menu) | Quality, VSync, frame cap, fullscreen (Esc closes) |
 | Esc | Pause or resume (Resume / Restart / Return to the pentagram); never opens over a level-up |
 | R | Restart the run (not while an ending plays, nor after a win started from the pentagram) |
 
@@ -150,6 +151,7 @@ godot --headless --path eight --script res://tests/campaign_smoke.gd
 godot --headless --path eight --script res://tests/evolution_smoke.gd
 godot --headless --path eight --script res://tests/build_smoke.gd
 godot --headless --path eight --script res://tests/shop_smoke.gd
+godot --headless --path eight --script res://tests/settings_smoke.gd
 ```
 
 `prototype_smoke.gd` exercises movement, normalized diagonals, wall collision, mouse aiming, one hit per thrust, spear range, wall-blocked attacks, held attacks, target clearing, and reset. `run_smoke.gd` covers kills, experience pickup, piercing, level-up, damage and invulnerability, life pickups, dash, items, the last shrine summoning the sin, its exit winning the map, defeat, horde spawning, and that no boss arrives on a timer. `player_controls_smoke.gd` checks the physical Space/J/LMB bindings and the dash movement/invulnerability boundary. `projectile_smoke.gd` checks swept hits, wall blocking, invulnerable pass-through, expiry without a final hit, and spawning, travel, and facing under transformed parents. `flying_enemy_smoke.gd` checks the flying enemy's layer 5 collision and pillar pass-over, its preferred-distance hover, its wind-up and interval shot, from-air shot damage against grounded and airborne players, ground-shot and husk-touch misses against an airborne player, wall blocking for ground shots, kill experience and enemy count, and the 60-second roster gate. On this Windows Godot 4.7.2 setup, `--quit-after 600` and the benchmark can intermittently report audio playback/resource leaks during shutdown (also reproduced on unchanged HEAD); no gameplay script errors were observed. `glow_smoke` can likewise report audio-only shutdown leaks after PASS. A fresh import may report an unavailable locally configured Aseprite executable before falling back to the committed baked resources.
@@ -217,11 +219,22 @@ The UI is crisp vector UI drawn by Godot from one shared theme, `eight/resources
 - **Motion:** level-up panels and the pause menu pop in with a short overshoot, and the three level-up cards deal in one after another. UI tweens run while the tree is paused and ignore hit-stop slow-motion.
 - **World tags:** the boss name and the portal's `EXIT [HOLD E]` prompt are HUD labels that follow their world position (`Hud.world_to_hud`), so they stay crisp instead of being drawn into the pixel buffer. A tag hides while its anchor is outside the world view, so it never floats in the bars.
 
+## Settings
+
+**SETTINGS** on the pentagram and in the pause menu opens a panel that saves to `user://settings.cfg` (separate from progress) and applies at once, mid-run included:
+
+- **Quality** (slider): each step adds to the one below. **Low**: no glow, no lamp shadows, no extra effects. **Medium**: glow, hard lamp shadows, lava shimmer, pulsing sin eyes. **High** (default): adds soft shadows, world haze, and a wider bloom. **Ultra**: adds two-tone light pools.
+- **VSync**, a **frame cap** (30 / 60 / 120 / unlimited), and **fullscreen**.
+
+Settings apply to hub-launched realms and the window; a map opened directly (F6) and the tests keep the scene defaults, which match High. On the development PC (1920x1080, 60 enemies on screen, VSync off) every quality step measured about 1.7-1.8 ms per frame, so the slider matters most on weaker GPUs; VSync and the frame cap are the bigger levers there. `settings_smoke.gd` (with its own files) checks the defaults, damaged settings falling back, a round trip, the frame cap, the effects each step turns on, and the panel from the pause menu (live changes, saved at once, Esc back to the pause menu) and from the pentagram (keys held while open, a click outside the panel caught by its dim layer, Esc closes), with R and F3 held mid-run while it is open. Effects a quality step switches off skip their shader work entirely, and every resource the setting changes belongs to its own run.
+
 ## Shaders, glow and lighting
 
 All look-development shaders, materials and light values are **PLACEHOLDER-tunable**, pending human art direction. No new art or audio is included. Forward Plus/D3D12 is preserved.
 
 The run is dark: away from light the world shows as dim silhouettes, and glowing things are real light sources that reveal what is around them. There are three layers, all on canvas layer 0 so the result still blooms; Atmosphere is layer 1 and the HUD is layer 2.
+
+Phase 8 look-development (all PLACEHOLDER-tunable, layered by the Quality setting): **lava shimmer** (`eight/shaders/lava.gdshader`: bright and dark ripples crawl across molten lava per art pixel, in stepped time), **world haze** (`atmosphere.gdshader`: purple fog patches pinned to the world, sampled per art pixel, stepped in time and dithered into four levels; `Run` feeds it the camera's world area each frame), **soft shadows** (the angel's Lamp uses a PCF13 shadow filter whose soft edge the light bands dither onto the grid), a **wider bloom** (glow level 3), a stepped **eye pulse** on the sins' glow (`emissive.gdshader` `pulse`), and **two-tone light** (`light.gdshader` `core_whiten`: whiter cores, coloured skirts; Ultra only).
 
 1. **Glow.** HDR 2D and the run's Canvas-mode WorldEnvironment let colours above 1.0 (including drawn lava) bloom. Tight low glow levels and linear upscaling keep pixel edges clear. Tune `glow_intensity`, `glow_hdr_threshold` and `glow_levels` on WorldEnvironment.
 2. **What glows: the light palette** (`eight/shaders/emissive.gdshader`). A sprite pixel painted in the material's `key` colour glows as `glow` x `energy`; with `whole` on, every pixel glows (things made of light). The key is matched on the original texture, so hit flashes and tints cannot switch a glow off. The materials beside the shader are the palette:
@@ -247,7 +260,7 @@ The run is dark: away from light the world shows as dim silhouettes, and glowing
 | A family's light | `metadata/light`, `metadata/light_radius` in its material |
 | Glow colour and strength of a palette entry | `glow`, `energy` in its material |
 
-- `eight/shaders/atmosphere.gdshader`: one screen sample, a restrained purple shadow grade, edge vignette, and two slow haze waves, applied after glow. Tune `strength` (0 disables), `vignette_strength`, `grade_strength`, `haze_strength`, and `drift_speed` on Atmosphere/Veil's material. The HUD is drawn afterwards.
+- `eight/shaders/atmosphere.gdshader`: one screen sample, a restrained purple shadow grade, edge vignette, and world-anchored haze (value noise read once per art pixel at the world position `Run` passes in `world_origin` / `world_size`, stepped every `haze_step` seconds and dithered into `haze_levels`; skipped entirely when `haze_strength` is 0), applied after glow. Tune `strength` (0 disables), `vignette_strength`, `grade_strength`, `haze_strength`, and `drift_speed` on Atmosphere/Veil's material. The HUD is drawn afterwards.
 
 Cost on the benchmark fixture (220 enemies, each a light; Windows / RTX 3060 / D3D12): median 2.24-2.27 ms against 1.98-2.00 ms just before, p95 3.6-3.8 ms against 3.3-3.5 ms, and 161 draw calls against 157. With the angel/weapon/beam lights and 600 glowing pickups added, three final-tuning runs measured median 2.70-2.77 ms and p95 4.37-4.39 ms, still at 161 draw calls.
 

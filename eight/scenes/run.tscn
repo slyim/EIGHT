@@ -11,16 +11,18 @@
 [ext_resource type="Shader" path="res://shaders/lighting.gdshader" id="7_lighting"]
 [ext_resource type="Shader" path="res://shaders/light.gdshader" id="8_light"]
 [ext_resource type="Script" path="res://scripts/lights.gd" id="9_lights"]
+[ext_resource type="Shader" path="res://shaders/lava.gdshader" id="11_lava"]
 [ext_resource type="Theme" path="res://resources/ui_theme.tres" id="10_theme"]
 
 [sub_resource type="Environment" id="Environment_glow"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable tight canvas glow"
 background_mode = 3
 background_canvas_max_layer = 0
 glow_enabled = true
 glow_levels/1 = 1.0
 glow_levels/2 = 0.45
-glow_levels/3 = 0.0
+glow_levels/3 = 0.3
 glow_levels/4 = 0.0
 glow_levels/5 = 0.0
 glow_intensity = 0.65
@@ -29,6 +31,7 @@ glow_blend_mode = 0
 glow_hdr_threshold = 1.0
 
 [sub_resource type="ShaderMaterial" id="Material_atmosphere"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable atmosphere"
 shader = ExtResource("6_atmosphere")
 
@@ -37,7 +40,13 @@ resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable darkness and light bands"
 shader = ExtResource("7_lighting")
 
+[sub_resource type="ShaderMaterial" id="Material_lava"]
+resource_local_to_scene = true
+resource_name = "PLACEHOLDER-tunable lava shimmer"
+shader = ExtResource("11_lava")
+
 [sub_resource type="ShaderMaterial" id="Material_light"]
+resource_local_to_scene = true
 resource_name = "PLACEHOLDER-tunable light falloff"
 shader = ExtResource("8_light")
 
@@ -137,6 +146,7 @@ shape = SubResource("RectangleShape2D_vertical_wall")
 [node name="Chests" type="Node2D" parent="."]
 
 [node name="Lava" type="Node2D" parent="."]
+material = SubResource("Material_lava")
 script = ExtResource("6_lava")
 
 [node name="Pickups" type="Node2D" parent="."]
@@ -623,12 +633,12 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -160.0
+offset_top = -192.0
 offset_right = 200.0
-offset_bottom = 160.0
+offset_bottom = 192.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(200, 160)
+pivot_offset = Vector2(200, 192)
 theme_type_variation = &"MenuPanel"
 
 [node name="Box" type="VBoxContainer" parent="HUD/Hud/PauseMenu"]
@@ -662,6 +672,13 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "RESTART RUN  [R]"
+
+[node name="Settings" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "SETTINGS"
 
 [node name="Hub" type="Button" parent="HUD/Hud/PauseMenu/Box"]
 custom_minimum_size = Vector2(0, 52)

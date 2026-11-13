@@ -139,6 +139,7 @@ func _ready() -> void:
 	($PauseMenu/Box/Resume as Button).pressed.connect(set_paused.bind(false))
 	($PauseMenu/Box/Restart as Button).pressed.connect(restart)
 	($PauseMenu/Box/Hub as Button).pressed.connect(hub_requested.emit)
+	($PauseMenu/Box/Settings as Button).pressed.connect(open_settings)
 	for index: int in range(evolution_cards.size()):
 		evolution_cards[index].pressed.connect(_on_evolution_choice.bind(index))
 	evolution_panel.hide()
@@ -452,6 +453,8 @@ func _stats_text() -> String:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if has_node(^"SettingsPanel"):
+		return # The settings panel has the keys while it is open.
 	if event.is_action_pressed(&"toggle_stats"):
 		get_viewport().set_input_as_handled()
 		stats_panel.visible = not stats_panel.visible
@@ -523,6 +526,16 @@ func set_paused(open: bool) -> void:
 ## Retry. Refused while an ending plays (the fall or the ascension), so a hosted defeat always
 ## banks its feathers first, and after a hosted win (its save and return to the hub must
 ## finish); an unhosted run (F6) may start again once its ending is over.
+## The settings panel over the pause menu; closing it brings the pause menu back.
+func open_settings() -> SettingsPanel:
+	var panel: SettingsPanel = (load("res://scenes/settings_panel.tscn") as PackedScene).instantiate() as SettingsPanel
+	panel.run = run
+	pause_menu.hide()
+	panel.closed.connect(func() -> void: pause_menu.visible = get_tree().paused and not level_up_panel.visible and not evolution_panel.visible)
+	add_child(panel)
+	return panel
+
+
 func restart() -> void:
 	if run != null and run.ended and (not run.ending_done or (run.victory and world_view != null)):
 		return

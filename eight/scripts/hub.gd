@@ -50,6 +50,8 @@ func _ready() -> void:
 	add_child(satan_button)
 	($Quit as Button).pressed.connect(get_tree().quit)
 	($Shop as Button).pressed.connect(open_shop)
+	($Settings as Button).pressed.connect(open_settings)
+	Settings.load_saved().apply_display(get_window())
 	($Feathers as Label).text = "FEATHERS  %d" % progress.feathers
 	pentagram.draw.connect(_draw_pentagram)
 	_refresh()
@@ -112,6 +114,8 @@ func _layout() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if has_node(^"SettingsPanel"):
+		return # The settings panel has the keys while it is open.
 	var key: InputEventKey = event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return
@@ -125,6 +129,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif key.physical_keycode == KEY_B:
 		get_viewport().set_input_as_handled()
 		open_shop()
+
+
+func open_settings() -> SettingsPanel:
+	var panel: SettingsPanel = (load("res://scenes/settings_panel.tscn") as PackedScene).instantiate() as SettingsPanel
+	add_child(panel)
+	return panel
 
 
 func open_shop() -> void:

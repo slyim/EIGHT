@@ -38,7 +38,9 @@ const ASCENT_TIME: float = 2.4
 const FALL_TIME: float = 1.2
 const FALLEN_TINT: Color = Color(0.5, 0.42, 0.55, 1.0)
 ## PLACEHOLDER: the darkness lifts to this ambient light as the won realm heals.
-const SAVED_AMBIENT: Color = Color(0.8, 0.92, 0.86, 1.0)
+## Several times the darkness pass's ambient (shaders/lighting.gdshader; both are sRGB inputs
+## made linear), a lift like the original one, so a win always brightens.
+const SAVED_AMBIENT: Color = Color(1.9, 2.2, 2.05, 1.0)
 ## Satan's shrines stand on the points of a pentagram this far from the landing site.
 const SHRINE_COUNT: int = 5
 const SHRINE_RING: float = 1300.0

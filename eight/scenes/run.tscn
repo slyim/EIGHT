@@ -20,15 +20,15 @@ resource_name = "PLACEHOLDER-tunable tight canvas glow"
 background_mode = 3
 background_canvas_max_layer = 0
 glow_enabled = true
-glow_levels/1 = 1.0
-glow_levels/2 = 0.45
-glow_levels/3 = 0.3
+glow_levels/1 = 0.7
+glow_levels/2 = 0.22
+glow_levels/3 = 0.1
 glow_levels/4 = 0.0
 glow_levels/5 = 0.0
-glow_intensity = 0.65
+glow_intensity = 0.28
 glow_bloom = 0.0
 glow_blend_mode = 0
-glow_hdr_threshold = 1.0
+glow_hdr_threshold = 1.15
 
 [sub_resource type="ShaderMaterial" id="Material_atmosphere"]
 resource_local_to_scene = true
@@ -160,7 +160,7 @@ script = ExtResource("6_lava")
 [node name="Murk" type="Polygon2D" parent="."]
 z_index = 99
 material = SubResource("Material_murk")
-color = Color(0.05, 0.115, 0.11, 1)
+color = Color(0.022, 0.048, 0.046, 1)
 polygon = PackedVector2Array(-3000, -3000, 3000, -3000, 3000, 3000, -3000, 3000)
 
 [node name="Lighting" type="CanvasGroup" parent="."]
@@ -174,7 +174,7 @@ script = ExtResource("9_lights")
 [node name="AngelLight" type="Polygon2D" parent="Lighting"]
 light_mask = 2
 material = SubResource("Material_angel_light")
-color = Color(0.85, 1, 0.96, 1)
+color = Color(0.42, 0.52, 0.5, 1)
 polygon = PackedVector2Array(-3000, -3000, 3000, -3000, 3000, 3000, -3000, 3000)
 
 [node name="Music" type="AudioStreamPlayer" parent="."]

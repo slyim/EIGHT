@@ -8,7 +8,7 @@ uniform vec4 glow : source_color = vec4(1.0, 0.03, 0.05, 1.0);
 // Optional second palette entry (the angel's cream halo); alpha 0 switches it off.
 uniform vec4 key2 : source_color = vec4(0.0);
 uniform vec4 glow2 : source_color = vec4(1.0);
-uniform float energy : hint_range(0.0, 12.0) = 4.0;
+uniform float energy : hint_range(0.0, 12.0) = 2.5;
 uniform float tolerance : hint_range(0.0, 0.2) = 0.025;
 uniform bool whole = false;
 // Glow pulse: the keyed glow swells by up to `pulse` and back, stepped every `pulse_step`

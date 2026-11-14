@@ -42,6 +42,17 @@ func _scene_becomes(script: Script, limit: int = 900) -> bool:
 	return false
 
 
+## A material's value for a shader parameter: its own, or else the shader's default (-1 if none).
+func _default(material: ShaderMaterial, parameter: StringName) -> float:
+	var value: Variant = material.get_shader_parameter(parameter)
+	if value != null:
+		return float(value)
+	# The headless renderer reports no shader defaults, so read the one in the source.
+	var rule: RegEx = RegEx.create_from_string("uniform float %s[^=;]*= *([0-9.]+) *;" % parameter)
+	var found: RegExMatch = rule.search(material.shader.code)
+	return float(found.get_string(1)) if found != null else -1.0
+
+
 ## [glow, lamp shadows, soft shadows, wide bloom, haze, shimmer, eye pulse, two-tone] on a run.
 func _effects(run: Run) -> Array[bool]:
 	var environment: Environment = (run.get_node(^"WorldEnvironment") as WorldEnvironment).environment
@@ -190,6 +201,16 @@ func _run() -> void:
 	_check(not hub.has_node(^"SettingsPanel"), "Esc must close the panel on the hub.")
 
 	Enemy.EYE_MATERIAL.set_shader_parameter(&"pulse", Settings.PULSE_ON)
+	# HIGH's on-values are the shaders' own defaults, so a run started on its own (F6) looks
+	# exactly like a hub run on HIGH.
+	# Fresh copies: earlier runs here changed the cached, shared materials.
+	var plain: Run = (ResourceLoader.load("res://scenes/run.tscn", "", ResourceLoader.CACHE_MODE_IGNORE_DEEP) as PackedScene).instantiate() as Run
+	var eyes: ShaderMaterial = ResourceLoader.load("res://shaders/eyes.tres", "", ResourceLoader.CACHE_MODE_IGNORE_DEEP) as ShaderMaterial
+	var veil: ShaderMaterial = (plain.get_node(^"Atmosphere/Veil") as ColorRect).material as ShaderMaterial
+	var lava: ShaderMaterial = plain.get_node(^"Lava").material as ShaderMaterial
+	var lights: ShaderMaterial = plain.get_node(^"Lighting/Lights").material as ShaderMaterial
+	_check(is_equal_approx(_default(veil, &"haze_strength"), Settings.HAZE_ON) and is_equal_approx(_default(lava, &"shimmer"), Settings.SHIMMER_ON) and is_equal_approx(_default(eyes, &"pulse"), Settings.PULSE_ON) and is_equal_approx(_default(lights, &"core_whiten"), 0.0), "HIGH must match the scene's own shader values (haze %.3f, shimmer %.3f, pulse %.3f)." % [_default(veil, &"haze_strength"), _default(lava, &"shimmer"), _default(eyes, &"pulse")])
+	plain.free()
 	Engine.max_fps = fps_before
 	current_scene.queue_free()
 	await _ticks(15)

@@ -25,11 +25,11 @@ const FPS_CAPS: Array[int] = [30, 60, 120, 0]
 const SHAKE_SCALES: Array[float] = [0.0, 0.5, 1.0]
 ## PLACEHOLDER-tunable strengths the quality steps switch between (on values match the
 ## approved look; off is 0).
-const HAZE_ON: float = 0.18
-const SHIMMER_ON: float = 0.14
-const PULSE_ON: float = 0.3
-const BLOOM_WIDE: float = 0.3
-const CORE_WHITEN_ON: float = 0.8
+const HAZE_ON: float = 0.045
+const SHIMMER_ON: float = 0.12
+const PULSE_ON: float = 0.2
+const BLOOM_WIDE: float = 0.10
+const CORE_WHITEN_ON: float = 0.55
 const SHADOW_SMOOTH: float = 4.0
 
 var quality: Quality = Quality.HIGH

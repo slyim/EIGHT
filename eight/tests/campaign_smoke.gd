@@ -1,6 +1,6 @@
 extends SceneTree
 ## The campaign: saved progress, the eight authored map scenes and their horde mixes, Satan's
-## calm ritual map, the pentagram hub, and the loop hub -> map -> win (saved) -> hub, plus
+## ritual map, the pentagram hub, and the loop hub -> map -> win (saved) -> hub, plus
 ## defeat -> hub. Uses its own save file; native Godot only.
 
 const TEST_SAVE: String = "user://test_progress.cfg"
@@ -130,13 +130,16 @@ func _run() -> void:
 	_check(Run.SIN_SPAWN_PACE[6] > 1.0 and Run.SIN_SPAWN_PACE[0] == 1.0, "Sloth's horde must come slower.")
 	mix.free()
 
-	# 4. Satan's map: no shrines or countdown, calm through the ritual, then Satan; his fall wins.
+	# 4. Satan's map: no shrines or countdown, the horde through the ritual, then Satan; his fall wins.
 	var satan_map: Run = (load(Game.map_path(Run.SATAN)) as PackedScene).instantiate() as Run
 	satan_map.intro_enabled = false
 	root.add_child(satan_map)
 	satan_map.player.invulnerable_left = 100000.0
-	await _ticks(roundi(Run.RITUAL_TIME * 60.0) - 30)
-	_check(satan_map.current_boss == null and satan_map.enemy_count == 0, "Satan's map must stay calm through the ritual.")
+	await _ticks(90)
+	_check(Run.RITUAL_TIME >= 30.0 and satan_map.ritual_left > Run.RITUAL_TIME - 3.0, "Satan's ritual must be long enough to level up (%.1f s left)." % satan_map.ritual_left)
+	_check(satan_map.current_boss == null and satan_map.enemy_count > 0, "The horde must come during Satan's ritual.")
+	satan_map.ritual_left = 0.5 # Skip the rest of the long ritual.
+	await _ticks(2)
 	_check(satan_map.hud.boss_status_label.text.begins_with("THE RITUAL IS COMPLETE") and satan_map.hud.boss_status_label.text.contains("SATAN COMES IN"), "Satan's map must announce the ritual (got %s)." % satan_map.hud.boss_status_label.text)
 	_check(not satan_map.hud.stats_label.text.contains("SHRINES"), "Satan's map must not count shrines it does not have (got %s)." % satan_map.hud.stats_label.text)
 	_check(satan_map.shrine_time_left == satan_map.shrine_time, "Satan's map must have no countdown.")
@@ -144,7 +147,7 @@ func _run() -> void:
 	var satan: Boss = satan_map.current_boss
 	_check(satan != null and satan.boss_name.begins_with("SATAN"), "Satan must arrive after the ritual.")
 	await _ticks(90)
-	_check(satan_map.enemy_count > 0, "The horde must rise once Satan arrives.")
+	_check(satan_map.enemy_count > 0, "The horde must stay once Satan arrives.")
 	satan.take_hit(satan.max_health)
 	await _ticks(2)
 	_check(satan_map.ended and satan_map.victory and satan_map.exit_portal == null, "Satan's fall must win at once, with no portal.")

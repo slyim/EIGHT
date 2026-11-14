@@ -26,10 +26,11 @@ const DECOR_COUNT: int = 460
 const LANDING_CLEARANCE: float = 260.0
 const DESCENT_HEIGHT: float = 420.0
 const DESCENT_TIME: float = 1.6
-## BOSSES index of Satan's map: no shrines; calm until Satan arrives after the ritual.
+## BOSSES index of Satan's map: no shrines; the horde comes through the ritual, then Satan.
 const SATAN: int = 7
-## PLACEHOLDER seconds of calm after landing on Satan's map before Satan arrives.
-const RITUAL_TIME: float = 3.0
+## PLACEHOLDER seconds after landing on Satan's map before Satan arrives; the horde comes
+## meanwhile, so the angel levels before the final fight.
+const RITUAL_TIME: float = 40.0
 ## PLACEHOLDER win: the angel rises this high over this many seconds as the world heals.
 const ASCENT_HEIGHT: float = 520.0
 const ASCENT_TIME: float = 2.4
@@ -803,11 +804,10 @@ func _physics_process(delta: float) -> void:
 		# No shrines stand (all broken, or none were authored): the sin comes.
 		spawn_sin_boss()
 	if sin_index == SATAN and not sin_boss_defeated and current_boss == null:
-		# The ritual: calm until Satan arrives.
+		# The ritual: the horde comes until Satan arrives.
 		ritual_left -= delta
 		if ritual_left <= 0.0:
 			spawn_sin_boss()
-		return
 	if not spawning_enabled:
 		return
 	spawn_left -= delta

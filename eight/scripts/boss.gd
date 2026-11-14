@@ -24,16 +24,16 @@ signal ate(boss: Boss, enemy: Enemy)
 ## A decoy call (Envy): the run raises that many dark copies at decoy_spots().
 signal decoys_requested(boss: Boss, count: int)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR, SNORE, SLUDGE, YAWN, NAP, MIRROR, THRUST, SHOT, DECOY }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR, SNORE, SLUDGE, YAWN, NAP, MIRROR, THRUST, SHOT, DECOY, BEAMS }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5, 0.7, 0.6, 1.4, 0.05, 0.55, 0.55, 0.55, 0.6]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5, 0.7, 0.6, 1.4, 0.05, 0.55, 0.55, 0.55, 0.6, 1.0]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8, 0.6, 0.5, 2.0, 2.0, 0.5, 0.8, 0.5, 0.5]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8, 0.6, 0.5, 2.0, 2.0, 0.5, 0.8, 0.5, 0.5, 0.8]
 ## PLACEHOLDER kisses: a fan of slow air shots.
 const KISS_COUNT: int = 3
 const KISS_SPREAD: float = 0.22
@@ -88,6 +88,13 @@ const MIRROR_RANGE: float = 340.0
 const DECOY_TINT: Color = Color(0.48, 0.42, 0.58, 1.0)
 const DECOY_SPREAD: float = 90.0
 const DECOY_MARK: Color = Color(0.85, 0.8, 0.9, 1.0)
+## PLACEHOLDER pentagram beams (Satan): the five lines of a pentagram around the boss strike
+## once after a long tell; even lines are ember (ground: fly over), odd ones violet (air: dash or
+## step between them). The pentagon in the middle, around the boss, is safe.
+const BEAM_RADIUS: float = 500.0
+const BEAM_HALF: float = 10.0
+## A smarter pentagram turns this much between volleys.
+const BEAM_TURN: float = 0.25
 ## PLACEHOLDER coin ring: shots in COIN_SLOTS directions, leaving gaps COIN_GAP slots either
 ## side of the angel (right beside the shot at it, so a step either way reaches one at any
 ## range); each chained ring keeps the volley's aim and turns half a slot, so it spirals.
@@ -212,6 +219,22 @@ var quick_mirror: bool = false
 ## ground (no wall, angel, or standing body), chosen when its tell starts so the marks are exact.
 var decoy_count: int = 1
 var decoy_plan: Array[Vector2] = []
+## Aimed fans always come from the air (Satan's hellfire).
+var fans_always_air: bool = false
+## Per phase (index 0 is phase 1): whether attacks are taken in order rather than at random (Satan
+## cycling the seven sins), and the next in the order.
+var phase_cycles: Array[bool] = []
+var cycles: bool = false
+var cycle_index: int = 0
+## Smarter cycling: each signature is followed at once by the next one (pair_pending: the
+## current one still owes its partner).
+var cycle_pairs: bool = false
+var pair_pending: bool = false
+## Several horde types a summon may bring (one at random per summon); empty uses summon_type.
+var summon_types: Array[int] = []
+## The pentagram's turn; smarter beams turn between volleys.
+var beam_turn: float = 0.0
+var rotating_beams: bool = false
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
@@ -329,10 +352,15 @@ func _physics_process(delta: float) -> void:
 		if can_attack():
 			attack_left -= delta
 			if attack_left <= 0.0 and not patterns.is_empty():
-				var choice: int = patterns.pick_random()
+				var choice: int = patterns[cycle_index % patterns.size()] if cycles else patterns.pick_random()
 				if _ready_for(choice):
 					attack_left = attack_interval
 					start_attack(choice)
+					if cycles:
+						cycle_index += 1
+						# A smarter boss runs the next signature straight after this one, but never
+						# after a nap: Sloth's nap stays a clean opening.
+						pair_pending = cycle_pairs and not combo_queue.has(Pattern.NAP)
 				else:
 					attack_left = 0.25 # That attack would land on nothing now; roll again shortly.
 	move_and_slide()
@@ -377,7 +405,7 @@ func start_attack(pattern: int, chained: bool = false, after: int = -1) -> void:
 		pass # A spiral keeps the volley's aim; only the turn changes.
 	else:
 		charge_direction = _aim(pattern)
-	fan_from_air = (pattern == Pattern.AIMED and air_fans and randf() < 0.5) or pattern == Pattern.KISSES
+	fan_from_air = (pattern == Pattern.AIMED and (fans_always_air or (air_fans and randf() < 0.5))) or pattern == Pattern.KISSES
 	if pattern == Pattern.BLINK:
 		blink_spot = _blink_spot()
 	if pattern == Pattern.LEAP:
@@ -501,6 +529,15 @@ func _bite() -> void:
 		target.take_damage(roundi(contact_damage * BITE_SCALE), true)
 
 
+## The two ends (world) of one of the pentagram's five lines around the boss: from star point
+## line to star point line + 2.
+func beam_line(line: int) -> Array[Vector2]:
+	var start: float = -PI * 0.5 + beam_turn
+	var from: Vector2 = global_position + Vector2.from_angle(start + TAU * line / 5.0) * BEAM_RADIUS
+	var to: Vector2 = global_position + Vector2.from_angle(start + TAU * (line + 2) / 5.0) * BEAM_RADIUS
+	return [from, to]
+
+
 ## True when a point (the angel) is inside the mirror's thrust lane in front of the boss.
 func in_thrust_lane(point: Vector2) -> bool:
 	var offset: Vector2 = point - global_position
@@ -528,8 +565,17 @@ func _spot_clear(spot: Vector2) -> bool:
 func _finish(pattern: int) -> void:
 	if not combo_queue.is_empty():
 		start_attack(combo_queue.pop_front(), true, pattern)
-	else:
-		recover_left = RECOVERIES[pattern]
+		return
+	if pair_pending:
+		# The paired signature starts fresh (its own aim, mirror, and combo) if it can land now;
+		# otherwise the boss rests and takes it next.
+		pair_pending = false
+		var next: int = patterns[cycle_index % patterns.size()]
+		if _ready_for(next):
+			cycle_index += 1
+			start_attack(next)
+			return
+	recover_left = RECOVERIES[pattern]
 
 
 func _cancel() -> void:
@@ -539,6 +585,7 @@ func _cancel() -> void:
 	devour_left = 0.0
 	napping = false
 	combo_queue.clear()
+	pair_pending = false
 	pending = -1
 	remove_from_group(&"light")
 	queue_redraw()
@@ -633,6 +680,14 @@ func _attack(pattern: int) -> void:
 			_fire(charge_direction, SHOT_SPEED)
 		Pattern.DECOY:
 			decoys_requested.emit(self, decoy_plan.size())
+		Pattern.BEAMS:
+			for line: int in range(5):
+				var ends: Array[Vector2] = beam_line(line)
+				var closest: Vector2 = Geometry2D.get_closest_point_to_segment(target.global_position, ends[0], ends[1])
+				if closest.distance_to(target.global_position) <= BEAM_HALF + MountedPlayer.HURT_RADIUS:
+					target.take_damage(contact_damage, line % 2 == 1)
+			if rotating_beams:
+				beam_turn += BEAM_TURN
 		Pattern.BLINK:
 			# If the marked spot is taken now (the angel walked onto it), the blink is called off:
 			# never land somewhere else, never land on the angel.
@@ -715,6 +770,9 @@ func _check_phase() -> void:
 		attack_left = minf(attack_left, attack_interval)
 		if phase - 1 < phase_patterns.size():
 			patterns.assign(phase_patterns[phase - 1])
+		if phase - 1 < phase_cycles.size():
+			cycles = phase_cycles[phase - 1]
+			cycle_index = 0
 		if phase - 1 < phase_combos.size():
 			combos = phase_combos[phase - 1]
 		if phase - 1 < phase_speeds.size():
@@ -881,6 +939,16 @@ func _draw() -> void:
 			draw_lane(self, charge_direction, radius + THRUST_LENGTH, THRUST_HALF, fill)
 		Pattern.SHOT:
 			draw_tell(self, charge_direction * radius, charge_direction * (radius + 60.0 + 60.0 * fill), Color(EMBER, 0.85))
+		Pattern.BEAMS:
+			# The five lines of the pentagram, ember (ground) and violet (air), brightening in steps.
+			# Backings and fills first, then every tell line on top, so crossings stay readable.
+			for line: int in range(5):
+				var ends: Array[Vector2] = beam_line(line)
+				draw_line(ends[0] - global_position, ends[1] - global_position, BACKING, BEAM_HALF * 2.0 + 4.0)
+				draw_line(ends[0] - global_position, ends[1] - global_position, Color(AIR_FILL if line % 2 == 1 else EMBER_FILL, 0.3 * fill), BEAM_HALF * 2.0)
+			for line: int in range(5):
+				var ends: Array[Vector2] = beam_line(line)
+				draw_line(ends[0] - global_position, ends[1] - global_position, Color(VIOLET if line % 2 == 1 else EMBER, 0.4 + 0.6 * fill), 2.0)
 		Pattern.DECOY:
 			# Pale circles as wide as the copies, exactly where they will rise.
 			for spot: Vector2 in decoy_plan:

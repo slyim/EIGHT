@@ -214,9 +214,22 @@ const BOSSES: Array[Dictionary] = [
 		"phase_speeds": [1.0, 1.0, 2.5], "phase_paces": [1.0, 0.85, 0.7],
 		"phase_tints": [Color.WHITE, Color.WHITE, Color(1.35, 0.8, 0.75, 1.0)],
 		"smart": {"long_sludge": 1, "rain_after_yawn": 2}},
+	# Satan: violet hellfire fans, a charge, and air rain; at two thirds it cycles the seven sins'
+	# signatures in pentagram order; at a third it strikes with the pentagram's five beams (ember
+	# and violet in turn) and summons the sins' creatures. Smarter tiers turn the beams between
+	# volleys (smarts 1+) and pair the sins' signatures back to back (smarts 2+).
 	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST,
-		Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN],
+		"phase_thresholds": [0.66, 0.33],
+		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN],
+			[Boss.Pattern.GUARD, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.MIRROR, Boss.Pattern.LEAP, Boss.Pattern.CHARGE, Boss.Pattern.YAWN],
+			[Boss.Pattern.BEAMS, Boss.Pattern.AIMED, Boss.Pattern.SUMMON]],
+		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM], Boss.Pattern.BLINK: [Boss.Pattern.CHARGE],
+			Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT], Boss.Pattern.CHARGE: [Boss.Pattern.CHARGE, Boss.Pattern.SLAM],
+			Boss.Pattern.YAWN: [Boss.Pattern.NAP]}, {}],
+		"phase_cycles": [false, true, false], "fans_always_air": true, "chained_charge_windup": 0.5,
+		"summon_types": [CHARGER, CASTER, BOMBER, SPLITTER, SHIELDER, MORTAR, SLEEPER, MIRROR],
+		"smart": {"reaim": 0, "rotating_beams": 1, "paired_sins": 2}},
 ]
 
 ## Level-up choices. PLACEHOLDER names and values.
@@ -964,10 +977,14 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.phase_thresholds.clear()
 	elif data.has("phase_patterns"):
 		var summons: Array = smart.get("summon", [])
+		var cycle_list: Array = data.get("phase_cycles", [])
 		for list: Array in data["phase_patterns"]:
 			var phase_list: Array[int] = []
 			phase_list.assign(list)
-			phase_list.append_array(extras)
+			# A phase taken in order (Satan's seven sins) keeps exactly its own patterns.
+			var in_order: bool = boss.phase_patterns.size() < cycle_list.size() and bool(cycle_list[boss.phase_patterns.size()])
+			if not in_order:
+				phase_list.append_array(extras)
 			# Smarter bosses summon their realm's enemy once past their first phase.
 			if not summons.is_empty() and tier >= int(summons[0]) and boss.phase_patterns.size() > 0 and not phase_list.has(Boss.Pattern.SUMMON):
 				phase_list.append(Boss.Pattern.SUMMON)
@@ -986,6 +1003,14 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	if smart.has("long_sludge") and tier >= int(smart["long_sludge"]):
 		boss.sludge_time = 7.0
 	boss.mirrors = bool(data.get("mirrors", false))
+	boss.fans_always_air = bool(data.get("fans_always_air", false))
+	boss.summon_types.assign(data.get("summon_types", []))
+	if not guard:
+		boss.phase_cycles.assign(data.get("phase_cycles", []))
+	if smart.has("rotating_beams") and tier >= int(smart["rotating_beams"]):
+		boss.rotating_beams = true
+	if smart.has("paired_sins") and tier >= int(smart["paired_sins"]):
+		boss.cycle_pairs = true
 	if smart.has("quick_mirror") and tier >= int(smart["quick_mirror"]):
 		boss.quick_mirror = true
 	if smart.has("two_decoys") and tier >= int(smart["two_decoys"]):
@@ -1054,7 +1079,7 @@ func _on_boss_summon(boss: Boss, count: int) -> void:
 	for index: int in range(count):
 		if enemy_count < max_enemies:
 			var at: Vector2 = boss.summon_spots[index] if index < boss.summon_spots.size() else _open_spot(boss.global_position + offsets[index % offsets.size()], 20.0)
-			spawn_enemy(boss.summon_type, at)
+			spawn_enemy(boss.summon_types.pick_random() if not boss.summon_types.is_empty() else boss.summon_type, at)
 	boss.summon_spots.clear()
 
 

@@ -17,7 +17,10 @@ extends SceneTree
 ## Smarter Sloth's sludge lasts longer and it rains after a yawn. Envy: mirrors the angel's weapon
 ## (a thrust against the spear; distance and a three-shot volley against the bow); at half health
 ## raises a darker decoy (no tag, no reward) that copies its fans and vanishes with it. Smarter
-## Envy mirrors quicker and raises two decoys. Native Godot only.
+## Envy mirrors quicker and raises two decoys. Satan: violet hellfire, a charge and air rain;
+## at two thirds the seven sins' signatures in pentagram order; at a third the pentagram's five
+## beams (ember and violet, safe in the middle) and the sins' creatures. Smarter Satan turns its
+## beams and pairs the sins. Native Godot only.
 
 var failures: int = 0
 
@@ -94,6 +97,14 @@ func _take_shots() -> Array[Node]:
 		shot.remove_from_group(&"enemy_projectiles")
 		shot.queue_free()
 	return copy
+
+
+## Frees every shot, hazard, and horde enemy left in the run, so a check sees only its own attack.
+func _clear_field(run: Run) -> void:
+	_take_shots()
+	for node: Node in run.find_children("*", "Node2D", true, false):
+		if node is Shockwave or node is BileZone or node is GroundStrike or (node is Enemy and not node is Boss):
+			node.queue_free()
 
 
 ## Starts a decoy call and waits until its copies have risen.
@@ -1009,6 +1020,139 @@ func _run() -> void:
 	_check(not boss._ready_for(Boss.Pattern.MIRROR), "Envy must not thrust at a spear out of reach.")
 	player.global_position = Vector2(120.0, 0.0)
 	_check(boss._ready_for(Boss.Pattern.MIRROR), "Envy must thrust at a spear within reach.")
+
+	run.queue_free()
+	await _ticks(2)
+
+	# 10. Satan: hellfire fans always come from the air.
+	run = _new_run(0, 7)
+	await _ticks(3)
+	run.ritual_left = 100000.0 # The ritual would summon a second Satan mid-check.
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	player.weapon = MountedPlayer.Weapon.BOW
+	boss = _pride(run)
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(220.0, 0.0)
+	_check(boss.patterns == [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN] and boss.phase_thresholds == [0.66, 0.33] and not boss.cycles, "Satan must open with hellfire, a charge and rain (%s)." % [boss.patterns])
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.AIMED)
+	_check(boss.fan_from_air, "Satan's fans must always come from the air.")
+	boss._cancel()
+	# Two thirds: the seven sins, in pentagram order.
+	boss.take_hit(boss.max_health - roundi(boss.max_health * 0.66) + 1)
+	_check(boss.phase == 2 and boss.cycles and boss.combos.get(Boss.Pattern.GUARD, []) == [Boss.Pattern.SLAM] and boss.combos.get(Boss.Pattern.YAWN, []) == [Boss.Pattern.NAP], "At two thirds Satan must cycle the sins (%s)." % [boss.patterns])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	var order: Array[int] = []
+	for step: int in range(7):
+		boss._cancel()
+		boss.recover_left = 0.0
+		boss.attack_left = 0.0
+		player.global_position = boss.global_position + Vector2(220.0, 0.0)
+		await _ticks(2)
+		order.append(boss.pending)
+	boss._cancel()
+	boss.recover_left = 0.0
+	_check(order == [Boss.Pattern.GUARD, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.SHOT, Boss.Pattern.LEAP, Boss.Pattern.CHARGE, Boss.Pattern.YAWN], "Satan must take the sins in pentagram order (%s)." % [order])
+	# A third: the pentagram beams and the sins' creatures.
+	boss.take_hit(boss.health - roundi(boss.max_health * 0.33) + 1)
+	_check(boss.phase == 3 and not boss.cycles and boss.patterns.has(Boss.Pattern.BEAMS) and boss.patterns.has(Boss.Pattern.SUMMON), "At a third Satan must strike with beams (%s)." % [boss.patterns])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	boss.speed = 0.0
+	boss.global_position = Vector2.ZERO # The cycle's blink and leap moved it; keep the pentagram in the open.
+	var ember_mid: Vector2 = (boss.beam_line(0)[0] + boss.beam_line(0)[1]) * 0.5
+	var violet_mid: Vector2 = (boss.beam_line(1)[0] + boss.beam_line(1)[1]) * 0.5
+	for case: Array in [[ember_mid, false, true, "a grounded angel on an ember beam"], [ember_mid, true, false, "a flying angel over an ember beam"],
+			[violet_mid, true, true, "a flying angel on a violet beam"], [boss.global_position + Vector2(0.0, 90.0), false, false, "an angel in the middle pentagon"]]:
+		if case[1]:
+			await _take_off(player)
+		player.global_position = case[0]
+		_clear_field(run)
+		await _ticks(1)
+		player.invulnerable_left = 0.0
+		health = player.health
+		boss.start_attack(Boss.Pattern.BEAMS)
+		await _ticks(int(Boss.WINDUPS[Boss.Pattern.BEAMS] * 60.0) + 2)
+		_check((player.health < health) == case[2] and (not case[1] or player.is_airborne()), "The beams must %s %s." % ["hit" if case[2] else "spare", case[3]])
+		Input.action_release(&"jump")
+		player.invulnerable_left = 100000.0
+		await _settle()
+		await _ticks(40)
+		boss._cancel()
+		boss.recover_left = 0.0
+	run.spawn_sin_boss()
+	await _ticks(2)
+	var satan: Boss = run.current_boss
+	satan.attack_left = 999.0
+	horde = run.enemy_count
+	satan._attack(Boss.Pattern.SUMMON)
+	await _ticks(1)
+	var creatures: int = 0
+	for actor: Node in run.actors.get_children():
+		if actor is Charger or actor is GroundCaster or actor is Bomber or actor is Shielder or actor is Sleeper or (actor is Enemy and actor.has_meta(&"split")):
+			creatures += 1
+	_check(run.enemy_count > horde and creatures == run.enemy_count - horde, "Satan's summons must be the sins' creatures (%d of %d)." % [creatures, run.enemy_count - horde])
+	run.queue_free()
+	await _ticks(2)
+
+	# Smarter Satan: Purgatory turns its beams; Damnation pairs the sins; no extras in the cycle.
+	run = _new_run(1, 7)
+	await _ticks(3)
+	run.ritual_left = 100000.0 # The ritual would summon a second Satan mid-check.
+	player = run.player
+	player.invulnerable_left = 100000.0
+	boss = _pride(run)
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(220.0, 0.0)
+	_check(boss.phase_patterns[1].size() == 7, "Tier extras must stay out of the sins' cycle (%s)." % [boss.phase_patterns[1]])
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.BEAMS)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.BEAMS] * 60.0) + 2)
+	_check(boss.rotating_beams and is_equal_approx(boss.beam_turn, Boss.BEAM_TURN), "Purgatory Satan's beams must turn between volleys.")
+	run.queue_free()
+	await _ticks(2)
+	run = _new_run(2, 7)
+	await _ticks(3)
+	run.ritual_left = 100000.0 # The ritual would summon a second Satan mid-check.
+	player = run.player
+	player.invulnerable_left = 100000.0
+	player.weapon = MountedPlayer.Weapon.BOW
+	boss = _pride(run)
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(220.0, 0.0)
+	boss.take_hit(boss.max_health - roundi(boss.max_health * 0.66) + 1)
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.recover_left = 0.0
+	boss.attack_left = 0.0
+	await _ticks(2)
+	_check(boss.cycle_pairs and boss.pending == Boss.Pattern.GUARD and boss.pair_pending and boss.cycle_index == 1, "Damnation Satan must owe Pride's guard a partner (%s)." % [boss.combo_queue])
+	boss.combo_queue.clear()
+	boss._finish(Boss.Pattern.SLAM)
+	_check(boss.pending == Boss.Pattern.COINS and boss.cycle_index == 2 and boss.recover_left == 0.0 and not boss.pair_pending, "Damnation Satan must follow Pride's slam straight away with Greed's coins.")
+	# Lust's blink and charge, then Envy's mirror with its full three-shot volley against the bow.
+	boss._cancel()
+	boss.cycle_index = 3
+	boss.pair_pending = true
+	boss._finish(Boss.Pattern.CHARGE)
+	_check(boss.pending == Boss.Pattern.SHOT and boss.combo_queue == [Boss.Pattern.SHOT, Boss.Pattern.SHOT] and boss.cycle_index == 4, "A paired mirror must fire Envy's full volley (%s, %s)." % [boss.pending, boss.combo_queue])
+	# Against a spear out of reach, the paired mirror waits for the chase instead of thrusting at air.
+	boss._cancel()
+	boss.cycle_index = 3
+	player.weapon = MountedPlayer.Weapon.SPEAR
+	player.global_position = boss.global_position + Vector2(400.0, 0.0)
+	boss.pair_pending = true
+	boss._finish(Boss.Pattern.CHARGE)
+	_check(boss.pending == -1 and boss.recover_left > 0.0 and boss.cycle_index == 3, "A paired mirror out of reach must wait for the chase.")
+	# Sloth's yawn and nap never take a partner: the nap stays a clean opening.
+	boss.recover_left = 0.0
+	boss.attack_left = 0.0
+	boss.cycle_index = 6
+	player.global_position = boss.global_position + Vector2(220.0, 0.0)
+	await _ticks(2)
+	_check(boss.pending == Boss.Pattern.YAWN and boss.combo_queue == [Boss.Pattern.NAP] and not boss.pair_pending, "Sloth's yawn must not take a partner.")
+	boss._cancel()
 
 	await _settle()
 	run.queue_free()

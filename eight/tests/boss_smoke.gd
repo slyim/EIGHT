@@ -7,7 +7,9 @@ extends SceneTree
 ## stops; enraged at half health (faster, a burst after each charge); shockwave rings at a fifth.
 ## Smarter Wrath re-aims its second charge and summons bombers once enraged. Greed: coin rings
 ## with gaps either side of the angel and ground casters; violet air rain at 60%; spiralling coin
-## volleys at a quarter. Smarter Greed adds a coin wave and leads its rain. Native Godot only.
+## volleys at a quarter. Smarter Greed adds a coin wave and leads its rain. Lust: charges and
+## slow violet air kisses; at half health it blinks behind the angel and charges at once.
+## Smarter Lust blinks twice and summons flyers past half health. Native Godot only.
 
 var failures: int = 0
 
@@ -482,6 +484,106 @@ func _run() -> void:
 			dash_drop = child
 			break
 	_check(dashing > player.movement_speed * 1.5 and dash_drop != null and dash_drop.global_position.distance_to(from) <= player.movement_speed * Boss.RAIN_LEAD + 1.0, "A dash must not throw the rain further than walking would (%f)." % (dash_drop.global_position.distance_to(from) if dash_drop != null else -1.0))
+	run.queue_free()
+	await _ticks(2)
+
+	# 6. Lust: kisses are three slow violet air shots.
+	run = _new_run(0, 2)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	boss = _pride(run)
+	_check(boss.patterns == [Boss.Pattern.CHARGE, Boss.Pattern.KISSES] and boss.reaim_chains, "Lust must open with its charge and kisses (%s)." % [boss.patterns])
+	await _ticks(2)
+	_take_shots()
+	boss.start_attack(Boss.Pattern.KISSES)
+	_check(boss.fan_from_air and boss.get_meta(&"light") == Boss.AIR_TELEGRAPH_LIGHT, "Kisses must be told in violet.")
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.KISSES] * 60.0) + 1)
+	var kisses: Array[Node] = _take_shots()
+	_check(kisses.size() == Boss.KISS_COUNT and kisses.all(func(kiss: Node) -> bool: return (kiss as EnemyProjectile).from_air and is_equal_approx((kiss as EnemyProjectile).velocity.length(), Boss.KISS_SPEED)), "Kisses must be three slow air shots (%d)." % kisses.size())
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.KISSES] * 60.0) + 2)
+	# Half health: a blink behind the angel, then a quick charge straight at it.
+	boss.take_hit(boss.max_health / 2 + 1)
+	_check(boss.phase == 2 and boss.patterns.has(Boss.Pattern.BLINK) and boss.combos.get(Boss.Pattern.BLINK, []) == [Boss.Pattern.CHARGE], "At half health Lust must add its blink (%s)." % [boss.patterns])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	var before: Vector2 = boss.global_position
+	boss.start_attack(Boss.Pattern.BLINK)
+	var spot: Vector2 = boss.blink_spot
+	var side: Vector2 = player.global_position - before
+	_check(is_equal_approx(spot.distance_to(player.global_position), Boss.BLINK_BEHIND) and (spot - player.global_position).dot(side) > 0.0, "A blink must mark a circle behind the angel (%s)." % spot)
+	_check(not boss.is_in_group(&"light") or boss.get_meta(&"light") != Boss.TELEGRAPH_LIGHT, "A blink is not an attack, so it casts no ember light.")
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.BLINK] * 60.0) + 1)
+	_check(boss.global_position.distance_to(spot) < 1.0, "Lust must appear on its blink circle.")
+	var at_angel: Vector2 = (player.global_position - boss.global_position).normalized()
+	_check(boss.pending == Boss.Pattern.CHARGE and is_equal_approx(boss.windup_total, 0.5) and boss.charge_direction.dot(at_angel) > 0.99, "A blink must lead straight into a quick charge at the angel.")
+	boss._cancel()
+	await _ticks(2)
+	# Walking onto the marked circle calls the blink off: no landing on the angel, no charge.
+	boss.start_attack(Boss.Pattern.BLINK)
+	var marked: Vector2 = boss.blink_spot
+	var stayed: Vector2 = boss.global_position
+	player.global_position = marked
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.BLINK] * 60.0) + 2)
+	_check(boss.global_position.distance_to(stayed) < 1.0 and boss.pending != Boss.Pattern.CHARGE and player.health == health, "A blink onto the angel must be called off (moved %f)." % boss.global_position.distance_to(stayed))
+	player.invulnerable_left = 100000.0
+	boss._cancel()
+	# Against a wall, the blink lands on open ground inside the arena.
+	boss.global_position = Vector2(Run.ARENA_RECT.position.x + 300.0, 0.0)
+	player.global_position = Vector2(Run.ARENA_RECT.position.x + 60.0, 0.0)
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.BLINK)
+	_check(Run.ARENA_RECT.grow(-boss.radius).has_point(boss.blink_spot) and boss.blink_spot.x > player.global_position.x, "A blink toward a wall must land in front instead (%s)." % boss.blink_spot)
+	boss._cancel()
+	run.queue_free()
+	await _ticks(2)
+
+	# Smarter Lust: Purgatory blinks twice; Damnation summons flyers past half health.
+	run = _new_run(1, 2)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(boss.phase_combos[1].get(Boss.Pattern.BLINK, []) == [Boss.Pattern.CHARGE, Boss.Pattern.BLINK, Boss.Pattern.CHARGE], "Purgatory Lust must blink twice (%s)." % [boss.phase_combos])
+	# Run the whole chain: two blinks and two charges, each behind its own tell.
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	await _ticks(2)
+	boss.take_hit(boss.max_health / 2 + 1)
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	var steps: Array[int] = []
+	var record: Callable = func(attacker: Boss) -> void: steps.append(attacker.pending)
+	boss.attacked.connect(record)
+	boss.start_attack(Boss.Pattern.BLINK)
+	for tick: int in range(300):
+		await _ticks(1)
+		if boss.recover_left > 0.0:
+			break
+	boss.attacked.disconnect(record)
+	_check(steps == [Boss.Pattern.BLINK, Boss.Pattern.CHARGE, Boss.Pattern.BLINK, Boss.Pattern.CHARGE], "Purgatory Lust must blink, charge, blink, charge (%s)." % [steps])
+	run.queue_free()
+	await _ticks(2)
+	run = _new_run(2, 2)
+	await _ticks(3)
+	player = run.player
+	player.invulnerable_left = 100000.0
+	boss = _pride(run)
+	_check(not boss.patterns.has(Boss.Pattern.SUMMON) and boss.phase_patterns[1].has(Boss.Pattern.SUMMON) and boss.summon_type == Run.FLYER, "Damnation Lust must summon flyers past half health (%s)." % [boss.patterns])
+	run.spawn_sin_boss()
+	await _ticks(2)
+	var lust: Boss = run.current_boss
+	lust.attack_left = 999.0
+	horde = run.enemy_count
+	lust._attack(Boss.Pattern.SUMMON)
+	await _ticks(1)
+	var flyers: int = 0
+	for actor: Node in run.actors.get_children():
+		if actor is FlyingEnemy and not actor is GroundCaster:
+			flyers += 1
+	_check(run.enemy_count > horde and flyers == run.enemy_count - horde, "Lust's summons must be flyers (%d)." % flyers)
 
 	await _settle()
 	run.queue_free()

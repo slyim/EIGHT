@@ -159,8 +159,15 @@ const BOSSES: Array[Dictionary] = [
 		"phase_patterns": [[Boss.Pattern.COINS, Boss.Pattern.SUMMON], [Boss.Pattern.COINS, Boss.Pattern.RAIN, Boss.Pattern.SUMMON], [Boss.Pattern.COINS, Boss.Pattern.RAIN]],
 		"phase_combos": [{}, {}, {Boss.Pattern.COINS: [Boss.Pattern.COINS, Boss.Pattern.COINS]}],
 		"summon_type": CASTER, "smart": {"extra_waves": 1, "lead_rain": 2}},
+	# Lust: charges and slow violet air kisses; at half health it blinks behind the angel and charges
+	# at once (a quicker lane). Smarter tiers blink twice in a row (smarts 1+) and summon flyers once
+	# past half health (smarts 2+).
 	{"name": "LUST", "health": 110, "speed": 140.0, "radius": 32.0, "interval": 2.0, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_lust.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.AIMED]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_lust.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.KISSES],
+		"phase_patterns": [[Boss.Pattern.CHARGE, Boss.Pattern.KISSES], [Boss.Pattern.CHARGE, Boss.Pattern.KISSES, Boss.Pattern.BLINK]],
+		"phase_combos": [{}, {Boss.Pattern.BLINK: [Boss.Pattern.CHARGE]}],
+		"chained_charge_windup": 0.5,
+		"smart": {"reaim": 0, "double_blink": 1, "summon": [2, FLYER]}},
 	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
 	{"name": "GLUTTONY", "health": 220, "speed": 60.0, "radius": 54.0, "interval": 2.6, "damage": 20,
@@ -904,6 +911,9 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		if smart.has("chain_charges") and tier >= int(smart["chain_charges"]):
 			# A smarter boss follows each charge with a second, re-aimed one.
 			combo[Boss.Pattern.CHARGE] = [Boss.Pattern.CHARGE] + combo.get(Boss.Pattern.CHARGE, [])
+		if smart.has("double_blink") and tier >= int(smart["double_blink"]) and combo.has(Boss.Pattern.BLINK):
+			# A smarter Lust blinks and charges twice in a row.
+			combo[Boss.Pattern.BLINK] = combo[Boss.Pattern.BLINK] + [Boss.Pattern.BLINK] + combo[Boss.Pattern.BLINK]
 		if smart.has("extra_waves") and tier >= int(smart["extra_waves"]):
 			# A smarter Greed adds a coin wave to every volley.
 			combo[Boss.Pattern.COINS] = combo.get(Boss.Pattern.COINS, []) + [Boss.Pattern.COINS]
@@ -934,6 +944,7 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.lead_rain = true
 	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
 	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
+	boss.chained_charge_windup = float(data.get("chained_charge_windup", Boss.WINDUPS[Boss.Pattern.CHARGE]))
 	boss.smarts = tier
 	# A smarter boss re-aims chained charges (Pride's chain always re-aims).
 	if (smart.has("reaim") and tier >= int(smart["reaim"])) or (smart.has("chain_charges") and tier >= int(smart["chain_charges"])):

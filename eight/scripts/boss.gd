@@ -12,22 +12,32 @@ extends Enemy
 ## its own tell (a sin's data sets them per phase), before the boss rests. A shockwave sends three
 ## expanding ember rings out from the boss. A coin ring is a burst with two gaps either side of
 ## the angel (step into a gap); chained coin rings turn, so a volley spirals. Rain marks violet
-## air circles around the angel that land one after another (flying does not help).
+## air circles around the angel that land one after another (flying does not help). Kisses are
+## three slow violet air shots (dash through or step aside). A blink marks a circle behind the
+## angel, then the boss appears there (a combo then follows, such as Lust's quick charge).
 
 signal summon_requested(boss: Boss, count: int)
 signal attacked(boss: Boss)
 signal phase_changed(boss: Boss)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4]
+## PLACEHOLDER kisses: a fan of slow air shots.
+const KISS_COUNT: int = 3
+const KISS_SPREAD: float = 0.22
+const KISS_SPEED: float = 185.0
+## PLACEHOLDER blink: the circle sits this far behind the angel (from the boss's side).
+const BLINK_BEHIND: float = 120.0
+const BLINK_COLOR: Color = Color(1.6, 1.5, 1.2, 1.0)
+const BLINK_FILL: Color = Color(0.45, 0.4, 0.35, 0.18)
 ## PLACEHOLDER coin ring: shots in COIN_SLOTS directions, leaving gaps COIN_GAP slots either
 ## side of the angel (right beside the shot at it, so a step either way reaches one at any
 ## range); each chained ring keeps the volley's aim and turns half a slot, so it spirals.
@@ -124,6 +134,10 @@ var air_fans: bool = false
 var lead_rain: bool = false
 ## How far the running coin volley has turned (each chained ring turns half a slot).
 var coin_turn: float = 0.0
+## Where a pending blink lands (world position), chosen when its tell starts.
+var blink_spot: Vector2 = Vector2.ZERO
+## The wind-up of a charge that follows another step in a combo (Lust's is quicker).
+var chained_charge_windup: float = WINDUPS[Pattern.CHARGE]
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
@@ -235,6 +249,8 @@ func _physics_process(delta: float) -> void:
 func start_attack(pattern: int, chained: bool = false) -> void:
 	pending = pattern
 	windup_left = slam_windup if pattern == Pattern.SLAM else WINDUPS[pattern]
+	if chained and pattern == Pattern.CHARGE:
+		windup_left = chained_charge_windup
 	windup_total = windup_left
 	if not chained:
 		combo_queue.assign(combos.get(pattern, []))
@@ -249,17 +265,41 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 		pass # A spiral keeps the volley's aim; only the turn changes.
 	else:
 		charge_direction = _aim(pattern)
-	fan_from_air = pattern == Pattern.AIMED and air_fans and randf() < 0.5
+	fan_from_air = (pattern == Pattern.AIMED and air_fans and randf() < 0.5) or pattern == Pattern.KISSES
+	if pattern == Pattern.BLINK:
+		blink_spot = _blink_spot()
 	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
 	attack_pose_left = ATTACK_POSE_TIME + windup_left
 	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks
 	# and a raised guard do not.
 	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air or pattern == Pattern.RAIN else TELEGRAPH_LIGHT)
-	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD:
+	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD and pattern != Pattern.BLINK:
 		add_to_group(&"light")
 	attacked.emit(self)
 	queue_redraw()
+
+
+## Behind the angel as seen from the boss, on open ground inside the arena; in front of it if
+## that is blocked, and where the boss stands if both are.
+func _blink_spot() -> Vector2:
+	var away: Vector2 = target.global_position - global_position
+	away = away.normalized() if away.length() > 1.0 else Vector2.RIGHT
+	for side: float in [1.0, -1.0]:
+		var spot: Vector2 = (target.global_position + away * BLINK_BEHIND * side).clamp(Run.ARENA_RECT.position + Vector2(radius, radius), Run.ARENA_RECT.end - Vector2(radius, radius))
+		if _spot_clear(spot):
+			return spot
+	return global_position
+
+
+## No wall, obstacle, angel, or ground enemy where the boss's body would stand.
+func _spot_clear(spot: Vector2) -> bool:
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = collision_shape.shape
+	query.transform = Transform2D(0.0, spot)
+	query.collision_mask = collision_mask | 2 | 8
+	query.exclude = [get_rid()]
+	return get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty()
 
 
 ## An attack is done: the next step of its combo starts behind its own tell, or the boss rests.
@@ -320,6 +360,16 @@ func _attack(pattern: int) -> void:
 		Pattern.COINS:
 			for direction: Vector2 in coin_directions():
 				_fire(direction)
+		Pattern.KISSES:
+			for index: int in range(KISS_COUNT):
+				_fire(charge_direction.rotated((index - (KISS_COUNT - 1) * 0.5) * KISS_SPREAD), KISS_SPEED)
+		Pattern.BLINK:
+			# If the marked spot is taken now (the angel walked onto it), the blink is called off:
+			# never land somewhere else, never land on the angel.
+			if _spot_clear(blink_spot):
+				global_position = blink_spot
+			else:
+				combo_queue.clear()
 		Pattern.RAIN:
 			var center: Vector2 = target.global_position
 			if lead_rain:
@@ -405,9 +455,9 @@ func _check_phase() -> void:
 		phase_changed.emit(self)
 
 
-func _fire(direction: Vector2) -> void:
+func _fire(direction: Vector2, shot_speed: float = PROJECTILE_SPEED) -> void:
 	var projectile: EnemyProjectile = EnemyProjectile.new()
-	projectile.velocity = direction * PROJECTILE_SPEED
+	projectile.velocity = direction * shot_speed
 	projectile.damage = shot_damage
 	projectile.target = target
 	projectile.from_air = fan_from_air
@@ -512,6 +562,27 @@ func _draw() -> void:
 			# One ray per coin; the gaps either side of the angel show as missing rays.
 			for direction: Vector2 in coin_directions():
 				draw_tell(self, direction * radius, direction * (radius + 36.0 + 64.0 * fill), Color(EMBER, 0.8))
+		Pattern.KISSES:
+			# Three violet rays and an arc across their mouth: slow air shots (dash or step aside).
+			for index: int in range(KISS_COUNT):
+				var ray: Vector2 = charge_direction.rotated((index - (KISS_COUNT - 1) * 0.5) * KISS_SPREAD)
+				draw_tell(self, ray * radius, ray * (radius + 40.0 + 100.0 * fill), Color(VIOLET, 0.9))
+			var mouth: float = charge_direction.angle()
+			draw_arc(Vector2.ZERO, radius + 12.0, mouth - KISS_SPREAD, mouth + KISS_SPREAD, 12, BACKING, 6.0)
+			draw_arc(Vector2.ZERO, radius + 12.0, mouth - KISS_SPREAD, mouth + KISS_SPREAD, 12, VIOLET, 2.0)
+		Pattern.BLINK:
+			# On the boss: a pale ring drawing in, and a tick pointing where it will appear.
+			var gather: float = roundf((radius + 16.0 * (1.0 - fill)) / 2.0) * 2.0
+			draw_arc(Vector2.ZERO, gather, 0.0, TAU, 32, BACKING, 6.0)
+			draw_arc(Vector2.ZERO, gather, 0.0, TAU, 32, BLINK_COLOR, 2.0)
+			var toward: Vector2 = (blink_spot - global_position).normalized()
+			draw_tell(self, toward * (radius + 4.0), toward * (radius + 28.0), BLINK_COLOR)
+			# Where the boss is about to appear: a pale circle as wide as the boss, filling in steps.
+			var at: Vector2 = blink_spot - global_position
+			# A dim, neutral fill (a bright one blooms toward the angel's mint).
+			draw_circle(at, radius * fill, BLINK_FILL)
+			draw_arc(at, radius, 0.0, TAU, 32, BACKING, 6.0)
+			draw_arc(at, radius, 0.0, TAU, 32, BLINK_COLOR, 2.0)
 		Pattern.RAIN:
 			# A violet ring gathering above the boss: the rain is coming (air).
 			draw_arc(Vector2.ZERO, radius + 12.0 + 12.0 * fill, 0.0, TAU, 32, BACKING, 6.0)

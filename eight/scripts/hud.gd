@@ -24,6 +24,8 @@ const ALERT_TINT: Color = Color(1.0, 0.8, 0.45, 1.0)
 const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
 ## PLACEHOLDER burn callout tint while the angel stands in lava.
 const BURN_TINT: Color = Color(1.0, 0.55, 0.2, 1.0)
+## PLACEHOLDER slowed callout tint (the same slot as BURNING; burning wins).
+const SLOW_TINT: Color = Color(0.6, 0.7, 0.95, 1.0)
 ## PLACEHOLDER crimson screen-edge vignette for low health and hurt flashes.
 const VIGNETTE_COLOR: Color = Color(0.85, 0.14, 0.18, 1.0)
 const VIGNETTE_WIDTH: float = 56.0
@@ -273,7 +275,10 @@ func _process(_delta: float) -> void:
 	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
 	_update_flight(player)
 	_update_weapon(player)
-	burn_label.visible = run.lava != null and run.lava.burning and not run.ended
+	var burning: bool = run.lava != null and run.lava.burning
+	burn_label.visible = not run.ended and (burning or run.player.slow_left > 0.0)
+	burn_label.text = "BURNING" if burning else "SLOWED"
+	burn_label.self_modulate = BURN_TINT if burning else SLOW_TINT
 	_update_side_weapons(player)
 	# Once the run ends the play gauges and controls step aside for the ending.
 	($Abilities as Control).visible = not run.ended

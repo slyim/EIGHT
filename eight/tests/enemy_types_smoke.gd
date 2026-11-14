@@ -66,7 +66,8 @@ func _run() -> void:
 	_clear(run)
 
 	# 1. The roster: each new type has its own behavior, and each realm brings its own.
-	var kinds: Dictionary = {Run.CHARGER: Charger, Run.CASTER: GroundCaster, Run.BOMBER: Bomber}
+	var kinds: Dictionary = {Run.CHARGER: Charger, Run.CASTER: GroundCaster, Run.BOMBER: Bomber,
+		Run.SHIELDER: Shielder, Run.MORTAR: Mortar, Run.SLEEPER: Sleeper, Run.MIRROR: Mirror}
 	for type_index: int in kinds:
 		var sample: Enemy = run.spawn_enemy(type_index, Vector2(1500.0, 1500.0))
 		_check(is_instance_of(sample, kinds[type_index]), "Roster entry %d must spawn its own enemy." % type_index)
@@ -74,7 +75,8 @@ func _run() -> void:
 	_check(splitter_sample.has_meta(&"split"), "The splitter must carry its split rule.")
 	_clear(run)
 	run.set_physics_process(false)
-	var homes: Dictionary = {Run.CHARGER: [0, 5, 7], Run.CASTER: [1, 2, 7], Run.BOMBER: [5, 7], Run.SPLITTER: [3, 4, 7]}
+	var homes: Dictionary = {Run.CHARGER: [0, 5, 7], Run.CASTER: [1, 2, 7], Run.BOMBER: [5, 7], Run.SPLITTER: [3, 4, 7],
+		Run.SHIELDER: [0, 7], Run.MORTAR: [1, 6, 7], Run.SLEEPER: [6, 7], Run.MIRROR: [3, 7]}
 	run.elapsed = 600.0
 	for sin: int in range(Run.SATAN + 1):
 		run.sin_index = sin
@@ -91,7 +93,8 @@ func _run() -> void:
 		for roll: int in range(800):
 			seen[run._pick_enemy_type()] = true
 		_check(seen.has(Run.CHARGER) == at[1] and seen.has(Run.BOMBER) == at[2], "Wrath's chargers and bombers must arrive on time (at %d s: %s)." % [at[0], seen.keys()])
-	for check: Array in [[1, Run.CASTER, 70.0, 80.0], [4, Run.SPLITTER, 115.0, 125.0]]:
+	for check: Array in [[1, Run.CASTER, 70.0, 80.0], [4, Run.SPLITTER, 115.0, 125.0], [6, Run.SLEEPER, 100.0, 110.0],
+			[0, Run.SHIELDER, 130.0, 140.0], [1, Run.MORTAR, 115.0, 125.0], [3, Run.MIRROR, 175.0, 185.0]]:
 		run.sin_index = check[0]
 		for at: float in [check[2], check[3]]:
 			run.elapsed = at
@@ -261,7 +264,157 @@ func _run() -> void:
 	_check(crowd.all(func(each: Enemy) -> bool: return each.health < 100), "A blast must reach every enemy inside it, even in a dense crowd.")
 	_clear(run)
 
-	# 6. After the angel falls, a lit fuse stops and later deaths pay nothing. (Earlier kills
+	# 6. Batch two. The shielder blocks blows from its front; heavy blows break its guard.
+	for pickup: Node in run.pickups.get_children():
+		pickup.free()
+	run.pending_level_ups = 0
+	run.hud.hide_level_up()
+	paused = false
+	player.global_position = Vector2(-1800.0, 1600.0)
+	player.invulnerable_left = 100000.0
+	var shielder: Shielder = run.spawn_enemy(Run.SHIELDER, player.global_position + Vector2(120.0, 0.0)) as Shielder
+	shielder.speed = 0.0
+	shielder.max_health = 50
+	shielder.health = 50
+	shielder.facing = Vector2.LEFT
+	await _ticks(1)
+	var reported: Array[int] = []
+	var shield_key: int = shielder.get_instance_id()
+	var listen: Callable = func(_at: Vector2, amount: int, _heavy: bool, key: int) -> void:
+		if key == shield_key:
+			reported.append(amount)
+	run.enemy_damaged.connect(listen)
+	shielder.take_hit(3)
+	_check(shielder.health == 50 and shielder.knockback.is_zero_approx() and reported == [0] and shielder.block_flash_left > 0.0, "A blow from the front must be blocked: a flash, sparks, no number, no push (health %d, %s)." % [shielder.health, reported])
+	var behind: Enemy = run.spawn_enemy(Run.HUSK, shielder.global_position + Vector2(40.0, 0.0))
+	behind.speed = 0.0
+	behind.max_health = 50
+	behind.health = 50
+	await _ticks(1)
+	player.aim_direction = Vector2.RIGHT
+	player.bow_pierce = 3
+	player.fire_arrow(0)
+	await _ticks(20)
+	player.spear_cast.rotation = 0.0
+	player.spear_cast.target_position = Vector2(player.spear_reach * 2.0, 0.0)
+	player.spear_cast.clear_exceptions()
+	player.thrust_hits_left = 3
+	player._resolve_spear_hits()
+	_check(shielder.health == 50 and behind.health == 50, "A raised shield must stop piercing arrows and thrusts (behind: %d)." % behind.health)
+	behind.free()
+	run.enemy_count -= 1
+	await _settle()
+	shielder.take_hit(3, false, shielder.global_position + Vector2(40.0, 0.0))
+	_check(shielder.health == 47, "A blow from behind must land.")
+	shielder.take_hit(5, true)
+	_check(shielder.health == 42 and shielder.broken_left > 0.0, "A heavy blow from the front must break the guard and land.")
+	shielder.take_hit(2)
+	_check(shielder.health == 40, "Blows land while the guard is broken.")
+	shielder.broken_left = 0.0
+	shielder.facing = Vector2.UP
+	await _ticks(10)
+	_check(absf(shielder.facing.angle_to(Vector2.LEFT)) > 0.1 and absf(shielder.facing.angle_to(Vector2.UP)) > 0.1, "A shielder must turn slowly toward the angel (%s)." % shielder.facing)
+	run.enemy_damaged.disconnect(listen)
+	_clear(run)
+
+	# The mortar marks a circle where the angel stands; it lands a moment later.
+	var far_mortar: Mortar = run.spawn_enemy(Run.MORTAR, player.global_position + Vector2(900.0, 0.0)) as Mortar
+	far_mortar.speed = 0.0
+	far_mortar.fire_left = 0.0
+	await _ticks(90)
+	var far_strikes: int = 0
+	for child: Node in run.actors.get_children():
+		if child is GroundStrike:
+			far_strikes += 1
+	_check(far_strikes == 0, "A mortar out of sight must hold its fire.")
+	far_mortar.free()
+	run.enemy_count -= 1
+	var mortar: Mortar = run.spawn_enemy(Run.MORTAR, player.global_position + Vector2(260.0, 0.0)) as Mortar
+	mortar.fire_left = 0.0
+	await _ticks(int(FlyingEnemy.WINDUP_TIME * 60.0) + 3)
+	var strikes: Array[GroundStrike] = []
+	for child: Node in run.actors.get_children():
+		if child is GroundStrike:
+			strikes.append(child)
+	_check(strikes.size() == 1 and strikes[0].global_position.distance_to(player.global_position) < 1.0 and get_nodes_in_group(&"enemy_projectiles").is_empty(), "A mortar must mark a circle under the angel instead of shooting.")
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Mortar.STRIKE_DELAY * 60.0) + 2)
+	_check(player.health < health, "A mortar circle must land on an angel standing in it.")
+	player.invulnerable_left = 100000.0
+	_clear(run)
+	await _settle()
+
+	# The sleeper waits, wakes when the angel comes close, and pulses a slowing ring.
+	var sleeper: Sleeper = run.spawn_enemy(Run.SLEEPER, player.global_position + Vector2(300.0, 0.0)) as Sleeper
+	await _ticks(20)
+	_check(not sleeper.awake and sleeper.global_position.distance_to(player.global_position) > 299.0 and sleeper.speed > 0.0, "A sleeper must lie still while the angel is away.")
+	player.global_position = sleeper.global_position + Vector2(-140.0, 0.0)
+	await _ticks(2)
+	_check(sleeper.awake and sleeper.waking_left > 0.0, "Coming close must wake it, with a ring first.")
+	await _ticks(int(Sleeper.WAKE_TIME * 60.0) + 10)
+	_check(sleeper.global_position.distance_to(player.global_position) < 139.0, "Once awake it must close in.")
+	sleeper.pulse_left = 0.0
+	await _ticks(2)
+	_check(sleeper.tell_left > 0.0, "Its slowing pulse must show a ring first.")
+	await _ticks(int(Sleeper.PULSE_TELL * 60.0) + 2)
+	_check(player.slow_left > 0.0 and player.slow_factor < 1.0, "The pulse must slow an angel inside it.")
+	run.hud._process(0.0)
+	_check(run.hud.burn_label.visible and run.hud.burn_label.text == "SLOWED", "The HUD must say the angel is slowed.")
+	var slowed_speed: float = 0.0
+	Input.action_press(&"move_up")
+	await _ticks(2)
+	slowed_speed = player.velocity.length()
+	Input.action_release(&"move_up")
+	_check(absf(slowed_speed - player.movement_speed * player.slow_factor) < 1.0, "A slowed angel must walk slower (%f)." % slowed_speed)
+	await _take_off(player)
+	_check(not player.apply_slow(0.5, 1.0), "An airborne angel must not be slowed.")
+	Input.action_press(&"move_up")
+	await _ticks(2)
+	var flying_speed: float = player.velocity.length()
+	Input.action_release(&"move_up")
+	_check(player.slow_left > 0.0 and flying_speed > player.movement_speed * player.slow_factor + 1.0, "A slow must not hold back an airborne angel (%f)." % flying_speed)
+	Input.action_release(&"jump")
+	player.slow_left = 0.0
+	await _ticks(30)
+	player.apply_slow(0.5, 1.5)
+	player.apply_slow(0.8, 0.1)
+	_check(is_equal_approx(player.slow_factor, 0.5) and player.slow_left > 1.0, "Overlapping slows must keep the strongest and the longest (%f, %f)." % [player.slow_factor, player.slow_left])
+	player.slow_left = 0.0
+	player.apply_slow(0.8, 0.5)
+	_check(is_equal_approx(player.slow_factor, 0.8), "A fresh slow takes its own factor.")
+	player.slow_left = 0.0
+	await _ticks(30)
+	var struck: Sleeper = run.spawn_enemy(Run.SLEEPER, player.global_position + Vector2(400.0, 0.0)) as Sleeper
+	await _ticks(1)
+	struck.take_hit(1)
+	_check(struck.awake, "Striking a sleeper must wake it.")
+	_clear(run)
+
+	# The mirror copies the angel's weapon: it rushes a spear and shoots at a bow.
+	player.weapon = MountedPlayer.Weapon.SPEAR
+	var mirror: Mirror = run.spawn_enemy(Run.MIRROR, player.global_position + Vector2(260.0, 0.0)) as Mirror
+	mirror.fire_left = 0.0
+	await _ticks(30)
+	await _ticks(90)
+	_check(mirror.global_position.distance_to(player.global_position) <= mirror.radius + MountedPlayer.HURT_RADIUS + 2.0 and get_nodes_in_group(&"enemy_projectiles").is_empty() and mirror.windup_left <= 0.0, "Against a spear the mirror must rush all the way in, not shoot (%f)." % mirror.global_position.distance_to(player.global_position))
+	player.weapon = MountedPlayer.Weapon.BOW
+	mirror.fire_left = 0.0
+	await _ticks(int(FlyingEnemy.WINDUP_TIME * 60.0) + 40)
+	var mirror_shots: Array[Node] = get_nodes_in_group(&"enemy_projectiles")
+	_check(mirror.preferred_distance == Mirror.BOW_DISTANCE and mirror_shots.size() >= 1 and not (mirror_shots[0] as EnemyProjectile).from_air, "Against a bow the mirror must keep away and fire ground shots.")
+	for shot: Node in get_nodes_in_group(&"enemy_projectiles"):
+		shot.free()
+	mirror.fire_left = 0.0
+	await _ticks(2)
+	_check(mirror.windup_left > 0.0, "The mirror must wind up against the bow.")
+	player.weapon = MountedPlayer.Weapon.SPEAR
+	await _ticks(int(FlyingEnemy.WINDUP_TIME * 60.0) + 2)
+	_check(get_nodes_in_group(&"enemy_projectiles").size() == 1, "Flicking to the spear must not cancel a shot already winding up.")
+	_clear(run)
+	await _settle()
+
+	# 7. After the angel falls, a lit fuse stops and later deaths pay nothing. (Earlier kills
 	# may have levelled the angel up; close that so the world runs.)
 	for pickup: Node in run.pickups.get_children():
 		pickup.free()
@@ -276,6 +429,11 @@ func _run() -> void:
 		if last.fuse_left > 0.0:
 			break
 	_check(last.fuse_left > 0.0, "The last bomber must be lit before the angel falls.")
+	var waiting: GroundStrike = GroundStrike.new()
+	waiting.target = player
+	waiting.delay = 5.0
+	run.actors.add_child(waiting)
+	waiting.global_position = player.global_position
 	var bystander: Enemy = run.spawn_enemy(Run.HUSK, last.global_position + Vector2(20.0, 0.0))
 	bystander.speed = 0.0
 	var kills_before: int = run.kills
@@ -283,6 +441,7 @@ func _run() -> void:
 	player.kill()
 	await _ticks(int(Bomber.FUSE_TIME * 60.0) + 5)
 	_check(is_instance_valid(last) and is_instance_valid(bystander), "A lit bomber must not explode after the angel falls.")
+	_check(not is_instance_valid(waiting), "A marked circle must vanish once the angel falls.")
 	bystander.take_hit(1000)
 	await _ticks(2)
 	_check(run.kills == kills_before and run.feathers_earned == feathers_before, "Nothing may be earned after the run ends.")

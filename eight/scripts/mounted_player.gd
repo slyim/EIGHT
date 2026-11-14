@@ -78,6 +78,8 @@ const PERFECT_BUFF_TIME: float = 2.0
 const AFTERIMAGE_INTERVAL: float = 0.04
 const AFTERIMAGE_TIME: float = 0.2
 const AFTERIMAGE_COLOR: Color = Color(0.792, 0.922, 0.878, 0.5)
+## PLACEHOLDER tint while slowed.
+const SLOW_TINT: Color = Color(0.6, 0.7, 0.95, 1.0)
 
 @export_group("Movement")
 @export_range(80.0, 600.0, 10.0) var movement_speed: float = 260.0
@@ -238,6 +240,9 @@ var perfect_ready: bool = false
 ## Seconds left of the perfect-dodge attack speed buff.
 var perfect_left: float = 0.0
 var hurt_flash_left: float = 0.0
+## Status: walking speed is multiplied by slow_factor while slow_left runs (dashes are not).
+var slow_left: float = 0.0
+var slow_factor: float = 1.0
 var afterimage_left: float = 0.0
 
 @onready var spear_cast: RayCast2D = $SpearCast
@@ -324,6 +329,8 @@ func begin_descent(from_height: float, duration: float) -> void:
 
 ## Ends a won run: the angel rises in its beam. Input waits; ascended fires at the top.
 func begin_ascent(to_height: float, duration: float) -> void:
+	slow_left = 0.0
+	slow_factor = 1.0
 	begin_descent(to_height, duration)
 	ascending = true
 	height = 0.0
@@ -371,6 +378,7 @@ func _physics_process(delta: float) -> void:
 		return
 	invulnerable_left = maxf(0.0, invulnerable_left - delta)
 	perfect_left = maxf(0.0, perfect_left - delta)
+	slow_left = maxf(0.0, slow_left - delta)
 	# Expire the dash before choosing this tick's movement, so every dash-speed
 	# movement tick also retains its dash invulnerability.
 	dash_time_left = maxf(0.0, dash_time_left - delta)
@@ -400,7 +408,7 @@ func _physics_process(delta: float) -> void:
 	if dash_time_left > 0.0:
 		velocity = dash_direction * dash_speed
 	else:
-		velocity = movement * movement_speed * lerpf(1.0, flight_speed_multiplier, lift)
+		velocity = movement * movement_speed * lerpf(1.0, flight_speed_multiplier, lift) * (slow_factor if slow_left > 0.0 and not is_airborne() else 1.0)
 	move_and_slide()
 	if not movement.is_zero_approx():
 		mount_direction = movement.normalized()
@@ -630,6 +638,9 @@ func _resolve_spear_hits() -> void:
 		collider.call(&"take_hit", dealt(spear_damage))
 		_push(collider, spear_knockback_scale)
 		_on_attack_connected(false)
+		if collider is Shielder and (collider as Shielder).blocked_last:
+			thrust_hits_left = 0 # A raised shield stops the thrust.
+			return
 		thrust_hits_left -= 1
 		spear_cast.add_exception(collider as CollisionObject2D)
 		spear_cast.force_raycast_update()
@@ -794,7 +805,7 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 	var blink: bool = invulnerable_left > 0.0 and int(invulnerable_left * 16.0) % 2 == 0
 	modulate.a = 0.35 if blink else 1.0
 	hurt_flash_left = maxf(0.0, hurt_flash_left - delta)
-	sprite.self_modulate = HURT_TINT if hurt_flash_left > 0.0 else Color.WHITE
+	sprite.self_modulate = HURT_TINT if hurt_flash_left > 0.0 else (SLOW_TINT if slow_left > 0.0 else Color.WHITE)
 	if dash_time_left > 0.0:
 		afterimage_left -= delta
 		if afterimage_left <= 0.0:
@@ -829,6 +840,18 @@ func take_damage(amount: int, from_air: bool = false) -> bool:
 	hurt.emit()
 	if health == 0:
 		_die()
+	return true
+
+
+## A telegraphed ground effect slows the angel's walking for a while; like a ground attack, it
+## misses an airborne or dashing angel. Returns true when it took hold.
+func apply_slow(factor: float, duration: float) -> bool:
+	if is_dead or is_descending() or is_airborne() or dash_time_left > 0.0:
+		return false
+	# Overlapping slows keep the strongest factor and the longest time left.
+	factor = clampf(factor, 0.1, 1.0)
+	slow_factor = minf(slow_factor, factor) if slow_left > 0.0 else factor
+	slow_left = maxf(slow_left, duration)
 	return true
 
 

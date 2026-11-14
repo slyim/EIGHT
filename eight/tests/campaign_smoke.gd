@@ -99,7 +99,7 @@ func _run() -> void:
 	bare.free()
 	await _ticks(2)
 
-	# 3. Horde mixes: Sloth is husks only and slower, Gluttony brutes, Envy flyers.
+	# 3. Horde mixes: Sloth is husks, sleepers, and mortars, and slower, Gluttony brutes, Envy flyers.
 	var mix: Run = (load(Game.map_path(0)) as PackedScene).instantiate() as Run
 	mix.intro_enabled = false
 	mix.spawning_enabled = false
@@ -115,7 +115,7 @@ func _run() -> void:
 			counts[mix._pick_enemy_type()] += 1
 		match sin:
 			6:
-				_check(counts[0] == 400, "Sloth must send only husks (got %s)." % [counts])
+				_check(counts[Run.HUSK] + counts[Run.SLEEPER] + counts[Run.MORTAR] == 400 and counts[Run.SLEEPER] > 0 and counts[Run.MORTAR] > 0, "Sloth must send only husks, sleepers, and mortars (got %s)." % [counts])
 			4:
 				_check(counts[2] > counts[0] and counts[2] > counts[1] and counts[Run.FLYER] == 0, "Gluttony must favor brutes and send no flyers (got %s)." % [counts])
 			3:

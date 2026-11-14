@@ -65,6 +65,9 @@ func _physics_process(delta: float) -> void:
 		if on_first_hit.is_valid():
 			on_first_hit.call()
 			on_first_hit = Callable()
+		if collider is Shielder and (collider as Shielder).blocked_last:
+			queue_free() # A raised shield stops the arrow.
+			return
 		if bounces > 0 and _bounce_from(result["position"]):
 			return
 		pierce -= 1

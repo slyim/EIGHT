@@ -109,6 +109,10 @@ const CHARGER: int = 4
 const CASTER: int = 5
 const BOMBER: int = 6
 const SPLITTER: int = 7
+const SHIELDER: int = 8
+const MORTAR: int = 9
+const SLEEPER: int = 10
+const MIRROR: int = 11
 ## PLACEHOLDER horde types. An optional "scene" key instantiates a different enemy;
 ## the rest spawn the plain Enemy scene. "knockback" is the type's weight: light imps fly back,
 ## heavy brutes barely move. An optional "split" key makes the enemy die into that many of a
@@ -127,6 +131,14 @@ const ENEMY_TYPES: Array[Dictionary] = [
 	{"health": 1, "speed": 150.0, "radius": 11.0, "xp": 2, "damage": 22, "knockback": 300.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/bomber.tscn")},
 	# Splitter: dies into two husks.
 	{"health": 4, "speed": 80.0, "radius": 20.0, "xp": 2, "damage": 15, "knockback": 140.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/splitter.tscn"), "split": {"type": HUSK, "count": 2}},
+	# Shielder: blocks blows from its front; finishers break its guard.
+	{"health": 4, "speed": 70.0, "radius": 20.0, "xp": 4, "damage": 18, "knockback": 100.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/shielder.tscn")},
+	# Mortar: stands back and marks circles under the angel that land a moment later.
+	{"health": 3, "speed": 85.0, "radius": 18.0, "xp": 3, "damage": 12, "knockback": 160.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/mortar.tscn")},
+	# Sleeper: still until woken, then fast, pulsing a slowing ring.
+	{"health": 4, "speed": 95.0, "radius": 14.0, "xp": 3, "damage": 12, "knockback": 200.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite"), "scene": preload("res://scenes/sleeper.tscn")},
+	# Mirror: rushes a spear, shoots at a bow.
+	{"health": 3, "speed": 140.0, "radius": 12.0, "xp": 4, "damage": 12, "knockback": 240.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/mirror.tscn")},
 ]
 
 ## One sin per map (sin_index); the last entry is Satan. Stats and patterns are PLACEHOLDER.
@@ -207,17 +219,22 @@ const ITEMS: Array[Dictionary] = [
 ]
 
 ## Difficulty (minutes) at which each roster entry joins the horde: husk, imp, brute, flyer.
-## (Husk, imp, brute, flyer, charger, caster, bomber, splitter.)
-const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0, 1.5, 1.25, 2.5, 2.0]
+## (Husk, imp, brute, flyer, charger, caster, bomber, splitter, shielder, mortar, sleeper,
+## mirror.)
+const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0, 1.5, 1.25, 2.5, 2.0, 2.25, 2.0, 1.75, 3.0]
 ## PLACEHOLDER horde mix per map: weights per roster type among the unlocked ones.
-## Pride balanced with chargers, Greed imps and casters, Lust imps, flyers and casters, Envy
-## flyers and splitters, Gluttony brutes and splitters, Wrath imps, brutes, chargers and
-## bombers, Sloth husks only, Satan everything.
+## Pride balanced with chargers and shielders, Greed imps, casters and mortars, Lust imps,
+## flyers and casters, Envy flyers, splitters and mirrors, Gluttony brutes and splitters, Wrath
+## imps, brutes, chargers and bombers, Sloth husks, sleepers and mortars, Satan everything.
 const SIN_ENEMY_WEIGHTS: Array[Array] = [
-	[4.0, 2.0, 1.0, 1.0, 2.0, 0.0, 0.0, 0.0], [2.0, 5.0, 1.0, 1.0, 0.0, 3.0, 0.0, 0.0],
-	[1.0, 4.0, 0.0, 3.0, 0.0, 3.0, 0.0, 0.0], [2.0, 1.0, 1.0, 5.0, 0.0, 0.0, 0.0, 2.0],
-	[2.0, 1.0, 5.0, 0.0, 0.0, 0.0, 0.0, 3.0], [1.0, 4.0, 4.0, 0.0, 3.0, 0.0, 2.0, 0.0],
-	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [3.0, 3.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
+	[4.0, 2.0, 1.0, 1.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0],
+	[2.0, 5.0, 1.0, 1.0, 0.0, 3.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0],
+	[1.0, 4.0, 0.0, 3.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[2.0, 1.0, 1.0, 5.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0],
+	[2.0, 1.0, 5.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0],
+	[1.0, 4.0, 4.0, 0.0, 3.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.0],
+	[3.0, 3.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
 ]
 ## PLACEHOLDER spawn pace per map (interval multiplier): Sloth's horde comes slower.
 const SIN_SPAWN_PACE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.4, 1.0]
@@ -916,6 +933,9 @@ func _split(rule: Dictionary, at: Vector2) -> void:
 ## Sparks along the push (or away from the angel for enemies too heavy to push), and the HUD's
 ## damage number.
 func _on_enemy_damaged(enemy: Enemy, amount: int, heavy: bool) -> void:
+	if amount == 0 and enemy is Shielder:
+		# PLACEHOLDER AUDIO: a blocked blow reuses the landing thud.
+		play_sfx(&"land", 0.0)
 	var direction: Vector2 = enemy.knockback.normalized()
 	if direction.is_zero_approx():
 		direction = (enemy.global_position - player.global_position).normalized()

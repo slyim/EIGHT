@@ -239,6 +239,11 @@ func _run() -> void:
 	await _ticks(2)
 	_check(run.hud.vignette.visible, "Resuming must bring the low-life edge back.")
 
+	# The ascent clears a slow, so the tint does not ride up the beam.
+	await _ticks(20)
+	_check(player.apply_slow(0.5, 3.0) and player.slow_left > 0.0, "The angel must be slowed before the ascent.")
+	player.begin_ascent(100.0, 1.0)
+	_check(player.slow_left == 0.0 and is_equal_approx(player.slow_factor, 1.0), "The ascent must clear a slow.")
 	await _settle()
 	run.queue_free()
 	await _ticks(30)

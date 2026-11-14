@@ -265,6 +265,19 @@ const FEATHERS_PER_SHRINE: int = 15
 const FEATHERS_PER_SIN: int = 50
 const FEATHERS_PER_SATAN: int = 100
 const FEATHER_GEM_VALUE: int = 5
+## PLACEHOLDER champion elites: from a minute in, about one horde spawn a minute (never more than
+## two alive) comes out gold-tinted and ringed, tougher and faster, worth more experience, and
+## always dropping a feather gem. Multipliers apply after the tier and the clock.
+const ELITE_START: float = 60.0
+const ELITE_GAP_MIN: float = 45.0
+const ELITE_GAP_MAX: float = 75.0
+const ELITE_MAX: int = 2
+const ELITE_HEALTH: float = 4.0
+const ELITE_DAMAGE: float = 1.5
+const ELITE_SPEED: float = 1.1
+const ELITE_XP: int = 4
+const ELITE_TINT: Color = Color(1.35, 1.1, 0.45, 1.0)
+const ELITE_RING: Color = Color(1.0, 0.82, 0.3, 1.0)
 
 ## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
 ## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
@@ -369,6 +382,8 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 
 var elapsed: float = 0.0
 var spawn_left: float = 1.0
+## Seconds until the next horde spawn comes out a champion elite.
+var elite_left: float = ELITE_START
 var shrine_time_left: float = 0.0
 var shrines_left: int = 0
 ## Shrines the map started with (0 on Satan's map, or on a map authored without any).
@@ -811,12 +826,17 @@ func _physics_process(delta: float) -> void:
 	if not spawning_enabled:
 		return
 	spawn_left -= delta
+	elite_left -= delta
 	if spawn_left <= 0.0:
 		var interval: float = spawn_interval() * SIN_SPAWN_PACE[sin_index]
 		spawn_left = interval * (2.0 if current_boss != null else 1.0)
 		for count: int in range(spawn_batch()):
 			if enemy_count < max_enemies:
-				spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
+				var enemy: Enemy = spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
+				# A sleeper could doze off screen and hold an elite slot forever; the next spawn takes it.
+				if elite_left <= 0.0 and not enemy is Sleeper and get_tree().get_nodes_in_group(&"elites").size() < ELITE_MAX:
+					_make_elite(enemy)
+					elite_left = randf_range(ELITE_GAP_MIN, ELITE_GAP_MAX)
 
 
 func difficulty() -> float:
@@ -912,6 +932,37 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	actors.add_child(enemy)
 	enemy_count += 1
 	return enemy
+
+
+## Turns a freshly spawned horde enemy into a champion elite (PLACEHOLDER tint and ring).
+func _make_elite(enemy: Enemy) -> void:
+	enemy.max_health = roundi(enemy.max_health * ELITE_HEALTH)
+	enemy.health = enemy.max_health
+	enemy.contact_damage = roundi(enemy.contact_damage * ELITE_DAMAGE)
+	if enemy is FlyingEnemy:
+		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * ELITE_DAMAGE)
+	enemy.speed *= ELITE_SPEED
+	if enemy is Charger:
+		(enemy as Charger).dash_speed *= ELITE_SPEED
+	if enemy is Bomber:
+		(enemy as Bomber).enemy_damage = roundi((enemy as Bomber).enemy_damage * ELITE_DAMAGE)
+	enemy.xp_value *= ELITE_XP
+	enemy.add_to_group(&"elites")
+	# Gilds the type's own colour rather than replacing it, so an elite caster still reads as a caster.
+	enemy.sprite.self_modulate *= ELITE_TINT
+	# A gold ring on a dark backing behind the sprite: at a ground enemy's feet, around a flyer in
+	# the air. A child of the sprite, so enemies keep their own _draw.
+	var size: float = enemy.sprite.scale.x # Drawn in the sprite's space: undo its scale.
+	var ring: Node2D = Node2D.new()
+	ring.name = &"EliteRing"
+	ring.show_behind_parent = true
+	if not enemy.flying:
+		ring.position = -enemy.sprite.position / size # At the feet, like the ground tells.
+	var paint: Callable = func() -> void:
+		ring.draw_arc(Vector2.ZERO, (enemy.radius + 6.0) / size, 0.0, TAU, 32, Boss.BACKING, 6.0 / size)
+		ring.draw_arc(Vector2.ZERO, (enemy.radius + 6.0) / size, 0.0, TAU, 32, ELITE_RING, 2.0 / size)
+	ring.draw.connect(paint)
+	enemy.sprite.add_child(ring)
 
 
 ## A boss from this map's sin, scaled by difficulty and tier; health_scale weakens guards.
@@ -1134,10 +1185,10 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		spawn_pickup(Pickup.Kind.FEATHER, enemy.global_position + Vector2(0.0, 12.0), FEATHER_GEM_VALUE)
 	if randf() < evolution_drop_chance * player.luck:
 		drop_evolution(enemy.global_position + Vector2(-12.0, 0.0))
+	if enemy.is_in_group(&"elites"):
+		spawn_pickup(Pickup.Kind.FEATHER, enemy.global_position + Vector2(0.0, -12.0), FEATHER_GEM_VALUE)
 
 
-## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
-## then the horde keeps scaling and the angel keeps growing.
 ## PLACEHOLDER decoys (Envy): weak, darker copies that only fire its aimed fans. They are not
 ## part of the horde (no count, no loot), only the real boss has the name tag and health bar,
 ## and they vanish with it. At most the call's count stand at once.
@@ -1160,6 +1211,8 @@ func _on_decoys(boss: Boss, _count: int) -> void:
 		decoy.sprite.self_modulate = Boss.DECOY_TINT
 
 
+## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
+## then the horde keeps scaling and the angel keeps growing.
 func _on_boss_died(enemy: Enemy) -> void:
 	for decoy: Node in get_tree().get_nodes_in_group(&"decoys"):
 		decoy.queue_free()

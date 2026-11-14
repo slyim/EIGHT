@@ -19,6 +19,8 @@ var dash_left: float = 0.0
 var recover_left: float = 0.0
 var cooldown_left: float = 0.0
 var dash_direction: Vector2 = Vector2.RIGHT
+## The dash's speed (champion elites dash faster).
+var dash_speed: float = DASH_SPEED
 ## How far the locked dash reaches before a wall or obstacle (what the lane shows).
 var dash_length: float = 0.0
 
@@ -39,7 +41,7 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 	elif dash_left > 0.0:
 		dash_left -= delta
-		velocity = dash_direction * DASH_SPEED
+		velocity = dash_direction * dash_speed
 		knockback = Vector2.ZERO
 		if dash_left <= 0.0:
 			recover_left = RECOVER_TIME
@@ -60,7 +62,7 @@ func _physics_process(delta: float) -> void:
 
 func _start_windup(direction: Vector2) -> void:
 	dash_direction = direction
-	dash_length = Boss.clear_distance(self, direction * DASH_SPEED * DASH_TIME)
+	dash_length = Boss.clear_distance(self, direction * dash_speed * DASH_TIME)
 	windup_left = WINDUP_TIME
 	queue_redraw()
 

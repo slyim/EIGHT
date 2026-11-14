@@ -58,7 +58,7 @@ func _run() -> void:
 	current_scene = run
 	await _wait_ticks(3)
 	var player: MountedPlayer = run.player
-	var flyer_type: int = Run.ENEMY_TYPES.size() - 1
+	var flyer_type: int = Run.FLYER
 
 	# 1. The new roster entry spawns the flying enemy with its roster stats.
 	# Difficulty scales stats with elapsed time; the roster values apply at zero.

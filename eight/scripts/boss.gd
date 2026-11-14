@@ -145,7 +145,7 @@ func start_attack(pattern: int) -> void:
 	pending = pattern
 	windup_left = WINDUPS[pattern]
 	charge_direction = _aim(pattern)
-	charge_length = _clear_distance(charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
+	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
 	attack_pose_left = ATTACK_POSE_TIME + windup_left
 	# Only ground attacks cast the ember light; a summon's marks keep their own color.
@@ -174,15 +174,16 @@ func _aim(pattern: int) -> Vector2:
 	return direction.normalized() if direction.length() > 0.01 else Vector2.RIGHT
 
 
-## How far the boss's body can travel along motion before walls or obstacles stop it.
-func _clear_distance(motion: Vector2) -> float:
+## How far an enemy's body can travel along motion before walls or obstacles stop it (what a
+## charge lane shows).
+static func clear_distance(body: Enemy, motion: Vector2) -> float:
 	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
-	query.shape = collision_shape.shape
-	query.transform = Transform2D(0.0, global_position)
+	query.shape = body.collision_shape.shape
+	query.transform = Transform2D(0.0, body.global_position)
 	query.motion = motion
-	query.collision_mask = collision_mask
-	query.exclude = [get_rid()]
-	var safe: float = get_world_2d().direct_space_state.cast_motion(query)[0]
+	query.collision_mask = body.collision_mask
+	query.exclude = [body.get_rid()]
+	var safe: float = body.get_world_2d().direct_space_state.cast_motion(query)[0]
 	return motion.length() * safe
 
 
@@ -234,9 +235,26 @@ func summon_offsets() -> Array[Vector2]:
 
 
 ## A telegraph line on a dark backing (even widths, no antialiasing).
-func _tell(from: Vector2, to: Vector2, color: Color) -> void:
-	draw_line(from, to, BACKING, 6.0)
-	draw_line(from, to, color, 2.0)
+static func draw_tell(item: CanvasItem, from: Vector2, to: Vector2, color: Color) -> void:
+	item.draw_line(from, to, BACKING, 6.0)
+	item.draw_line(from, to, color, 2.0)
+
+
+## A charge lane: edges and an end cap, as wide as the body, filling toward the end.
+static func draw_lane(item: CanvasItem, direction: Vector2, length: float, half_width: float, fill: float) -> void:
+	var side: Vector2 = direction.orthogonal() * half_width
+	var tip: Vector2 = direction * length
+	item.draw_line(Vector2.ZERO, tip * fill, EMBER_FILL, half_width * 2.0)
+	for edge: Vector2 in [side, -side]:
+		draw_tell(item, edge, edge + tip, Color(EMBER, 0.8))
+	draw_tell(item, tip + side, tip - side, Color(EMBER, 0.8))
+
+
+## A ground circle about to strike: a dark-backed ember ring and a stepped fill.
+static func draw_circle_tell(item: CanvasItem, radius: float, fill: float) -> void:
+	item.draw_circle(Vector2.ZERO, radius * fill, EMBER_FILL)
+	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, BACKING, 6.0)
+	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(EMBER, 0.85), 2.0)
 
 
 func _draw() -> void:
@@ -247,22 +265,17 @@ func _draw() -> void:
 	match pending:
 		Pattern.CHARGE:
 			# The lane the boss will cover, as wide as the boss, up to the first obstacle.
-			var side: Vector2 = charge_direction.orthogonal() * radius
-			var tip: Vector2 = charge_direction * charge_length
-			draw_line(Vector2.ZERO, tip * fill, EMBER_FILL, radius * 2.0)
-			for edge: Vector2 in [side, -side]:
-				_tell(edge, edge + tip, Color(EMBER, 0.8))
-			_tell(tip + side, tip - side, Color(EMBER, 0.8))
+			draw_lane(self, charge_direction, charge_length, radius, fill)
 		Pattern.BURST:
 			for index: int in range(BURST_SHOTS):
 				var ray: Vector2 = Vector2.RIGHT.rotated(TAU * index / BURST_SHOTS)
-				_tell(ray * radius, ray * (radius + 24.0 + 40.0 * fill), Color(EMBER, 0.8))
+				draw_tell(self, ray * radius, ray * (radius + 24.0 + 40.0 * fill), Color(EMBER, 0.8))
 			draw_arc(Vector2.ZERO, radius + 8.0, 0.0, TAU, 32, BACKING, 6.0)
 			draw_arc(Vector2.ZERO, radius + 8.0, 0.0, TAU, 32, Color(EMBER, 0.5 + 0.5 * fill), 2.0)
 		Pattern.AIMED:
 			for index: int in range(-2, 3):
 				var ray: Vector2 = charge_direction.rotated(index * AIMED_SPREAD)
-				_tell(ray * radius, ray * (radius + 60.0 + 200.0 * fill), Color(EMBER, 0.7))
+				draw_tell(self, ray * radius, ray * (radius + 60.0 + 200.0 * fill), Color(EMBER, 0.7))
 		Pattern.SUMMON:
 			for spot: Vector2 in summon_offsets():
 				draw_arc(spot, 6.0 + 8.0 * fill, 0.0, TAU, 12, BACKING, 6.0)

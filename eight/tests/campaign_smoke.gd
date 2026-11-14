@@ -109,19 +109,21 @@ func _run() -> void:
 	mix.elapsed = 600.0
 	for sin: int in [6, 4, 3]:
 		mix.sin_index = sin
-		var counts: Array[int] = [0, 0, 0, 0]
+		var counts: Array[int] = []
+		counts.resize(Run.ENEMY_TYPES.size())
 		for roll: int in range(400):
 			counts[mix._pick_enemy_type()] += 1
 		match sin:
 			6:
 				_check(counts[0] == 400, "Sloth must send only husks (got %s)." % [counts])
 			4:
-				_check(counts[2] > counts[0] and counts[2] > counts[1] and counts[3] == 0, "Gluttony must favor brutes and send no flyers (got %s)." % [counts])
+				_check(counts[2] > counts[0] and counts[2] > counts[1] and counts[Run.FLYER] == 0, "Gluttony must favor brutes and send no flyers (got %s)." % [counts])
 			3:
 				_check(counts[3] > counts[0] and counts[3] > counts[1] and counts[3] > counts[2], "Envy must favor flyers (got %s)." % [counts])
 	mix.elapsed = 10.0
 	mix.sin_index = 3
-	var early: Array[int] = [0, 0, 0, 0]
+	var early: Array[int] = []
+	early.resize(Run.ENEMY_TYPES.size())
 	for roll: int in range(200):
 		early[mix._pick_enemy_type()] += 1
 	_check(early[0] == 200, "Before anything unlocks, every map must send husks (got %s)." % [early])

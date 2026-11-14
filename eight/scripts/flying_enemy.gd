@@ -49,7 +49,10 @@ func _physics_process(delta: float) -> void:
 	bob_time += delta
 	var to_target: Vector2 = target.global_position - global_position
 	var distance: float = to_target.length()
-	aim = to_target / distance if distance > 0.001 else Vector2.RIGHT
+	# The aim locks when the tell starts, so stepping aside during it dodges the shot.
+	var toward: Vector2 = to_target / distance if distance > 0.001 else Vector2.RIGHT
+	if windup_left <= 0.0:
+		aim = toward
 	if windup_left > 0.0:
 		# Hold still while winding up so the tell reads where the shot will come from.
 		windup_left -= delta
@@ -65,9 +68,9 @@ func _physics_process(delta: float) -> void:
 			queue_redraw()
 		# Hold near the preferred distance instead of piling onto the player.
 		if distance > preferred_distance + KEEP_SLACK:
-			velocity = aim * speed
+			velocity = toward * speed
 		elif distance < preferred_distance - KEEP_SLACK:
-			velocity = -aim * speed
+			velocity = -toward * speed
 		else:
 			velocity = Vector2.ZERO
 	velocity += knockback

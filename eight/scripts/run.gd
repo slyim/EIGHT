@@ -100,15 +100,33 @@ const SFX: Dictionary[StringName, AudioStream] = {
 const SFX_SPACING: float = 0.045
 const SFX_VOICES: int = 16
 
+## Roster indices into ENEMY_TYPES (and the columns of ENEMY_UNLOCK and SIN_ENEMY_WEIGHTS).
+const HUSK: int = 0
+const IMP: int = 1
+const BRUTE: int = 2
+const FLYER: int = 3
+const CHARGER: int = 4
+const CASTER: int = 5
+const BOMBER: int = 6
+const SPLITTER: int = 7
 ## PLACEHOLDER horde types. An optional "scene" key instantiates a different enemy;
 ## the rest spawn the plain Enemy scene. "knockback" is the type's weight: light imps fly back,
-## heavy brutes barely move.
+## heavy brutes barely move. An optional "split" key makes the enemy die into that many of a
+## type (which never split themselves).
 const ENEMY_TYPES: Array[Dictionary] = [
 	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "knockback": 240.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
 	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "knockback": 310.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
 	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "knockback": 120.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
 	# Flying: hovers at a distance and fires aimed shots that reach an airborne player.
 	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "knockback": 220.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
+	# Charger: stops, shows a lane, dashes along it, then stands still (punish it then).
+	{"health": 3, "speed": 95.0, "radius": 18.0, "xp": 3, "damage": 18, "knockback": 160.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/charger.tscn")},
+	# Ground caster: keeps its distance and fires ground shots after an ember glint.
+	{"health": 2, "speed": 110.0, "radius": 12.0, "xp": 3, "damage": 8, "knockback": 260.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/ground_caster.tscn")},
+	# Bomber: runs in, lights a fuse, and explodes, hurting the angel and nearby enemies.
+	{"health": 1, "speed": 150.0, "radius": 11.0, "xp": 2, "damage": 22, "knockback": 300.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/bomber.tscn")},
+	# Splitter: dies into two husks.
+	{"health": 4, "speed": 80.0, "radius": 20.0, "xp": 2, "damage": 15, "knockback": 140.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/splitter.tscn"), "split": {"type": HUSK, "count": 2}},
 ]
 
 ## One sin per map (sin_index); the last entry is Satan. Stats and patterns are PLACEHOLDER.
@@ -189,13 +207,17 @@ const ITEMS: Array[Dictionary] = [
 ]
 
 ## Difficulty (minutes) at which each roster entry joins the horde: husk, imp, brute, flyer.
-const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0]
-## PLACEHOLDER horde mix per map: weights for husk, imp, brute, flyer among the unlocked ones.
-## Pride balanced, Greed imps, Lust imps and flyers, Envy flyers, Gluttony brutes, Wrath imps
-## and brutes, Sloth husks only, Satan everything.
+## (Husk, imp, brute, flyer, charger, caster, bomber, splitter.)
+const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0, 1.5, 1.25, 2.5, 2.0]
+## PLACEHOLDER horde mix per map: weights per roster type among the unlocked ones.
+## Pride balanced with chargers, Greed imps and casters, Lust imps, flyers and casters, Envy
+## flyers and splitters, Gluttony brutes and splitters, Wrath imps, brutes, chargers and
+## bombers, Sloth husks only, Satan everything.
 const SIN_ENEMY_WEIGHTS: Array[Array] = [
-	[4.0, 2.0, 1.0, 1.0], [2.0, 5.0, 1.0, 1.0], [1.0, 4.0, 0.0, 3.0], [2.0, 1.0, 1.0, 5.0],
-	[2.0, 1.0, 5.0, 0.0], [1.0, 4.0, 4.0, 0.0], [1.0, 0.0, 0.0, 0.0], [3.0, 3.0, 2.0, 2.0],
+	[4.0, 2.0, 1.0, 1.0, 2.0, 0.0, 0.0, 0.0], [2.0, 5.0, 1.0, 1.0, 0.0, 3.0, 0.0, 0.0],
+	[1.0, 4.0, 0.0, 3.0, 0.0, 3.0, 0.0, 0.0], [2.0, 1.0, 1.0, 5.0, 0.0, 0.0, 0.0, 2.0],
+	[2.0, 1.0, 5.0, 0.0, 0.0, 0.0, 0.0, 3.0], [1.0, 4.0, 4.0, 0.0, 3.0, 0.0, 2.0, 0.0],
+	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [3.0, 3.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
 ]
 ## PLACEHOLDER spawn pace per map (interval multiplier): Sloth's horde comes slower.
 const SIN_SPAWN_PACE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.4, 1.0]
@@ -780,11 +802,16 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	var data: Dictionary = ENEMY_TYPES[type_index]
 	var rules: Dictionary = TIERS[tier]
 	var enemy: Enemy = (data.get("scene", ENEMY_SCENE) as PackedScene).instantiate() as Enemy
-	enemy.max_health = maxi(1, roundi(float(data["health"]) * rules["health"] * (1.0 + difficulty() * HORDE_HEALTH_GAIN * rules["health_scaling"])))
+	var health_scale: float = rules["health"] * (1.0 + difficulty() * HORDE_HEALTH_GAIN * rules["health_scaling"])
+	enemy.max_health = maxi(1, roundi(float(data["health"]) * health_scale))
 	enemy.speed = float(data["speed"]) * rules["speed"] * (1.0 + difficulty() * HORDE_SPEED_GAIN * rules["speed_scaling"])
 	enemy.radius = float(data["radius"])
 	enemy.xp_value = int(data["xp"])
 	enemy.knockback_strength = float(data["knockback"])
+	if data.has("split"):
+		enemy.set_meta(&"split", data["split"])
+	if enemy is Bomber:
+		(enemy as Bomber).enemy_damage = maxi(1, roundi(Bomber.ENEMY_DAMAGE * health_scale))
 	var damage_scale: float = rules["damage"] * (1.0 + difficulty() * HORDE_DAMAGE_GAIN * rules["damage_scaling"])
 	enemy.contact_damage = roundi(float(data["damage"]) * damage_scale)
 	if enemy is FlyingEnemy:
@@ -872,6 +899,20 @@ func _on_boss_summon(boss: Boss, count: int) -> void:
 	boss.summon_spots.clear()
 
 
+## A splitter's children spread across the line to the angel from where it fell (never onto
+## the angel), within the horde cap.
+func _split(rule: Dictionary, at: Vector2) -> void:
+	var count: int = rule["count"]
+	var side: Vector2 = (at - player.global_position).orthogonal().normalized()
+	if side.is_zero_approx():
+		side = Vector2.UP
+	for index: int in range(count):
+		if ended or enemy_count >= max_enemies:
+			return
+		var offset: float = (float(index) - (count - 1) * 0.5) * 48.0
+		spawn_enemy(rule["type"], _open_spot(at + side * offset, 20.0))
+
+
 ## Sparks along the push (or away from the angel for enemies too heavy to push), and the HUD's
 ## damage number.
 func _on_enemy_damaged(enemy: Enemy, amount: int, heavy: bool) -> void:
@@ -888,11 +929,16 @@ func _on_enemy_hit(_enemy: Enemy) -> void:
 
 func _on_enemy_died(enemy: Enemy) -> void:
 	enemy_count -= 1
+	if ended:
+		return # Nothing earned after the run is over.
 	kills += 1
 	feathers_earned += FEATHERS_PER_KILL
 	play_sfx(&"enemy_death")
 	_spawn_poof(enemy.global_position)
 	spawn_pickup(Pickup.Kind.XP, enemy.global_position, enemy.xp_value)
+	if enemy.has_meta(&"split"):
+		# Deferred: deaths arrive inside hit callbacks and physics queries.
+		_split.call_deferred(enemy.get_meta(&"split"), enemy.global_position)
 	if randf() < heart_drop_chance * player.luck:
 		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
 	if randf() < item_drop_chance * player.luck:

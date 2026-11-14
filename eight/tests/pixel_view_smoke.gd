@@ -122,7 +122,7 @@ func _run() -> void:
 	# Every sprite draws at one art scale.
 	_check(_art_scale(run.player.sprite) and _art_scale(run.player.spear), "The player and spear must be 2x.")
 	var husk: Enemy = run.spawn_enemy(0, Vector2(300.0, 300.0))
-	var flyer: Enemy = run.spawn_enemy(3, Vector2(-300.0, 300.0))
+	var flyer: Enemy = run.spawn_enemy(Run.FLYER, Vector2(-300.0, 300.0))
 	var gem: Pickup = run.spawn_pickup(Pickup.Kind.XP, Vector2(300.0, -300.0), 20)
 	var item: Pickup = run.spawn_pickup(Pickup.Kind.ITEM, Vector2(-300.0, -300.0), 0)
 	run._spawn_poof(Vector2(200.0, 200.0))

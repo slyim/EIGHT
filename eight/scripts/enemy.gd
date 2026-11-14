@@ -96,7 +96,13 @@ func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> 
 	damaged.emit(self, maxi(0, damage), heavy)
 	hit.emit(self)
 	if health == 0:
-		collision_shape.set_deferred(&"disabled", true)
-		died.emit(self)
-		queue_free()
+		_perish()
+
+
+## Removes a dead enemy; the run counts the kill and drops its loot on died.
+func _perish() -> void:
+	health = 0
+	collision_shape.set_deferred(&"disabled", true)
+	died.emit(self)
+	queue_free()
 

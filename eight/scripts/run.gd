@@ -150,8 +150,15 @@ const BOSSES: Array[Dictionary] = [
 		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE], [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.GUARD]],
 		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM]}],
 		"smart": {"chain_charges": 1, "air_fans": 2}},
-	{"name": "GREED", "health": 90, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.SUMMON, Boss.Pattern.BURST]},
+	# Greed: coin rings with gaps either side of the angel, and ground casters at its side; at 60%
+	# violet rain falls around the angel; at a quarter its coin rings spiral. Smarter tiers add a
+	# coin wave to each volley (smarts 1+) and lead the rain (smarts 2+).
+	{"name": "GREED", "health": 130, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.COINS, Boss.Pattern.SUMMON],
+		"phase_thresholds": [0.6, 0.25],
+		"phase_patterns": [[Boss.Pattern.COINS, Boss.Pattern.SUMMON], [Boss.Pattern.COINS, Boss.Pattern.RAIN, Boss.Pattern.SUMMON], [Boss.Pattern.COINS, Boss.Pattern.RAIN]],
+		"phase_combos": [{}, {}, {Boss.Pattern.COINS: [Boss.Pattern.COINS, Boss.Pattern.COINS]}],
+		"summon_type": CASTER, "smart": {"extra_waves": 1, "lead_rain": 2}},
 	{"name": "LUST", "health": 110, "speed": 140.0, "radius": 32.0, "interval": 2.0, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_lust.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.AIMED]},
 	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
@@ -162,9 +169,9 @@ const BOSSES: Array[Dictionary] = [
 	# burst after each charge); at a fifth it adds shockwaves. Smarter tiers re-aim its second
 	# charge (smarts 1+) and let it summon bombers once enraged (smarts 2+).
 	{"name": "WRATH", "health": 200, "speed": 125.0, "radius": 40.0, "interval": 1.8, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE],
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.AIMED],
 		"phase_thresholds": [0.5, 0.2],
-		"phase_patterns": [[Boss.Pattern.CHARGE], [Boss.Pattern.CHARGE], [Boss.Pattern.CHARGE, Boss.Pattern.SHOCKWAVE]],
+		"phase_patterns": [[Boss.Pattern.CHARGE, Boss.Pattern.AIMED], [Boss.Pattern.CHARGE], [Boss.Pattern.CHARGE, Boss.Pattern.SHOCKWAVE]],
 		"phase_combos": [{Boss.Pattern.CHARGE: [Boss.Pattern.CHARGE, Boss.Pattern.SLAM]},
 			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]},
 			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]}],
@@ -881,8 +888,10 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	# Smarter tiers add the generic patterns this sin lacks, in a fixed order.
 	var extras: Array[int] = []
 	var extra: int = rules["patterns"]
+	# A sin with its own summon rule (smart "summon") keeps summons to that rule.
+	var own_summons: bool = (data.get("smart", {}) as Dictionary).has("summon")
 	for pattern: int in [Boss.Pattern.CHARGE, Boss.Pattern.AIMED, Boss.Pattern.BURST, Boss.Pattern.SUMMON]:
-		if extra > 0 and not boss.patterns.has(pattern) and not (guard and pattern == Boss.Pattern.SUMMON):
+		if extra > 0 and not boss.patterns.has(pattern) and not ((guard or own_summons) and pattern == Boss.Pattern.SUMMON):
 			extras.append(pattern)
 			extra -= 1
 	boss.patterns.append_array(extras)
@@ -895,6 +904,9 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		if smart.has("chain_charges") and tier >= int(smart["chain_charges"]):
 			# A smarter boss follows each charge with a second, re-aimed one.
 			combo[Boss.Pattern.CHARGE] = [Boss.Pattern.CHARGE] + combo.get(Boss.Pattern.CHARGE, [])
+		if smart.has("extra_waves") and tier >= int(smart["extra_waves"]):
+			# A smarter Greed adds a coin wave to every volley.
+			combo[Boss.Pattern.COINS] = combo.get(Boss.Pattern.COINS, []) + [Boss.Pattern.COINS]
 		boss.phase_combos.append(combo)
 	if not boss.phase_combos.is_empty():
 		boss.combos = boss.phase_combos[0]
@@ -915,8 +927,11 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.phase_thresholds.assign(data.get("phase_thresholds", [0.5]))
 		boss.phase_speeds.assign(data.get("phase_speeds", []))
 		boss.phase_paces.assign(data.get("phase_paces", []))
+	boss.summon_type = int(data.get("summon_type", HUSK))
 	if smart.has("summon"):
 		boss.summon_type = int((smart["summon"] as Array)[1])
+	if smart.has("lead_rain") and tier >= int(smart["lead_rain"]):
+		boss.lead_rain = true
 	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
 	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
 	boss.smarts = tier

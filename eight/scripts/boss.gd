@@ -10,22 +10,36 @@ extends Enemy
 ## front like a shielder (heavy blows break it, opening a long punish window) and ends in a slam
 ## around the boss. An attack can open a combo: the patterns that follow it at once, each behind
 ## its own tell (a sin's data sets them per phase), before the boss rests. A shockwave sends three
-## expanding ember rings out from the boss.
+## expanding ember rings out from the boss. A coin ring is a burst with two gaps either side of
+## the angel (step into a gap); chained coin rings turn, so a volley spirals. Rain marks violet
+## air circles around the angel that land one after another (flying does not help).
 
 signal summon_requested(boss: Boss, count: int)
 signal attacked(boss: Boss)
 signal phase_changed(boss: Boss)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6]
+## PLACEHOLDER coin ring: shots in COIN_SLOTS directions, leaving gaps COIN_GAP slots either
+## side of the angel (right beside the shot at it, so a step either way reaches one at any
+## range); each chained ring keeps the volley's aim and turns half a slot, so it spirals.
+const COIN_SLOTS: int = 12
+const COIN_GAP: int = 1
+## PLACEHOLDER rain: violet air circles around the angel, landing one after another.
+const RAIN_SPOTS: Array[Vector2] = [Vector2.ZERO, Vector2(100.0, 0.0), Vector2(0.0, 100.0), Vector2(-100.0, 0.0), Vector2(0.0, -100.0)]
+const RAIN_RADIUS: float = 48.0
+const RAIN_DELAY: float = 0.8
+const RAIN_STAGGER: float = 0.15
+## Seconds of the angel's walking a leading rain looks ahead (a dash does not count).
+const RAIN_LEAD: float = 0.35
 ## PLACEHOLDER phase-change pose: the boss stands for this long (still hittable).
 const PHASE_POSE: float = 0.8
 ## PLACEHOLDER guard stance and the slam it ends in.
@@ -36,6 +50,7 @@ const SLAM_FLASH: float = 0.15
 ## Air shots (they reach a flying angel): violet, like the flyer's.
 const VIOLET: Color = Color(1.15, 0.75, 1.8, 1.0)
 const AIR_TELEGRAPH_LIGHT: Color = Color(0.65, 0.4, 1.0, 0.35)
+const AIR_FILL: Color = Color(0.4, 0.25, 0.7, 0.22)
 const POSE_COLOR: Color = Color(1.6, 1.5, 1.2, 1.0)
 ## PLACEHOLDER: each phase multiplies the attack interval by this.
 const PHASE_PACE: float = 0.75
@@ -103,8 +118,12 @@ var combo_anchor: Vector2 = Vector2.ZERO
 var summon_type: int = 0
 ## The full length of the running wind-up (the tell's fill is measured against it).
 var windup_total: float = 0.0
-## Smarter tiers: aimed fans that may come from the air. Set by the run from the boss's data.
+## Smarter tiers: aimed fans that may come from the air, and rain that lands where the angel is
+## heading. Set by the run from the boss's data.
 var air_fans: bool = false
+var lead_rain: bool = false
+## How far the running coin volley has turned (each chained ring turns half a slot).
+var coin_turn: float = 0.0
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
@@ -220,9 +239,14 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 	if not chained:
 		combo_queue.assign(combos.get(pattern, []))
 		combo_anchor = target.global_position
+		coin_turn = 0.0
+	elif pattern == Pattern.COINS:
+		coin_turn += PI / COIN_SLOTS
 	if chained and pattern == Pattern.CHARGE and not reaim_chains:
 		var toward: Vector2 = combo_anchor - global_position
 		charge_direction = toward.normalized() if toward.length() > 1.0 else _aim(pattern)
+	elif chained and pattern == Pattern.COINS:
+		pass # A spiral keeps the volley's aim; only the turn changes.
 	else:
 		charge_direction = _aim(pattern)
 	fan_from_air = pattern == Pattern.AIMED and air_fans and randf() < 0.5
@@ -231,7 +255,7 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 	attack_pose_left = ATTACK_POSE_TIME + windup_left
 	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks
 	# and a raised guard do not.
-	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air else TELEGRAPH_LIGHT)
+	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air or pattern == Pattern.RAIN else TELEGRAPH_LIGHT)
 	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD:
 		add_to_group(&"light")
 	attacked.emit(self)
@@ -293,6 +317,22 @@ func _attack(pattern: int) -> void:
 				_fire(charge_direction.rotated(index * AIMED_SPREAD))
 		Pattern.SUMMON:
 			summon_requested.emit(self, SUMMON_COUNT)
+		Pattern.COINS:
+			for direction: Vector2 in coin_directions():
+				_fire(direction)
+		Pattern.RAIN:
+			var center: Vector2 = target.global_position
+			if lead_rain:
+				center += target.velocity.limit_length(target.movement_speed) * RAIN_LEAD
+			for index: int in range(RAIN_SPOTS.size()):
+				var drop: GroundStrike = GroundStrike.new()
+				drop.from_air = true
+				drop.radius = RAIN_RADIUS
+				drop.delay = RAIN_DELAY + index * RAIN_STAGGER
+				drop.damage = shot_damage
+				drop.target = target
+				get_parent().add_child(drop)
+				drop.global_position = center + RAIN_SPOTS[index]
 		Pattern.GUARD:
 			guard_left = GUARD_TIME
 			guard_facing = charge_direction
@@ -306,6 +346,17 @@ func _attack(pattern: int) -> void:
 			wave.target = target
 			get_parent().add_child(wave)
 			wave.global_position = global_position
+
+
+## Where a coin ring's shots go: every slot around the boss but the gaps either side of the aim,
+## turned by the running volley.
+func coin_directions() -> Array[Vector2]:
+	var directions: Array[Vector2] = []
+	for slot: int in range(COIN_SLOTS):
+		if slot == COIN_GAP or slot == COIN_SLOTS - COIN_GAP:
+			continue
+		directions.append(charge_direction.rotated(coin_turn + TAU * slot / COIN_SLOTS))
+	return directions
 
 
 ## A raised guard blocks blows from inside the shield's front cone (sparks, no damage, no push);
@@ -398,10 +449,12 @@ static func draw_lane(item: CanvasItem, direction: Vector2, length: float, half_
 
 
 ## A ground circle about to strike: a dark-backed ember ring and a stepped fill.
-static func draw_circle_tell(item: CanvasItem, radius: float, fill: float) -> void:
-	item.draw_circle(Vector2.ZERO, radius * fill, EMBER_FILL)
+## A circle about to strike: a dark-backed ring and a stepped fill; ember for the ground, violet
+## for the air.
+static func draw_circle_tell(item: CanvasItem, radius: float, fill: float, air: bool = false) -> void:
+	item.draw_circle(Vector2.ZERO, radius * fill, AIR_FILL if air else EMBER_FILL)
 	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, BACKING, 6.0)
-	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(EMBER, 0.85), 2.0)
+	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(VIOLET if air else EMBER, 0.85), 2.0)
 
 
 func _draw() -> void:
@@ -455,6 +508,14 @@ func _draw() -> void:
 				var gather: float = roundf((radius + 8.0 + ring * 10.0 * (1.0 - fill)) / 2.0) * 2.0
 				draw_arc(Vector2.ZERO, gather, 0.0, TAU, 32, BACKING, 6.0)
 				draw_arc(Vector2.ZERO, gather, 0.0, TAU, 32, Color(EMBER, 0.85), 2.0)
+		Pattern.COINS:
+			# One ray per coin; the gaps either side of the angel show as missing rays.
+			for direction: Vector2 in coin_directions():
+				draw_tell(self, direction * radius, direction * (radius + 36.0 + 64.0 * fill), Color(EMBER, 0.8))
+		Pattern.RAIN:
+			# A violet ring gathering above the boss: the rain is coming (air).
+			draw_arc(Vector2.ZERO, radius + 12.0 + 12.0 * fill, 0.0, TAU, 32, BACKING, 6.0)
+			draw_arc(Vector2.ZERO, radius + 12.0 + 12.0 * fill, 0.0, TAU, 32, Color(VIOLET, 0.9), 2.0)
 		Pattern.SUMMON:
 			for spot: Vector2 in summon_offsets():
 				draw_arc(spot, 6.0 + 8.0 * fill, 0.0, TAU, 12, BACKING, 6.0)

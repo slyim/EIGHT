@@ -5,7 +5,9 @@ extends SceneTree
 ## grounded angel must leave or fly over. Guards fight with phase one only. Smarter tiers chain
 ## its charges and turn some fans into violet air fans. Wrath: two charges and a slam where it
 ## stops; enraged at half health (faster, a burst after each charge); shockwave rings at a fifth.
-## Smarter Wrath re-aims its second charge and summons bombers once enraged. Native Godot only.
+## Smarter Wrath re-aims its second charge and summons bombers once enraged. Greed: coin rings
+## with gaps either side of the angel and ground casters; violet air rain at 60%; spiralling coin
+## volleys at a quarter. Smarter Greed adds a coin wave and leads its rain. Native Godot only.
 
 var failures: int = 0
 
@@ -53,6 +55,35 @@ func _pride(run: Run) -> Boss:
 	boss.global_position = Vector2(-1800.0, 1600.0)
 	run.player.global_position = boss.global_position + Vector2(200.0, 0.0)
 	return boss
+
+
+## True when the shots are exactly one coin ring: every slot but the two gaps, aimed at aim and
+## turned by turn, each slot once.
+func _is_coin_ring(shots: Array[Node], aim: Vector2, turn: float) -> bool:
+	var expected: Array[Vector2] = []
+	for slot: int in range(Boss.COIN_SLOTS):
+		if slot != Boss.COIN_GAP and slot != Boss.COIN_SLOTS - Boss.COIN_GAP:
+			expected.append(aim.rotated(turn + TAU * slot / Boss.COIN_SLOTS))
+	if shots.size() != expected.size():
+		return false
+	for direction: Vector2 in expected:
+		var matches: int = 0
+		for shot: Node in shots:
+			if (shot as EnemyProjectile).velocity.normalized().dot(direction) > 0.999:
+				matches += 1
+		if matches != 1:
+			return false
+	return true
+
+
+## The enemy shots fired since the last call (frees them so the next ring is counted alone).
+func _take_shots() -> Array[Node]:
+	var shots: Array[Node] = get_nodes_in_group(&"enemy_projectiles")
+	var copy: Array[Node] = shots.duplicate()
+	for shot: Node in shots:
+		shot.remove_from_group(&"enemy_projectiles")
+		shot.queue_free()
+	return copy
 
 
 func _take_off(player: MountedPlayer) -> void:
@@ -205,7 +236,7 @@ func _run() -> void:
 	player.hit_stop_enabled = false
 	player.invulnerable_left = 100000.0
 	boss = _pride(run)
-	_check(boss.patterns == [Boss.Pattern.CHARGE] and boss.combos.get(Boss.Pattern.CHARGE, []) == [Boss.Pattern.CHARGE, Boss.Pattern.SLAM] and boss.phase_thresholds == [0.5, 0.2] and is_equal_approx(boss.slam_radius, 90.0), "Wrath must open with its charge combo (%s, %s)." % [boss.patterns, boss.combos])
+	_check(boss.patterns == [Boss.Pattern.CHARGE, Boss.Pattern.AIMED] and boss.combos.get(Boss.Pattern.CHARGE, []) == [Boss.Pattern.CHARGE, Boss.Pattern.SLAM] and boss.phase_thresholds == [0.5, 0.2] and is_equal_approx(boss.slam_radius, 90.0), "Wrath must open with its charge combo and its fan (%s, %s)." % [boss.patterns, boss.combos])
 	var wrath_guard: Boss = run.guards[0]
 	_check(wrath_guard.phase_thresholds.is_empty() and wrath_guard.phase_combos.is_empty() and wrath_guard.combos.is_empty(), "Wrath's guards must keep phase one with no phases or combos.")
 	wrath_guard.start_attack(Boss.Pattern.CHARGE)
@@ -329,6 +360,128 @@ func _run() -> void:
 		if actor is Bomber:
 			bombers += 1
 	_check(run.enemy_count > horde and bombers == run.enemy_count - horde, "Wrath's summons must be bombers (%d)." % bombers)
+	_check(not sin_boss.patterns.has(Boss.Pattern.SUMMON), "Damnation Wrath must not summon before its enrage.")
+	run.queue_free()
+	await _ticks(2)
+
+	# 5. Greed: a coin ring with gaps either side of the angel, and ground casters.
+	run = _new_run(0, 1)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	_check(run.guards[0].patterns == [Boss.Pattern.COINS] and run.guards[0].combos.is_empty(), "Greed's guards must only throw coins (%s)." % [run.guards[0].patterns])
+	boss = _pride(run)
+	_check(boss.patterns == [Boss.Pattern.COINS, Boss.Pattern.SUMMON] and boss.summon_type == Run.CASTER and boss.phase_thresholds == [0.6, 0.25], "Greed must open with coins and casters (%s)." % [boss.patterns])
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.COINS)
+	var aim: Vector2 = boss.charge_direction
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.COINS] * 60.0) + 2)
+	var coins: Array[Node] = _take_shots()
+	_check(_is_coin_ring(coins, aim, 0.0), "A coin ring must fill every slot but the gap either side of the angel (%d coins)." % coins.size())
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.COINS] * 60.0) + 2)
+	run.spawn_sin_boss()
+	await _ticks(2)
+	var greed: Boss = run.current_boss
+	greed.attack_left = 999.0
+	horde = run.enemy_count
+	greed._attack(Boss.Pattern.SUMMON)
+	await _ticks(1)
+	var casters: int = 0
+	for actor: Node in run.actors.get_children():
+		if actor is GroundCaster and not actor is Mortar and not actor is Mirror:
+			casters += 1
+	_check(run.enemy_count > horde and casters == run.enemy_count - horde, "Greed's summons must be ground casters (%d)." % casters)
+	greed.queue_free()
+	# The casters would fire into the coin counts below.
+	for actor: Node in run.actors.get_children():
+		if actor is GroundCaster:
+			actor.queue_free()
+	# 60%: violet rain around the angel, landing one after another, reaching it in the air.
+	boss.take_hit(boss.max_health - roundi(boss.max_health * 0.6) + 1)
+	_check(boss.phase == 2 and boss.patterns.has(Boss.Pattern.RAIN), "At 60%% Greed must add rain (%s)." % [boss.patterns])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	await _take_off(player)
+	boss.start_attack(Boss.Pattern.RAIN)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.RAIN] * 60.0) + 2)
+	var drops: Array[GroundStrike] = []
+	for child: Node in run.actors.get_children():
+		if child is GroundStrike:
+			drops.append(child)
+	_check(drops.size() == Boss.RAIN_SPOTS.size() and drops.all(func(drop: GroundStrike) -> bool: return drop.from_air) and drops[1].delay > drops[0].delay, "Rain must mark five staggered air circles (%d)." % drops.size())
+	_check(drops[0].global_position.distance_to(player.global_position) < 1.0, "Rain must fall around the angel.")
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.RAIN_DELAY * 60.0) + 2)
+	_check(player.is_airborne() and player.health < health, "Rain must reach a flying angel.")
+	Input.action_release(&"jump")
+	player.invulnerable_left = 100000.0
+	await _settle()
+	await _ticks(60)
+	# A quarter: coin volleys spiral (three rings, each turned half a slot).
+	boss.take_hit(boss.health - roundi(boss.max_health * 0.25) + 1)
+	_check(boss.phase == 3 and boss.combos.get(Boss.Pattern.COINS, []) == [Boss.Pattern.COINS, Boss.Pattern.COINS], "At a quarter Greed's coins must spiral (%s)." % [boss.combos])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	_take_shots()
+	boss.start_attack(Boss.Pattern.COINS)
+	var spiral_aim: Vector2 = boss.charge_direction
+	# The angel moves between rings; a spiral keeps its aim and only turns.
+	for ring: int in range(3):
+		await _ticks(int(Boss.WINDUPS[Boss.Pattern.COINS] * 60.0) + 1)
+		var volley: Array[Node] = _take_shots()
+		_check(_is_coin_ring(volley, spiral_aim, ring * PI / Boss.COIN_SLOTS), "Spiral ring %d must be the volley's ring turned %d half-slots (%d coins)." % [ring + 1, ring, volley.size()])
+		player.global_position += Vector2(0.0, 40.0)
+	boss._cancel()
+	run.queue_free()
+	await _ticks(2)
+
+	# Smarter Greed: Purgatory adds a coin wave; Damnation leads its rain.
+	run = _new_run(1, 1)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(boss.phase_combos.size() == 3 and boss.phase_combos[0].get(Boss.Pattern.COINS, []) == [Boss.Pattern.COINS] and boss.phase_combos[1].get(Boss.Pattern.COINS, []) == [Boss.Pattern.COINS] and boss.phase_combos[2].get(Boss.Pattern.COINS, []) == [Boss.Pattern.COINS, Boss.Pattern.COINS, Boss.Pattern.COINS] and not boss.lead_rain, "Purgatory Greed must add one coin wave in every phase (%s)." % [boss.phase_combos])
+	run.queue_free()
+	await _ticks(2)
+	run = _new_run(2, 1)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	boss = _pride(run)
+	_check(boss.lead_rain, "Damnation Greed must lead its rain.")
+	await _ticks(2)
+	Input.action_press(&"move_right")
+	await _ticks(3)
+	boss._attack(Boss.Pattern.RAIN)
+	var lead_center: Vector2 = player.global_position + player.velocity.limit_length(player.movement_speed) * Boss.RAIN_LEAD
+	Input.action_release(&"move_right")
+	var first: GroundStrike = null
+	for child: Node in run.actors.get_children():
+		if child is GroundStrike:
+			first = child
+			break
+	_check(first != null and first.global_position.distance_to(lead_center) < 1.0 and player.velocity.length() > 100.0, "A leading rain must land where the angel is heading.")
+	for child: Node in run.actors.get_children():
+		if child is GroundStrike:
+			child.free()
+	# A dash does not throw the rain across the arena: the lead is capped at walking speed.
+	await _ticks(30)
+	player.dash_cooldown_left = 0.0
+	player.dash_direction = Vector2.RIGHT
+	Input.action_press(&"dash")
+	await _ticks(2)
+	Input.action_release(&"dash")
+	var dashing: float = player.velocity.length()
+	var from: Vector2 = player.global_position
+	boss._attack(Boss.Pattern.RAIN)
+	var dash_drop: GroundStrike = null
+	for child: Node in run.actors.get_children():
+		if child is GroundStrike:
+			dash_drop = child
+			break
+	_check(dashing > player.movement_speed * 1.5 and dash_drop != null and dash_drop.global_position.distance_to(from) <= player.movement_speed * Boss.RAIN_LEAD + 1.0, "A dash must not throw the rain further than walking would (%f)." % (dash_drop.global_position.distance_to(from) if dash_drop != null else -1.0))
 
 	await _settle()
 	run.queue_free()

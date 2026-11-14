@@ -243,6 +243,9 @@ var hurt_flash_left: float = 0.0
 ## Status: walking speed is multiplied by slow_factor while slow_left runs (dashes are not).
 var slow_left: float = 0.0
 var slow_factor: float = 1.0
+## Status: a pull (a boss's inhale) gathered this tick, added to walking and cleared after it.
+## Dashes ignore it.
+var pull: Vector2 = Vector2.ZERO
 var afterimage_left: float = 0.0
 
 @onready var spear_cast: RayCast2D = $SpearCast
@@ -405,10 +408,12 @@ func _physics_process(delta: float) -> void:
 		afterimage_left = 0.0
 		dashed.emit()
 
+	# A dash ignores any pull; either way the pull is spent each tick (it never builds up).
 	if dash_time_left > 0.0:
 		velocity = dash_direction * dash_speed
 	else:
-		velocity = movement * movement_speed * lerpf(1.0, flight_speed_multiplier, lift) * (slow_factor if slow_left > 0.0 and not is_airborne() else 1.0)
+		velocity = movement * movement_speed * lerpf(1.0, flight_speed_multiplier, lift) * (slow_factor if slow_left > 0.0 and not is_airborne() else 1.0) + pull
+	pull = Vector2.ZERO
 	move_and_slide()
 	if not movement.is_zero_approx():
 		mount_direction = movement.normalized()
@@ -845,6 +850,14 @@ func take_damage(amount: int, from_air: bool = false) -> bool:
 
 ## A telegraphed ground effect slows the angel's walking for a while; like a ground attack, it
 ## misses an airborne or dashing angel. Returns true when it took hold.
+## A telegraphed pull for this tick (a velocity); slower than walking, so the angel can walk or
+## dash out (a dash ignores it). Ignored while dead or descending.
+func apply_pull(force: Vector2) -> void:
+	if is_dead or is_descending():
+		return
+	pull += force
+
+
 func apply_slow(factor: float, duration: float) -> bool:
 	if is_dead or is_descending() or is_airborne() or dash_time_left > 0.0:
 		return false

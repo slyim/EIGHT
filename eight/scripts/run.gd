@@ -170,8 +170,17 @@ const BOSSES: Array[Dictionary] = [
 		"smart": {"reaim": 0, "double_blink": 1, "summon": [2, FLYER]}},
 	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
+	# Gluttony: leaps onto the angel's spot and leaves bile, and vomits a wide fan; at half health
+	# it devours (pulls the angel and the horde into its mouth, eats horde enemies, bites; it never
+	# heals); at a fifth it summons splitters. Smarter tiers leap twice (smarts 1+) and leave bile
+	# longer (smarts 2+).
 	{"name": "GLUTTONY", "health": 220, "speed": 60.0, "radius": 54.0, "interval": 2.6, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_gluttony.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_gluttony.aseprite"), "patterns": [Boss.Pattern.LEAP, Boss.Pattern.VOMIT],
+		"phase_thresholds": [0.5, 0.2],
+		"phase_patterns": [[Boss.Pattern.LEAP, Boss.Pattern.VOMIT], [Boss.Pattern.LEAP, Boss.Pattern.VOMIT, Boss.Pattern.DEVOUR],
+			[Boss.Pattern.LEAP, Boss.Pattern.VOMIT, Boss.Pattern.DEVOUR, Boss.Pattern.SUMMON]],
+		"phase_combos": [{}, {}, {}], "summon_type": SPLITTER,
+		"smart": {"double_leap": 1, "long_bile": 2}},
 	# Wrath: charges twice and slams where it stops; at half health it enrages (faster, and a
 	# burst after each charge); at a fifth it adds shockwaves. Smarter tiers re-aim its second
 	# charge (smarts 1+) and let it summon bombers once enraged (smarts 2+).
@@ -914,6 +923,9 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		if smart.has("double_blink") and tier >= int(smart["double_blink"]) and combo.has(Boss.Pattern.BLINK):
 			# A smarter Lust blinks and charges twice in a row.
 			combo[Boss.Pattern.BLINK] = combo[Boss.Pattern.BLINK] + [Boss.Pattern.BLINK] + combo[Boss.Pattern.BLINK]
+		if smart.has("double_leap") and tier >= int(smart["double_leap"]):
+			# A smarter Gluttony leaps twice in a row.
+			combo[Boss.Pattern.LEAP] = [Boss.Pattern.LEAP]
 		if smart.has("extra_waves") and tier >= int(smart["extra_waves"]):
 			# A smarter Greed adds a coin wave to every volley.
 			combo[Boss.Pattern.COINS] = combo.get(Boss.Pattern.COINS, []) + [Boss.Pattern.COINS]
@@ -942,6 +954,8 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.summon_type = int((smart["summon"] as Array)[1])
 	if smart.has("lead_rain") and tier >= int(smart["lead_rain"]):
 		boss.lead_rain = true
+	if smart.has("long_bile") and tier >= int(smart["long_bile"]):
+		boss.bile_time = 6.0
 	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
 	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
 	boss.chained_charge_windup = float(data.get("chained_charge_windup", Boss.WINDUPS[Boss.Pattern.CHARGE]))
@@ -958,6 +972,7 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	boss.damaged.connect(_on_enemy_damaged)
 	boss.attacked.connect(play_sfx.bind(&"boss_attack", 0.05).unbind(1))
 	boss.phase_changed.connect(play_sfx.bind(&"boss_spawn", 0.0).unbind(1))
+	boss.ate.connect(_on_boss_ate)
 	return boss
 
 
@@ -981,6 +996,17 @@ func spawn_sin_boss() -> Boss:
 
 ## A summon's spots are chosen when its wind-up starts, so its marks show exactly where the
 ## minions will appear.
+## A devoured horde enemy is simply gone: no kill, no loot, and the boss does not heal.
+func _on_boss_ate(_boss: Boss, enemy: Enemy) -> void:
+	if not is_instance_valid(enemy) or enemy.health <= 0:
+		return
+	enemy.health = 0
+	enemy.collision_shape.set_deferred(&"disabled", true)
+	enemy_count -= 1
+	_spawn_poof(enemy.global_position)
+	enemy.queue_free()
+
+
 func _plan_summon(boss: Boss) -> void:
 	if boss.pending != Boss.Pattern.SUMMON:
 		return

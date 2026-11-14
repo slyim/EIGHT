@@ -9,7 +9,10 @@ extends SceneTree
 ## with gaps either side of the angel and ground casters; violet air rain at 60%; spiralling coin
 ## volleys at a quarter. Smarter Greed adds a coin wave and leads its rain. Lust: charges and
 ## slow violet air kisses; at half health it blinks behind the angel and charges at once.
-## Smarter Lust blinks twice and summons flyers past half health. Native Godot only.
+## Smarter Lust blinks twice and summons flyers past half health. Gluttony: leaps onto the
+## angel's spot and leaves bile; at half health vomits and devours (pulls the angel and the horde
+## in, eats horde enemies without healing, bites); at a fifth summons splitters. Smarter Gluttony
+## leaps twice and leaves bile longer. Native Godot only.
 
 var failures: int = 0
 
@@ -584,6 +587,139 @@ func _run() -> void:
 		if actor is FlyingEnemy and not actor is GroundCaster:
 			flyers += 1
 	_check(run.enemy_count > horde and flyers == run.enemy_count - horde, "Lust's summons must be flyers (%d)." % flyers)
+	run.queue_free()
+	await _ticks(2)
+
+	# 7. Gluttony: a leap onto the angel's spot, leaving bile.
+	run = _new_run(0, 4)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	boss = _pride(run)
+	_check(boss.patterns == [Boss.Pattern.LEAP, Boss.Pattern.VOMIT] and boss.summon_type == Run.SPLITTER and boss.phase_thresholds == [0.5, 0.2], "Gluttony must open with its leap and vomit (%s)." % [boss.patterns])
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.LEAP)
+	var landing: Vector2 = boss.leap_spot
+	_check(landing.distance_to(player.global_position) < 1.0, "A leap must mark where the angel stands.")
+	player.global_position = landing + Vector2(0.0, 200.0)
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.LEAP] * 60.0) + 2)
+	var bile: BileZone = null
+	for child: Node in run.actors.get_children():
+		if child is BileZone:
+			bile = child
+	_check(boss.flash_radius == Boss.LEAP_RADIUS and boss.slam_flash_left > 0.0, "The landing flash must cover the leap's circle.")
+	_check(boss.global_position.distance_to(landing) < 1.0 and bile != null and bile.global_position.distance_to(landing) < 1.0 and is_equal_approx(bile.lifetime, 4.0), "Gluttony must land on the mark and leave bile.")
+	_check(player.health == health, "An angel who left the circle must be safe.")
+	# Walking into the bile hurts; flying over it does not.
+	player.global_position = landing + Vector2(40.0, 0.0)
+	await _ticks(3)
+	_check(player.health < health, "Bile must hurt a grounded angel in it.")
+	player.invulnerable_left = 100000.0
+	await _settle()
+	player.global_position = landing + Vector2(0.0, 300.0)
+	await _take_off(player)
+	player.global_position = landing + Vector2(40.0, 0.0)
+	player.invulnerable_left = 0.0
+	health = player.health
+	# Longer than one bile tick, so the puddle surely checks the angel.
+	await _ticks(int(BileZone.TICK * 60.0) + 10)
+	_check(player.is_airborne() and player.health == health and is_instance_valid(bile) and bile.global_position.distance_to(player.global_position) < bile.radius, "Flying over bile must be safe (airborne %s, bile %s, %d)." % [player.is_airborne(), is_instance_valid(bile), health - player.health])
+	Input.action_release(&"jump")
+	player.invulnerable_left = 100000.0
+	player.global_position = landing + Vector2(0.0, 300.0)
+	await _ticks(40)
+	# A leap landing on the angel hurts.
+	boss.attack_left = 999.0
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.LEAP] * 60.0) + 2)
+	boss.start_attack(Boss.Pattern.LEAP)
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.LEAP] * 60.0) + 2)
+	_check(player.health < health, "A leap must hurt an angel still in its circle.")
+	player.invulnerable_left = 100000.0
+	await _settle()
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.LEAP] * 60.0) + 2)
+	for child: Node in run.actors.get_children():
+		if child is BileZone:
+			child.queue_free()
+
+	# Half health: a wide vomit fan and the devour.
+	boss.take_hit(boss.max_health / 2 + 1)
+	_check(boss.phase == 2 and boss.patterns.has(Boss.Pattern.DEVOUR), "At half health Gluttony must devour (%s)." % [boss.patterns])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	boss.speed = 0.0
+	_take_shots()
+	boss.start_attack(Boss.Pattern.VOMIT)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.VOMIT] * 60.0) + 1)
+	_check(_take_shots().size() == Boss.VOMIT_COUNT, "Vomit must be a fan of nine shots.")
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.VOMIT] * 60.0) + 2)
+	# The devour pulls the angel in, eats horde enemies (no kill, no heal), and bites.
+	player.global_position = boss.global_position + Vector2(220.0, 0.0)
+	var prey: Enemy = run.spawn_enemy(Run.HUSK, boss.global_position + Vector2(140.0, 20.0))
+	prey.speed = 0.0
+	await _ticks(1)
+	var gluttony_health: int = boss.health
+	var kills: int = run.kills
+	horde = run.enemy_count
+	boss.start_attack(Boss.Pattern.DEVOUR)
+	_check(boss.get_meta(&"light") == Boss.AIR_TELEGRAPH_LIGHT, "The devour must be told in violet (it reaches the air).")
+	var start_gap: float = player.global_position.distance_to(boss.global_position)
+	await _ticks(int((Boss.WINDUPS[Boss.Pattern.DEVOUR] + 0.6) * 60.0))
+	_check(boss.devour_left > 0.0 and player.global_position.distance_to(boss.global_position) < start_gap - 40.0, "The inhale must pull the angel toward the mouth.")
+	await _ticks(30)
+	_check(not is_instance_valid(prey) and run.enemy_count == horde - 1 and run.kills == kills and boss.health == gluttony_health, "Prey reaching the mouth must be eaten: no kill, no heal (valid %s, count %d vs %d, kills %d vs %d, health %d vs %d)." % [is_instance_valid(prey), run.enemy_count, horde - 1, run.kills, kills, boss.health, gluttony_health])
+	# The bite reaches the air (Gluttony's body does not), so a flying angel at the mouth tells
+	# the bite apart from plain contact.
+	await _take_off(player)
+	player.global_position = boss.global_position + Vector2(boss.radius + 30.0, 0.0)
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.DEVOUR_TIME * 60.0))
+	_check(player.is_airborne() and player.health == health - roundi(boss.contact_damage * Boss.BITE_SCALE) and boss.devour_left <= 0.0, "The closing bite must hurt an angel at the mouth, even in the air (%d)." % (health - player.health))
+	Input.action_release(&"jump")
+	player.invulnerable_left = 100000.0
+	await _ticks(30)
+	await _settle()
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.DEVOUR] * 60.0) + 2)
+	# A dash is not pulled.
+	player.global_position = boss.global_position + Vector2(220.0, 0.0)
+	boss.start_attack(Boss.Pattern.DEVOUR)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.DEVOUR] * 60.0) + 2)
+	player.dash_cooldown_left = 0.0
+	player.pull = Vector2.ZERO
+	Input.action_press(&"move_right")
+	Input.action_press(&"dash")
+	await _ticks(2)
+	Input.action_release(&"dash")
+	Input.action_release(&"move_right")
+	_check(player.dash_time_left > 0.0 and player.velocity.x > player.dash_speed - 1.0, "A dash must escape the pull at full speed (%s)." % player.velocity)
+	boss._cancel()
+	# A fifth: splitters join.
+	boss.take_hit(boss.health - boss.max_health / 5 + 1)
+	_check(boss.phase == 3 and boss.patterns.has(Boss.Pattern.SUMMON), "At a fifth Gluttony must summon (%s)." % [boss.patterns])
+	run.queue_free()
+	await _ticks(2)
+
+	# Smarter Gluttony: Purgatory leaps twice; Damnation's bile lasts longer.
+	run = _new_run(1, 4)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(boss.phase_combos.size() == 3 and boss.phase_combos.all(func(combo: Dictionary) -> bool: return combo.get(Boss.Pattern.LEAP, []) == [Boss.Pattern.LEAP]) and is_equal_approx(boss.bile_time, 4.0), "Purgatory Gluttony must leap twice in every phase (%s)." % [boss.phase_combos])
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.LEAP)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.LEAP] * 60.0) + 1)
+	_check(boss.pending == Boss.Pattern.LEAP and is_equal_approx(boss.windup_total, Boss.CHAINED_LEAP_WINDUP), "The second leap must be told for less time (%f)." % boss.windup_total)
+	boss._cancel()
+	run.queue_free()
+	await _ticks(2)
+	run = _new_run(2, 4)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(is_equal_approx(boss.bile_time, 6.0), "Damnation Gluttony's bile must last longer.")
 
 	await _settle()
 	run.queue_free()

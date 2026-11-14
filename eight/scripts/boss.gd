@@ -19,17 +19,19 @@ extends Enemy
 signal summon_requested(boss: Boss, count: int)
 signal attacked(boss: Boss)
 signal phase_changed(boss: Boss)
+## A devour swallowed a horde enemy (it is gone; nothing is earned and the boss does not heal).
+signal ate(boss: Boss, enemy: Enemy)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8]
 ## PLACEHOLDER kisses: a fan of slow air shots.
 const KISS_COUNT: int = 3
 const KISS_SPREAD: float = 0.22
@@ -38,6 +40,24 @@ const KISS_SPEED: float = 185.0
 const BLINK_BEHIND: float = 120.0
 const BLINK_COLOR: Color = Color(1.6, 1.5, 1.2, 1.0)
 const BLINK_FILL: Color = Color(0.45, 0.4, 0.35, 0.18)
+## PLACEHOLDER leap: a circle marks where the angel stood; the boss lands there and leaves bile.
+const LEAP_RADIUS: float = 120.0
+## A leap that follows another in a combo (smarter Gluttony) is told for less time.
+const CHAINED_LEAP_WINDUP: float = 0.7
+const BILE_RADIUS: float = 90.0
+## PLACEHOLDER vomit: a wide fan of ground shots.
+const VOMIT_COUNT: int = 9
+const VOMIT_SPREAD: float = 0.18
+## PLACEHOLDER devour: an inhale cone in front of the mouth pulls the angel and the horde in;
+## horde enemies reaching the mouth are eaten; anyone still at the mouth when it closes is bitten.
+const DEVOUR_TIME: float = 1.2
+const DEVOUR_RANGE: float = 260.0
+const DEVOUR_HALF_ANGLE: float = 0.6
+const PULL_ANGEL: float = 150.0
+const PULL_HORDE: float = 220.0
+## The bite reaches this far past the boss's body, inside the cone.
+const BITE_REACH: float = 60.0
+const BITE_SCALE: float = 1.5
 ## PLACEHOLDER coin ring: shots in COIN_SLOTS directions, leaving gaps COIN_GAP slots either
 ## side of the angel (right beside the shot at it, so a step either way reaches one at any
 ## range); each chained ring keeps the volley's aim and turns half a slot, so it spirals.
@@ -106,6 +126,8 @@ var guard_left: float = 0.0
 var guard_facing: Vector2 = Vector2.RIGHT
 var block_flash_left: float = 0.0
 var slam_flash_left: float = 0.0
+## The landing flash covers exactly what just hit (a slam's or a leap's circle).
+var flash_radius: float = SLAM_RADIUS
 ## Combos for the current phase (pattern -> the patterns that follow it), one per phase from the
 ## sin's data, and the steps still to come in the running combo.
 var phase_combos: Array[Dictionary] = []
@@ -138,6 +160,12 @@ var coin_turn: float = 0.0
 var blink_spot: Vector2 = Vector2.ZERO
 ## The wind-up of a charge that follows another step in a combo (Lust's is quicker).
 var chained_charge_windup: float = WINDUPS[Pattern.CHARGE]
+## Where a pending leap lands (world position), chosen when its tell starts.
+var leap_spot: Vector2 = Vector2.ZERO
+## Seconds a leap's bile lasts (longer on smarter tiers).
+var bile_time: float = 4.0
+## Seconds left of a devour's inhale.
+var devour_left: float = 0.0
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
@@ -200,6 +228,16 @@ func _physics_process(delta: float) -> void:
 	elif leashed:
 		var to_home: Vector2 = home - global_position
 		velocity = to_home.normalized() * speed if to_home.length() > speed * delta * 2.0 else Vector2.ZERO
+	elif devour_left > 0.0:
+		devour_left -= delta
+		velocity = Vector2.ZERO
+		_inhale(delta)
+		if devour_left <= 0.0:
+			devour_left = 0.0
+			_bite()
+			remove_from_group(&"light")
+			_finish(Pattern.DEVOUR)
+		queue_redraw()
 	elif guard_left > 0.0:
 		# The stance: stand behind the shield, turning slowly to face the angel, then slam.
 		guard_left -= delta
@@ -220,7 +258,8 @@ func _physics_process(delta: float) -> void:
 			pending = -1
 			remove_from_group(&"light")
 			_attack(released)
-			if charge_left <= 0.0 and guard_left <= 0.0:
+			# Charges, guard stances and inhales finish when they run out, not now.
+			if charge_left <= 0.0 and guard_left <= 0.0 and devour_left <= 0.0:
 				_finish(released)
 		queue_redraw()
 	elif charge_left > 0.0:
@@ -251,6 +290,8 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 	windup_left = slam_windup if pattern == Pattern.SLAM else WINDUPS[pattern]
 	if chained and pattern == Pattern.CHARGE:
 		windup_left = chained_charge_windup
+	elif chained and pattern == Pattern.LEAP:
+		windup_left = CHAINED_LEAP_WINDUP
 	windup_total = windup_left
 	if not chained:
 		combo_queue.assign(combos.get(pattern, []))
@@ -268,12 +309,14 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 	fan_from_air = (pattern == Pattern.AIMED and air_fans and randf() < 0.5) or pattern == Pattern.KISSES
 	if pattern == Pattern.BLINK:
 		blink_spot = _blink_spot()
+	if pattern == Pattern.LEAP:
+		leap_spot = _leap_spot()
 	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
 	attack_pose_left = ATTACK_POSE_TIME + windup_left
 	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks
 	# and a raised guard do not.
-	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air or pattern == Pattern.RAIN else TELEGRAPH_LIGHT)
+	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air or pattern == Pattern.RAIN or pattern == Pattern.DEVOUR else TELEGRAPH_LIGHT)
 	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD and pattern != Pattern.BLINK:
 		add_to_group(&"light")
 	attacked.emit(self)
@@ -290,6 +333,54 @@ func _blink_spot() -> Vector2:
 		if _spot_clear(spot):
 			return spot
 	return global_position
+
+
+## Where the angel stands, kept inside the arena and off walls and obstacles (a leap is an attack:
+## it may land on the angel).
+func _leap_spot() -> Vector2:
+	var spot: Vector2 = target.global_position.clamp(Run.ARENA_RECT.position + Vector2(radius, radius), Run.ARENA_RECT.end - Vector2(radius, radius))
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = collision_shape.shape
+	query.transform = Transform2D(0.0, spot)
+	query.collision_mask = collision_mask
+	query.exclude = [get_rid()]
+	return spot if get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty() else global_position
+
+
+## True when a point is inside the devour's cone (in front of the mouth, within its range).
+func in_mouth_cone(point: Vector2, reach: float) -> bool:
+	var offset: Vector2 = point - global_position
+	return offset.length() <= reach and (offset.length() < 1.0 or absf(charge_direction.angle_to(offset)) <= DEVOUR_HALF_ANGLE)
+
+
+## The inhale: the angel and the horde inside the cone are pulled toward the mouth; horde
+## enemies reaching it are eaten.
+func _inhale(delta: float) -> void:
+	if in_mouth_cone(target.global_position, DEVOUR_RANGE):
+		target.apply_pull((global_position - target.global_position).normalized() * PULL_ANGEL)
+	var circle: CircleShape2D = CircleShape2D.new()
+	circle.radius = DEVOUR_RANGE
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = circle
+	query.transform = Transform2D(0.0, global_position)
+	query.collision_mask = 8 | 16
+	query.exclude = [get_rid()]
+	for result: Dictionary in get_world_2d().direct_space_state.intersect_shape(query, LightRain.MAX_TARGETS):
+		var prey: Enemy = result["collider"] as Enemy
+		if prey == null or prey is Boss or prey.health <= 0 or not in_mouth_cone(prey.global_position, DEVOUR_RANGE):
+			continue
+		if prey.global_position.distance_to(global_position) <= radius + prey.radius:
+			ate.emit(self, prey)
+		else:
+			prey.knockback = (global_position - prey.global_position).normalized() * PULL_HORDE
+	if delta > 0.0:
+		queue_redraw()
+
+
+## The mouth closes: a big bite for an angel still right in front of it (it reaches the air).
+func _bite() -> void:
+	if in_mouth_cone(target.global_position, radius + BITE_REACH + MountedPlayer.HURT_RADIUS):
+		target.take_damage(roundi(contact_damage * BITE_SCALE), true)
 
 
 ## No wall, obstacle, angel, or ground enemy where the boss's body would stand.
@@ -314,6 +405,7 @@ func _cancel() -> void:
 	windup_left = 0.0
 	charge_left = 0.0
 	guard_left = 0.0
+	devour_left = 0.0
 	combo_queue.clear()
 	pending = -1
 	remove_from_group(&"light")
@@ -363,6 +455,25 @@ func _attack(pattern: int) -> void:
 		Pattern.KISSES:
 			for index: int in range(KISS_COUNT):
 				_fire(charge_direction.rotated((index - (KISS_COUNT - 1) * 0.5) * KISS_SPREAD), KISS_SPEED)
+		Pattern.LEAP:
+			global_position = leap_spot
+			slam_flash_left = SLAM_FLASH
+			flash_radius = LEAP_RADIUS
+			if global_position.distance_to(target.global_position) <= LEAP_RADIUS + MountedPlayer.HURT_RADIUS:
+				target.take_damage(contact_damage)
+			var bile: BileZone = BileZone.new()
+			bile.radius = BILE_RADIUS
+			bile.lifetime = bile_time
+			bile.damage = maxi(1, shot_damage / 2)
+			bile.target = target
+			get_parent().add_child(bile)
+			bile.global_position = leap_spot
+		Pattern.VOMIT:
+			for index: int in range(VOMIT_COUNT):
+				_fire(charge_direction.rotated((index - (VOMIT_COUNT - 1) * 0.5) * VOMIT_SPREAD))
+		Pattern.DEVOUR:
+			devour_left = DEVOUR_TIME
+			add_to_group(&"light")
 		Pattern.BLINK:
 			# If the marked spot is taken now (the angel walked onto it), the blink is called off:
 			# never land somewhere else, never land on the angel.
@@ -388,6 +499,7 @@ func _attack(pattern: int) -> void:
 			guard_facing = charge_direction
 		Pattern.SLAM:
 			slam_flash_left = SLAM_FLASH
+			flash_radius = slam_radius
 			if global_position.distance_to(target.global_position) <= slam_radius + MountedPlayer.HURT_RADIUS:
 				target.take_damage(contact_damage)
 		Pattern.SHOCKWAVE:
@@ -501,10 +613,10 @@ static func draw_lane(item: CanvasItem, direction: Vector2, length: float, half_
 ## A ground circle about to strike: a dark-backed ember ring and a stepped fill.
 ## A circle about to strike: a dark-backed ring and a stepped fill; ember for the ground, violet
 ## for the air.
-static func draw_circle_tell(item: CanvasItem, radius: float, fill: float, air: bool = false) -> void:
-	item.draw_circle(Vector2.ZERO, radius * fill, AIR_FILL if air else EMBER_FILL)
-	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, BACKING, 6.0)
-	item.draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(VIOLET if air else EMBER, 0.85), 2.0)
+static func draw_circle_tell(item: CanvasItem, radius: float, fill: float, air: bool = false, at: Vector2 = Vector2.ZERO) -> void:
+	item.draw_circle(at, radius * fill, AIR_FILL if air else EMBER_FILL)
+	item.draw_arc(at, radius, 0.0, TAU, 48, BACKING, 6.0)
+	item.draw_arc(at, radius, 0.0, TAU, 48, Color(VIOLET if air else EMBER, 0.85), 2.0)
 
 
 func _draw() -> void:
@@ -520,7 +632,9 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, BACKING, 6.0)
 		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, Shielder.BLOCK_COLOR if block_flash_left > 0.0 else Shielder.SHIELD_COLOR, 2.0)
 	if slam_flash_left > 0.0:
-		draw_circle(Vector2.ZERO, slam_radius, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
+		draw_circle(Vector2.ZERO, flash_radius, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
+	if devour_left > 0.0:
+		_draw_cone(1.0)
 	if windup_left <= 0.0 or pending < 0:
 		return
 	var fill: float = windup_progress()
@@ -570,6 +684,17 @@ func _draw() -> void:
 			var mouth: float = charge_direction.angle()
 			draw_arc(Vector2.ZERO, radius + 12.0, mouth - KISS_SPREAD, mouth + KISS_SPREAD, 12, BACKING, 6.0)
 			draw_arc(Vector2.ZERO, radius + 12.0, mouth - KISS_SPREAD, mouth + KISS_SPREAD, 12, VIOLET, 2.0)
+		Pattern.LEAP:
+			# Where it will land: the angel's spot, a wide ember circle (fly over it or leave it).
+			draw_circle_tell(self, LEAP_RADIUS, fill, false, leap_spot - global_position)
+			var toward_leap: Vector2 = (leap_spot - global_position).normalized()
+			draw_tell(self, toward_leap * (radius + 4.0), toward_leap * (radius + 28.0), Color(EMBER, 0.85))
+		Pattern.VOMIT:
+			for index: int in range(VOMIT_COUNT):
+				var spray: Vector2 = charge_direction.rotated((index - (VOMIT_COUNT - 1) * 0.5) * VOMIT_SPREAD)
+				draw_tell(self, spray * radius, spray * (radius + 40.0 + 120.0 * fill), Color(EMBER, 0.7))
+		Pattern.DEVOUR:
+			_draw_cone(fill)
 		Pattern.BLINK:
 			# On the boss: a pale ring drawing in, and a tick pointing where it will appear.
 			var gather: float = roundf((radius + 16.0 * (1.0 - fill)) / 2.0) * 2.0
@@ -591,3 +716,16 @@ func _draw() -> void:
 			for spot: Vector2 in summon_offsets():
 				draw_arc(spot, 6.0 + 8.0 * fill, 0.0, TAU, 12, BACKING, 6.0)
 				draw_arc(spot, 6.0 + 8.0 * fill, 0.0, TAU, 12, Color(SUMMON_MARK, 0.8), 2.0)
+
+
+## The devour's cone (violet: it reaches a flying angel) and the bite zone at the mouth.
+func _draw_cone(fill: float) -> void:
+	var at: float = charge_direction.angle()
+	var edge: Vector2 = Vector2.RIGHT * DEVOUR_RANGE
+	for side: float in [-DEVOUR_HALF_ANGLE, DEVOUR_HALF_ANGLE]:
+		draw_tell(self, Vector2.from_angle(at + side) * radius, edge.rotated(at + side), Color(VIOLET, 0.8))
+	draw_arc(Vector2.ZERO, DEVOUR_RANGE, at - DEVOUR_HALF_ANGLE, at + DEVOUR_HALF_ANGLE, 24, BACKING, 6.0)
+	draw_arc(Vector2.ZERO, DEVOUR_RANGE, at - DEVOUR_HALF_ANGLE, at + DEVOUR_HALF_ANGLE, 24, Color(VIOLET, 0.8), 2.0)
+	var bite: float = radius + BITE_REACH
+	draw_arc(Vector2.ZERO, bite, at - DEVOUR_HALF_ANGLE, at + DEVOUR_HALF_ANGLE, 16, BACKING, 6.0)
+	draw_arc(Vector2.ZERO, bite, at - DEVOUR_HALF_ANGLE, at + DEVOUR_HALF_ANGLE, 16, Color(VIOLET, 0.5 + 0.5 * fill), 2.0)

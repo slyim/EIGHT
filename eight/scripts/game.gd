@@ -15,10 +15,11 @@ const HUB_SCENE: String = "res://scenes/hub.tscn"
 ## Seconds the saved realm stays on screen before returning to the hub.
 const WIN_LINGER: float = 1.6
 
-## The map the next Game loads (a BOSSES index; 7 is Satan) and its difficulty tier. Kept
-## across a restart (R).
+## The map the next Game loads (a BOSSES index; 7 is Satan), its difficulty tier, and whether
+## it rolled Scorched Earth. Kept across a restart (R).
 static var map_index: int = 0
 static var tier: int = 0
+static var scorched: bool = false
 
 @onready var view: SubViewportContainer = $WorldView
 @onready var run: Run = $WorldView/World/Run
@@ -30,9 +31,10 @@ static func map_path(index: int) -> String:
 
 
 ## Opens a sin's map on a tier from anywhere (the hub).
-static func start_map(tree: SceneTree, index: int, on_tier: int = 0) -> void:
+static func start_map(tree: SceneTree, index: int, on_tier: int = 0, with_scorched: bool = false) -> void:
 	map_index = index
 	tier = clampi(on_tier, 0, Run.TIERS.size() - 1)
+	scorched = with_scorched
 	tree.paused = false
 	tree.change_scene_to_file(GAME_SCENE)
 
@@ -49,6 +51,7 @@ func _notification(what: int) -> void:
 		var map: Run = (load(map_path(map_index)) as PackedScene).instantiate() as Run
 		map.name = &"Run"
 		map.tier = tier
+		map.scorched = scorched
 		get_node(^"WorldView/World").add_child(map)
 
 

@@ -265,10 +265,10 @@ const FEATHERS_PER_SHRINE: int = 15
 const FEATHERS_PER_SIN: int = 50
 const FEATHERS_PER_SATAN: int = 100
 const FEATHER_GEM_VALUE: int = 5
-## PLACEHOLDER champion elites: from a minute in, about one horde spawn a minute (never more than
+## PLACEHOLDER champion elites: from 30 s in, about one horde spawn a minute (never more than
 ## two alive) comes out gold-tinted and ringed, tougher and faster, worth more experience, and
 ## always dropping a feather gem. Multipliers apply after the tier and the clock.
-const ELITE_START: float = 60.0
+const ELITE_START: float = 30.0
 const ELITE_GAP_MIN: float = 45.0
 const ELITE_GAP_MAX: float = 75.0
 const ELITE_MAX: int = 2
@@ -278,6 +278,12 @@ const ELITE_SPEED: float = 1.1
 const ELITE_XP: int = 4
 const ELITE_TINT: Color = Color(1.35, 1.1, 0.45, 1.0)
 const ELITE_RING: Color = Color(1.0, 0.82, 0.3, 1.0)
+## PLACEHOLDER map modifier Scorched Earth, rolled by the hub for one run in three and announced
+## on landing: lava burns harder and more often, and the run's feathers count for more.
+const SCORCHED_CHANCE: float = 1.0 / 3.0
+const SCORCHED_BURN: float = 1.5
+const SCORCHED_INTERVAL: float = 0.85
+const SCORCHED_FEATHERS: float = 1.25
 
 ## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
 ## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
@@ -384,6 +390,8 @@ var elapsed: float = 0.0
 var spawn_left: float = 1.0
 ## Seconds until the next horde spawn comes out a champion elite.
 var elite_left: float = ELITE_START
+## This run's map modifier (set before it enters the tree; see Game.start_map).
+var scorched: bool = false
 var shrine_time_left: float = 0.0
 var shrines_left: int = 0
 ## Shrines the map started with (0 on Satan's map, or on a map authored without any).
@@ -481,6 +489,9 @@ func _ready() -> void:
 		_scatter_lava()
 	else:
 		lava.set_pools(lava_layout)
+	if scorched:
+		lava.burn_damage = roundi(lava.burn_damage * SCORCHED_BURN)
+		lava.burn_interval *= SCORCHED_INTERVAL
 	_scatter_decor()
 	_spawn_guards()
 	_place_chests()
@@ -489,7 +500,13 @@ func _ready() -> void:
 		player.begin_descent(DESCENT_HEIGHT, DESCENT_TIME)
 	else:
 		has_landed = true
+		_announce_modifier()
 		music.play()
+
+
+func _announce_modifier() -> void:
+	if scorched:
+		hud.announce("SCORCHED EARTH: THE LAVA BURNS HOTTER", Hud.BURN_TINT)
 
 
 ## Pins the haze to the world: the veil learns which world area the view shows this frame.
@@ -513,6 +530,7 @@ func _on_player_landed() -> void:
 		return
 	# First touchdown on the plain: the run begins.
 	has_landed = true
+	_announce_modifier()
 	play_sfx(&"holy_land", 0.0)
 	_spawn_poof(player.global_position + Vector2(0.0, 12.0))
 	music.play()
@@ -858,7 +876,7 @@ func spawn_batch() -> int:
 
 ## Feathers this run is worth: everything earned times the tier's reward.
 func feathers_total() -> int:
-	return floori(feathers_earned * float(TIERS[tier]["feathers"]))
+	return floori(feathers_earned * float(TIERS[tier]["feathers"]) * (SCORCHED_FEATHERS if scorched else 1.0))
 
 
 ## Search outward from the death site, keeping the whole portal clear of walls and obstacles.

@@ -49,7 +49,7 @@ func _run() -> void:
 	await _wait_ticks(3)
 	run.player.invulnerable_left = 100000.0
 	run.feather_drop_chance = 0.0
-	_check(is_equal_approx(run.elite_left, Run.ELITE_START), "Elites must wait a minute into the run.")
+	_check(is_equal_approx(run.elite_left, Run.ELITE_START), "Elites must wait ELITE_START (30 s) into the run.")
 	# The elite clock stands still before landing and while the game is paused (level-ups).
 	run.spawning_enabled = true
 	run.spawn_left = 1000.0

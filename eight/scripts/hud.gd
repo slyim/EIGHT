@@ -51,6 +51,8 @@ var shrine_markers: Control
 ## Side weapons carried (bottom left) and the announcement of a new find (center).
 var side_label: Label
 var relic_label: Label
+## The announcement's one pop-in, hold, and fade; a newer announcement replaces it whole.
+var announce_tween: Tween
 var stats_refresh_left: float = 0.0
 ## Active weapon and its combo step, built from the flight gauge so it matches the other gauges.
 var weapon_bar: ProgressBar
@@ -167,8 +169,8 @@ func _ready() -> void:
 	relic_label.add_theme_font_size_override(&"font_size", 22)
 	relic_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	relic_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	relic_label.offset_left = -300.0
-	relic_label.offset_right = 300.0
+	relic_label.offset_left = -360.0
+	relic_label.offset_right = 360.0
 	relic_label.offset_top = -170.0
 	relic_label.offset_bottom = -136.0
 	relic_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -256,6 +258,8 @@ func _process(_delta: float) -> void:
 		stats_label.text += "    SHRINES %d / %d" % [run.shrine_total - run.shrines_left, run.shrine_total]
 	difficulty_label.text = "TIME %02d:%02d   %s   THREAT %d" % [minutes, seconds, Run.TIERS[run.tier]["name"], run.difficulty_tier()]
 	stage_label.text = "REALM OF %s" % Run.BOSSES[run.sin_index]["name"]
+	if run.scorched:
+		stage_label.text += "   SCORCHED EARTH"
 	shrine_markers.queue_redraw()
 	xp_bar.max_value = run.xp_needed()
 	xp_bar.value = run.xp
@@ -746,13 +750,26 @@ func _update_side_weapons(player: MountedPlayer) -> void:
 ## Names a side-weapon find for a moment above the gauges.
 func announce_relic(kind: int) -> void:
 	var weapons: SideWeapons = run.player.side_weapons
-	relic_label.text = ("NEW: %s" if weapons.levels[kind] == 1 else "UPGRADED: %s") % weapons.label(kind).to_upper()
+	announce(("NEW: %s" if weapons.levels[kind] == 1 else "UPGRADED: %s") % weapons.label(kind).to_upper())
+
+
+## Shows a line above the ability bar for two seconds (a relic find, the run's map modifier),
+## tinted (a warning in the burn colour). A newer line replaces an older one at once.
+func announce(text: String, tint: Color = Color.WHITE) -> void:
+	if announce_tween != null:
+		announce_tween.kill()
+	relic_label.text = text
+	relic_label.self_modulate = tint
 	relic_label.show()
-	_pop_in(relic_label, 0.0)
-	var tween: Tween = relic_label.create_tween().set_ignore_time_scale()
-	tween.tween_interval(2.0)
-	tween.tween_property(relic_label, ^"modulate:a", 0.0, 0.4)
-	tween.tween_callback(relic_label.hide)
+	relic_label.pivot_offset = relic_label.size * 0.5
+	relic_label.scale = Vector2(0.85, 0.85)
+	relic_label.modulate.a = 0.0
+	announce_tween = relic_label.create_tween().set_ignore_time_scale().set_parallel()
+	announce_tween.tween_property(relic_label, ^"scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	announce_tween.tween_property(relic_label, ^"modulate:a", 1.0, 0.14)
+	announce_tween.chain().tween_interval(2.0)
+	announce_tween.chain().tween_property(relic_label, ^"modulate:a", 0.0, 0.4)
+	announce_tween.chain().tween_callback(relic_label.hide)
 
 
 func hide_level_up() -> void:

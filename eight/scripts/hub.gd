@@ -206,13 +206,13 @@ func open_shop() -> void:
 
 
 func enter_sin(index: int) -> void:
-	Game.start_map(get_tree(), index, tier_for(index))
+	Game.start_map(get_tree(), index, tier_for(index), randf() < Run.SCORCHED_CHANCE)
 
 
 ## Only with all seven relics on their pedestals.
 func summon_satan() -> void:
 	if progress.satan_unlocked():
-		Game.start_map(get_tree(), Run.SATAN, tier_for(Run.SATAN))
+		Game.start_map(get_tree(), Run.SATAN, tier_for(Run.SATAN), randf() < Run.SCORCHED_CHANCE)
 
 
 func _pop_in(control: Control, delay: float) -> void:

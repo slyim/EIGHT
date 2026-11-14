@@ -193,8 +193,19 @@ const BOSSES: Array[Dictionary] = [
 			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]}],
 		"phase_speeds": [1.0, 1.2, 1.2], "phase_paces": [1.0, 0.75, 0.75], "slam_radius": 90.0, "slam_windup": 0.5,
 		"smart": {"reaim": 1, "summon": [2, BOMBER]}},
-	{"name": "SLOTH", "health": 260, "speed": 45.0, "radius": 46.0, "interval": 2.8, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_sloth.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
+	# Sloth: snores slow rings and spreads slowing sludge; at half health it yawns (a huge slam
+	# with a long tell) and naps (a long punish window); at a fifth it wakes: a new tint, three times
+	# as fast, charging, attacking far more often. Smarter tiers spread longer-lasting sludge
+	# (smarts 1+) and rain from the air right after a yawn (smarts 2+).
+	{"name": "SLOTH", "health": 240, "speed": 45.0, "radius": 46.0, "interval": 2.4, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_sloth.aseprite"), "patterns": [Boss.Pattern.SNORE, Boss.Pattern.SLUDGE],
+		"phase_thresholds": [0.65, 0.25],
+		"phase_patterns": [[Boss.Pattern.SNORE, Boss.Pattern.SLUDGE], [Boss.Pattern.SNORE, Boss.Pattern.SLUDGE, Boss.Pattern.YAWN],
+			[Boss.Pattern.CHARGE, Boss.Pattern.SNORE, Boss.Pattern.SLUDGE]],
+		"phase_combos": [{}, {Boss.Pattern.YAWN: [Boss.Pattern.NAP]}, {}],
+		"phase_speeds": [1.0, 1.0, 2.5], "phase_paces": [1.0, 0.85, 0.7],
+		"phase_tints": [Color.WHITE, Color.WHITE, Color(1.35, 0.8, 0.75, 1.0)],
+		"smart": {"long_sludge": 1, "rain_after_yawn": 2}},
 	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST,
 		Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
@@ -904,10 +915,14 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	# Smarter tiers add the generic patterns this sin lacks, in a fixed order.
 	var extras: Array[int] = []
 	var extra: int = rules["patterns"]
-	# A sin with its own summon rule (smart "summon") keeps summons to that rule.
+	# A sin with its own summon rule (smart "summon") keeps summons to that rule, and a pattern a
+	# sin uses in any of its phases is never an extra (it keeps its place in the fight).
 	var own_summons: bool = (data.get("smart", {}) as Dictionary).has("summon")
+	var own: Array = []
+	for list: Array in data.get("phase_patterns", []):
+		own.append_array(list)
 	for pattern: int in [Boss.Pattern.CHARGE, Boss.Pattern.AIMED, Boss.Pattern.BURST, Boss.Pattern.SUMMON]:
-		if extra > 0 and not boss.patterns.has(pattern) and not ((guard or own_summons) and pattern == Boss.Pattern.SUMMON):
+		if extra > 0 and not boss.patterns.has(pattern) and not own.has(pattern) and not ((guard or own_summons) and pattern == Boss.Pattern.SUMMON):
 			extras.append(pattern)
 			extra -= 1
 	boss.patterns.append_array(extras)
@@ -923,6 +938,9 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		if smart.has("double_blink") and tier >= int(smart["double_blink"]) and combo.has(Boss.Pattern.BLINK):
 			# A smarter Lust blinks and charges twice in a row.
 			combo[Boss.Pattern.BLINK] = combo[Boss.Pattern.BLINK] + [Boss.Pattern.BLINK] + combo[Boss.Pattern.BLINK]
+		if smart.has("rain_after_yawn") and tier >= int(smart["rain_after_yawn"]) and combo.has(Boss.Pattern.YAWN):
+			# A smarter Sloth rains from the air right after a yawn, before it naps.
+			combo[Boss.Pattern.YAWN] = [Boss.Pattern.RAIN] + combo[Boss.Pattern.YAWN]
 		if smart.has("double_leap") and tier >= int(smart["double_leap"]):
 			# A smarter Gluttony leaps twice in a row.
 			combo[Boss.Pattern.LEAP] = [Boss.Pattern.LEAP]
@@ -949,6 +967,7 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.phase_thresholds.assign(data.get("phase_thresholds", [0.5]))
 		boss.phase_speeds.assign(data.get("phase_speeds", []))
 		boss.phase_paces.assign(data.get("phase_paces", []))
+		boss.phase_tints.assign(data.get("phase_tints", []))
 	boss.summon_type = int(data.get("summon_type", HUSK))
 	if smart.has("summon"):
 		boss.summon_type = int((smart["summon"] as Array)[1])
@@ -956,6 +975,8 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.lead_rain = true
 	if smart.has("long_bile") and tier >= int(smart["long_bile"]):
 		boss.bile_time = 6.0
+	if smart.has("long_sludge") and tier >= int(smart["long_sludge"]):
+		boss.sludge_time = 7.0
 	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
 	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
 	boss.chained_charge_windup = float(data.get("chained_charge_windup", Boss.WINDUPS[Boss.Pattern.CHARGE]))

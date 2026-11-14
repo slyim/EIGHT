@@ -383,6 +383,23 @@ func _run() -> void:
 	player.slow_left = 0.0
 	player.apply_slow(0.8, 0.5)
 	_check(is_equal_approx(player.slow_factor, 0.8), "A fresh slow takes its own factor.")
+	# A brief strong slow does not stretch to a weaker slow's length: the weaker takes over after.
+	player.slow_left = 0.0
+	player.next_slow_left = 0.0
+	player.apply_slow(0.6, 0.3)
+	player.apply_slow(0.68, 1.2)
+	_check(is_equal_approx(player.slow_factor, 0.6) and player.slow_left <= 0.31, "The strong slow must keep its own short time.")
+	await _ticks(25)
+	_check(is_equal_approx(player.slow_factor, 0.68) and player.slow_left > 0.5, "The weaker, longer slow must take over (%f, %f)." % [player.slow_factor, player.slow_left])
+	# The other order: a strong brief slow on top of a weak long one, then the weak one resumes.
+	player.slow_left = 0.0
+	player.next_slow_left = 0.0
+	player.apply_slow(0.68, 1.2)
+	player.apply_slow(0.6, 0.3)
+	await _ticks(25)
+	_check(is_equal_approx(player.slow_factor, 0.68) and player.slow_left > 0.5, "A strong brief slow on a weak long one must hand back to it (%f, %f)." % [player.slow_factor, player.slow_left])
+	player.slow_left = 0.0
+	player.next_slow_left = 0.0
 	player.slow_left = 0.0
 	await _ticks(30)
 	var struck: Sleeper = run.spawn_enemy(Run.SLEEPER, player.global_position + Vector2(400.0, 0.0)) as Sleeper

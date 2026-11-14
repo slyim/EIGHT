@@ -243,6 +243,10 @@ var hurt_flash_left: float = 0.0
 ## Status: walking speed is multiplied by slow_factor while slow_left runs (dashes are not).
 var slow_left: float = 0.0
 var slow_factor: float = 1.0
+## A weaker slow waiting behind the current one, taking over when it runs out (each keeps its own
+## timer, so a brief strong slow never stretches to a weak one's length).
+var next_slow_factor: float = 1.0
+var next_slow_left: float = 0.0
 ## Status: a pull (a boss's inhale) gathered this tick, added to walking and cleared after it.
 ## Dashes ignore it.
 var pull: Vector2 = Vector2.ZERO
@@ -334,6 +338,7 @@ func begin_descent(from_height: float, duration: float) -> void:
 func begin_ascent(to_height: float, duration: float) -> void:
 	slow_left = 0.0
 	slow_factor = 1.0
+	next_slow_left = 0.0
 	begin_descent(to_height, duration)
 	ascending = true
 	height = 0.0
@@ -382,6 +387,11 @@ func _physics_process(delta: float) -> void:
 	invulnerable_left = maxf(0.0, invulnerable_left - delta)
 	perfect_left = maxf(0.0, perfect_left - delta)
 	slow_left = maxf(0.0, slow_left - delta)
+	next_slow_left = maxf(0.0, next_slow_left - delta)
+	if slow_left <= 0.0 and next_slow_left > 0.0:
+		slow_factor = next_slow_factor
+		slow_left = next_slow_left
+		next_slow_left = 0.0
 	# Expire the dash before choosing this tick's movement, so every dash-speed
 	# movement tick also retains its dash invulnerability.
 	dash_time_left = maxf(0.0, dash_time_left - delta)
@@ -861,11 +871,26 @@ func apply_pull(force: Vector2) -> void:
 func apply_slow(factor: float, duration: float) -> bool:
 	if is_dead or is_descending() or is_airborne() or dash_time_left > 0.0:
 		return false
-	# Overlapping slows keep the strongest factor and the longest time left.
+	# The strongest slow applies for its own time; a weaker one waits behind it if it lasts longer.
 	factor = clampf(factor, 0.1, 1.0)
-	slow_factor = minf(slow_factor, factor) if slow_left > 0.0 else factor
-	slow_left = maxf(slow_left, duration)
+	if slow_left <= 0.0 or is_equal_approx(factor, slow_factor):
+		slow_factor = factor
+		slow_left = maxf(slow_left, duration)
+	elif factor < slow_factor:
+		if slow_left > duration:
+			_queue_slow(slow_factor, slow_left)
+		slow_factor = factor
+		slow_left = duration
+	elif duration > slow_left:
+		_queue_slow(factor, duration)
 	return true
+
+
+## Of the slows waiting behind the current one, the longer-lasting one is kept.
+func _queue_slow(factor: float, duration: float) -> void:
+	if duration > next_slow_left:
+		next_slow_factor = factor
+		next_slow_left = duration
 
 
 ## A hit early in a dash is a perfect dodge (once per dash, not while the buff runs).

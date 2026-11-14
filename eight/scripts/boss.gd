@@ -22,16 +22,16 @@ signal phase_changed(boss: Boss)
 ## A devour swallowed a horde enemy (it is gone; nothing is earned and the boss does not heal).
 signal ate(boss: Boss, enemy: Enemy)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR, SNORE, SLUDGE, YAWN, NAP }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5, 0.7, 0.6, 1.4, 0.05]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8, 0.6, 0.5, 2.0, 2.0]
 ## PLACEHOLDER kisses: a fan of slow air shots.
 const KISS_COUNT: int = 3
 const KISS_SPREAD: float = 0.22
@@ -58,6 +58,20 @@ const PULL_HORDE: float = 220.0
 ## The bite reaches this far past the boss's body, inside the cone.
 const BITE_REACH: float = 60.0
 const BITE_SCALE: float = 1.5
+## PLACEHOLDER snore: a slow ring of ground shots with wide gaps (one aimed at the angel).
+const SNORE_COUNT: int = 10
+const SNORE_SPEED: float = 140.0
+## PLACEHOLDER sludge: pools marked around the angel that slow a grounded angel inside, laid out
+## across the line from the boss (x along it, y across it): one under the angel, two either side.
+const SLUDGE_SPOTS: Array[Vector2] = [Vector2.ZERO, Vector2(40.0, 140.0), Vector2(40.0, -140.0)]
+## Sludge is drawn slate (it slows, it never hurts), apart from the ember of damaging circles.
+const SLUDGE_COLOR: Color = Color(0.75, 0.82, 0.9, 1.0)
+const SLUDGE_RADIUS: float = 70.0
+const SLUDGE_SLOW: float = 0.6
+## PLACEHOLDER yawn: a huge ground slam with a long tell (fly over it); a nap (NAP's recovery,
+## the punish window) follows it in Sloth's combo.
+const YAWN_RADIUS: float = 320.0
+const SLEEP_COLOR: Color = Color(1.4, 1.35, 1.2, 1.0)
 ## PLACEHOLDER coin ring: shots in COIN_SLOTS directions, leaving gaps COIN_GAP slots either
 ## side of the angel (right beside the shot at it, so a step either way reaches one at any
 ## range); each chained ring keeps the volley's aim and turns half a slot, so it spirals.
@@ -166,6 +180,14 @@ var leap_spot: Vector2 = Vector2.ZERO
 var bile_time: float = 4.0
 ## Seconds left of a devour's inhale.
 var devour_left: float = 0.0
+## Where a pending sludge's pools go (world positions), chosen when its tell starts.
+var sludge_spots: Array[Vector2] = []
+## Seconds sludge lasts (longer on smarter tiers).
+var sludge_time: float = 5.0
+## Asleep after a yawn: the nap's recovery, drawn as sleep.
+var napping: bool = false
+## Sprite tint per phase (index 0 is phase 1), such as Sloth waking; empty keeps the tint.
+var phase_tints: Array[Color] = []
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
@@ -225,6 +247,9 @@ func _physics_process(delta: float) -> void:
 		# The punish window holds even if the angel leaves a guard's leash.
 		recover_left -= delta
 		velocity = Vector2.ZERO
+		if recover_left <= 0.0 and napping:
+			napping = false
+			queue_redraw()
 	elif leashed:
 		var to_home: Vector2 = home - global_position
 		velocity = to_home.normalized() * speed if to_home.length() > speed * delta * 2.0 else Vector2.ZERO
@@ -285,9 +310,12 @@ func _physics_process(delta: float) -> void:
 
 ## Begins a wind-up: the attack's telegraph shows (aim locked now) until it lands. A fresh attack
 ## opens its combo; a chained one is a step of the running combo.
-func start_attack(pattern: int, chained: bool = false) -> void:
+func start_attack(pattern: int, chained: bool = false, after: int = -1) -> void:
 	pending = pattern
 	windup_left = slam_windup if pattern == Pattern.SLAM else WINDUPS[pattern]
+	if pattern == Pattern.NAP and after == Pattern.RAIN:
+		# A nap after rain waits until the last drop has landed, so the nap stays a clean opening.
+		windup_left = RAIN_DELAY + RAIN_STAGGER * (RAIN_SPOTS.size() - 1)
 	if chained and pattern == Pattern.CHARGE:
 		windup_left = chained_charge_windup
 	elif chained and pattern == Pattern.LEAP:
@@ -311,16 +339,41 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 		blink_spot = _blink_spot()
 	if pattern == Pattern.LEAP:
 		leap_spot = _leap_spot()
+	if pattern == Pattern.SLUDGE:
+		_plan_sludge()
 	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
+	if pattern == Pattern.NAP:
+		# Falling asleep is not an attack: no attack pose, light, or sound.
+		queue_redraw()
+		return
 	attack_pose_left = ATTACK_POSE_TIME + windup_left
-	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks
-	# and a raised guard do not.
+	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks,
+	# a raised guard, a blink, and sludge do not.
 	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air or pattern == Pattern.RAIN or pattern == Pattern.DEVOUR else TELEGRAPH_LIGHT)
-	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD and pattern != Pattern.BLINK:
+	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD and pattern != Pattern.BLINK and pattern != Pattern.SLUDGE:
 		add_to_group(&"light")
 	attacked.emit(self)
 	queue_redraw()
+
+
+## Sludge spots across the line from the boss, kept inside the arena; a spot inside a wall or
+## obstacle is dropped (its tell is never shown).
+func _plan_sludge() -> void:
+	sludge_spots.clear()
+	var along: Vector2 = charge_direction
+	var across: Vector2 = along.orthogonal()
+	var room: Rect2 = Run.ARENA_RECT.grow(-SLUDGE_RADIUS)
+	for offset: Vector2 in SLUDGE_SPOTS:
+		var spot: Vector2 = (target.global_position + along * offset.x + across * offset.y).clamp(room.position, room.end)
+		var circle: CircleShape2D = CircleShape2D.new()
+		circle.radius = MountedPlayer.HURT_RADIUS
+		var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+		query.shape = circle
+		query.transform = Transform2D(0.0, spot)
+		query.collision_mask = 1
+		if get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty():
+			sludge_spots.append(spot)
 
 
 ## Behind the angel as seen from the boss, on open ground inside the arena; in front of it if
@@ -396,7 +449,7 @@ func _spot_clear(spot: Vector2) -> bool:
 ## An attack is done: the next step of its combo starts behind its own tell, or the boss rests.
 func _finish(pattern: int) -> void:
 	if not combo_queue.is_empty():
-		start_attack(combo_queue.pop_front(), true)
+		start_attack(combo_queue.pop_front(), true, pattern)
 	else:
 		recover_left = RECOVERIES[pattern]
 
@@ -406,6 +459,7 @@ func _cancel() -> void:
 	charge_left = 0.0
 	guard_left = 0.0
 	devour_left = 0.0
+	napping = false
 	combo_queue.clear()
 	pending = -1
 	remove_from_group(&"light")
@@ -474,6 +528,26 @@ func _attack(pattern: int) -> void:
 		Pattern.DEVOUR:
 			devour_left = DEVOUR_TIME
 			add_to_group(&"light")
+		Pattern.SNORE:
+			for index: int in range(SNORE_COUNT):
+				_fire(charge_direction.rotated(TAU * index / SNORE_COUNT), SNORE_SPEED)
+		Pattern.SLUDGE:
+			for spot: Vector2 in sludge_spots:
+				var pool: BileZone = BileZone.new()
+				pool.radius = SLUDGE_RADIUS
+				pool.lifetime = sludge_time
+				pool.slow_factor = SLUDGE_SLOW
+				pool.target = target
+				get_parent().add_child(pool)
+				pool.global_position = spot
+		Pattern.YAWN:
+			slam_flash_left = SLAM_FLASH
+			flash_radius = YAWN_RADIUS
+			if global_position.distance_to(target.global_position) <= YAWN_RADIUS + MountedPlayer.HURT_RADIUS:
+				target.take_damage(contact_damage)
+		Pattern.NAP:
+			napping = true
+			queue_redraw()
 		Pattern.BLINK:
 			# If the marked spot is taken now (the angel walked onto it), the blink is called off:
 			# never land somewhere else, never land on the angel.
@@ -560,6 +634,8 @@ func _check_phase() -> void:
 			combos = phase_combos[phase - 1]
 		if phase - 1 < phase_speeds.size():
 			speed = base_speed * phase_speeds[phase - 1]
+		if phase - 1 < phase_tints.size():
+			sprite.self_modulate = phase_tints[phase - 1]
 		# The pose: whatever it was doing stops, and it stands (still hittable) to announce it.
 		_cancel()
 		recover_left = 0.0
@@ -635,6 +711,14 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, flash_radius, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
 	if devour_left > 0.0:
 		_draw_cone(1.0)
+	if napping:
+		# PLACEHOLDER sleep: three pale z-ticks rising off the boss.
+		for index: int in range(3):
+			var at: Vector2 = Vector2(radius * 0.5 + index * 10.0, -radius - 8.0 - index * 12.0)
+			var size: float = 4.0 + index * 2.0
+			draw_line(at, at + Vector2(size, 0.0), SLEEP_COLOR, 2.0)
+			draw_line(at + Vector2(size, 0.0), at + Vector2(0.0, size), SLEEP_COLOR, 2.0)
+			draw_line(at + Vector2(0.0, size), at + Vector2(size, size), SLEEP_COLOR, 2.0)
 	if windup_left <= 0.0 or pending < 0:
 		return
 	var fill: float = windup_progress()
@@ -695,6 +779,18 @@ func _draw() -> void:
 				draw_tell(self, spray * radius, spray * (radius + 40.0 + 120.0 * fill), Color(EMBER, 0.7))
 		Pattern.DEVOUR:
 			_draw_cone(fill)
+		Pattern.SNORE:
+			for index: int in range(SNORE_COUNT):
+				var ray: Vector2 = charge_direction.rotated(TAU * index / SNORE_COUNT)
+				draw_tell(self, ray * radius, ray * (radius + 24.0 + 40.0 * fill), Color(EMBER, 0.8))
+		Pattern.SLUDGE:
+			for spot: Vector2 in sludge_spots:
+				var at: Vector2 = spot - global_position
+				draw_circle(at, SLUDGE_RADIUS * fill, BileZone.SLUDGE_FILL)
+				draw_arc(at, SLUDGE_RADIUS, 0.0, TAU, 48, BACKING, 6.0)
+				draw_arc(at, SLUDGE_RADIUS, 0.0, TAU, 48, SLUDGE_COLOR, 2.0)
+		Pattern.YAWN:
+			draw_circle_tell(self, YAWN_RADIUS, fill)
 		Pattern.BLINK:
 			# On the boss: a pale ring drawing in, and a tick pointing where it will appear.
 			var gather: float = roundf((radius + 16.0 * (1.0 - fill)) / 2.0) * 2.0

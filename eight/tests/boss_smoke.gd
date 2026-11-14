@@ -12,7 +12,9 @@ extends SceneTree
 ## Smarter Lust blinks twice and summons flyers past half health. Gluttony: leaps onto the
 ## angel's spot and leaves bile; at half health vomits and devours (pulls the angel and the horde
 ## in, eats horde enemies without healing, bites); at a fifth summons splitters. Smarter Gluttony
-## leaps twice and leaves bile longer. Native Godot only.
+## leaps twice and leaves bile longer. Sloth: snores slow rings and spreads slowing sludge; at
+## half health yawns (a huge slam) and naps; at a fifth wakes (tint, triple speed, charges).
+## Smarter Sloth's sludge lasts longer and it rains after a yawn. Native Godot only.
 
 var failures: int = 0
 
@@ -720,6 +722,129 @@ func _run() -> void:
 	await _ticks(3)
 	boss = _pride(run)
 	_check(is_equal_approx(boss.bile_time, 6.0), "Damnation Gluttony's bile must last longer.")
+	run.queue_free()
+	await _ticks(2)
+
+	# 8. Sloth: a slow snore ring and slowing sludge.
+	run = _new_run(0, 6)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	boss = _pride(run)
+	_check(boss.patterns == [Boss.Pattern.SNORE, Boss.Pattern.SLUDGE] and boss.phase_thresholds == [0.65, 0.25], "Sloth must open with snores and sludge (%s)." % [boss.patterns])
+	# The landing site is always open ground, so no shot starts inside an obstacle.
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(200.0, 0.0)
+	await _ticks(2)
+	_take_shots()
+	var snore_aim: Vector2 = (player.global_position - boss.global_position).normalized()
+	boss.start_attack(Boss.Pattern.SNORE)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.SNORE] * 60.0) + 1)
+	var snores: Array[Node] = _take_shots()
+	_check(snores.size() == Boss.SNORE_COUNT and snores.all(func(shot: Node) -> bool: return is_equal_approx((shot as EnemyProjectile).velocity.length(), Boss.SNORE_SPEED)) and snores.any(func(shot: Node) -> bool: return (shot as EnemyProjectile).velocity.normalized().dot(snore_aim) > 0.999), "A snore must be a slow ring with one shot at the angel (%d)." % snores.size())
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.SNORE] * 60.0) + 2)
+	var sludge_center: Vector2 = player.global_position
+	boss.start_attack(Boss.Pattern.SLUDGE)
+	player.global_position = sludge_center + Vector2(0.0, 320.0)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.SLUDGE] * 60.0) + 2)
+	var pools: Array[BileZone] = []
+	for child: Node in run.actors.get_children():
+		if child is BileZone:
+			pools.append(child)
+	_check(pools.size() == Boss.SLUDGE_SPOTS.size() and pools.all(func(pool: BileZone) -> bool: return pool.slow_factor > 0.0 and is_equal_approx(pool.lifetime, 5.0)) and pools[0].global_position.distance_to(sludge_center) < 1.0, "Sludge must pool around where the angel stood (%d)." % pools.size())
+	_check(player.slow_left <= 0.0, "An angel who left the marks must not be slowed.")
+	player.global_position = sludge_center
+	health = player.health
+	await _ticks(3)
+	_check(player.slow_left > 0.0 and is_equal_approx(player.slow_factor, Boss.SLUDGE_SLOW) and player.health == health, "Sludge must slow, not hurt.")
+	player.slow_left = 0.0
+	player.global_position = sludge_center + Vector2(0.0, 300.0)
+	await _take_off(player)
+	player.global_position = sludge_center
+	await _ticks(5)
+	_check(player.is_airborne() and player.slow_left <= 0.0, "Flying over sludge must not slow.")
+	Input.action_release(&"jump")
+	await _ticks(30)
+	for pool: BileZone in pools:
+		if is_instance_valid(pool):
+			pool.queue_free()
+	player.slow_left = 0.0
+	# Sludge near a wall stays inside the arena and off the wall.
+	boss.global_position = Vector2(Run.ARENA_RECT.position.x + 400.0, 0.0)
+	player.global_position = Vector2(Run.ARENA_RECT.position.x + 30.0, 0.0)
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.SLUDGE)
+	_check(boss.sludge_spots.all(func(spot: Vector2) -> bool: return Run.ARENA_RECT.grow(-Boss.SLUDGE_RADIUS).has_point(spot)), "Sludge must stay inside the arena (%s)." % [boss.sludge_spots])
+	boss._cancel()
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(200.0, 0.0)
+	await _ticks(2)
+	# 65%: the yawn (a huge slam, fly over it), then a nap.
+	boss.take_hit(boss.max_health - roundi(boss.max_health * 0.65) + 1)
+	_check(boss.phase == 2 and boss.patterns.has(Boss.Pattern.YAWN) and boss.combos.get(Boss.Pattern.YAWN, []) == [Boss.Pattern.NAP], "At 65%% Sloth must yawn and nap (%s)." % [boss.combos])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	player.global_position = boss.global_position + Vector2(250.0, 0.0)
+	boss.start_attack(Boss.Pattern.YAWN)
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.YAWN] * 60.0) + 2)
+	_check(player.health < health, "A yawn must hit a grounded angel far out (250 px).")
+	player.invulnerable_left = 100000.0
+	_check(boss.pending == Boss.Pattern.NAP or boss.napping, "A yawn must lead into a nap.")
+	await _ticks(10)
+	boss.speed = 200.0
+	var dozing: Vector2 = boss.global_position
+	await _ticks(30)
+	_check(boss.napping and boss.recover_left > 0.0 and boss.global_position.distance_to(dozing) < 0.5, "A napping Sloth must lie still, wide open.")
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.NAP] * 60.0))
+	_check(not boss.napping, "The nap must end.")
+	boss.speed = 0.0
+	await _settle()
+	# Flying clears the yawn.
+	await _take_off(player)
+	boss.attack_left = 999.0
+	boss.start_attack(Boss.Pattern.YAWN)
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.YAWN] * 60.0) + 2)
+	_check(player.is_airborne() and player.health == health, "Flying must clear the yawn (%d)." % (health - player.health))
+	Input.action_release(&"jump")
+	player.invulnerable_left = 100000.0
+	boss._cancel()
+	# A quarter: Sloth wakes.
+	boss.base_speed = 40.0
+	boss.take_hit(boss.health - boss.max_health / 4 + 1)
+	_check(boss.phase == 3 and is_equal_approx(boss.speed, 100.0) and is_equal_approx(boss.attack_interval, boss.base_interval * 0.7) and boss.sprite.self_modulate != Color.WHITE and boss.patterns.has(Boss.Pattern.CHARGE) and not boss.patterns.has(Boss.Pattern.YAWN), "At a quarter Sloth must wake (%f, %f, %s)." % [boss.speed, boss.attack_interval, boss.patterns])
+	run.queue_free()
+	await _ticks(2)
+
+	# Smarter Sloth: Purgatory's sludge lasts longer; Damnation rains after a yawn.
+	run = _new_run(1, 6)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(is_equal_approx(boss.sludge_time, 7.0) and boss.phase_combos[1].get(Boss.Pattern.YAWN, []) == [Boss.Pattern.NAP], "Purgatory Sloth's sludge must last longer.")
+	run.queue_free()
+	await _ticks(2)
+	run = _new_run(2, 6)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(boss.phase_combos[1].get(Boss.Pattern.YAWN, []) == [Boss.Pattern.RAIN, Boss.Pattern.NAP], "Damnation Sloth must rain after a yawn (%s)." % [boss.phase_combos])
+	_check(not boss.patterns.has(Boss.Pattern.CHARGE) and boss.phase_patterns.all(func(list: Array) -> bool: return list.count(Boss.Pattern.CHARGE) <= 1) and not boss.phase_patterns[0].has(Boss.Pattern.CHARGE), "Sloth's tier extras must not bring its wake charge early (%s)." % [boss.phase_patterns])
+	# The nap after the rain waits until the last drop has landed.
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	await _ticks(2)
+	boss.take_hit(boss.max_health - roundi(boss.max_health * 0.65) + 1)
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	boss.attack_left = 999.0
+	boss.start_attack(Boss.Pattern.YAWN)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.YAWN] * 60.0) + int(Boss.WINDUPS[Boss.Pattern.RAIN] * 60.0) + 4)
+	var rain_done: float = Boss.RAIN_DELAY + Boss.RAIN_STAGGER * (Boss.RAIN_SPOTS.size() - 1)
+	_check(boss.pending == Boss.Pattern.NAP and is_equal_approx(boss.windup_total, rain_done) and not boss.napping, "The nap must wait for the rain to land (%f)." % boss.windup_total)
+	boss._cancel()
 
 	await _settle()
 	run.queue_free()

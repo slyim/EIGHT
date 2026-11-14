@@ -260,6 +260,8 @@ func _process(_delta: float) -> void:
 	stage_label.text = "REALM OF %s" % Run.BOSSES[run.sin_index]["name"]
 	if run.scorched:
 		stage_label.text += "   SCORCHED EARTH"
+	if run.surge_left > 0.0 and not run.ended:
+		stage_label.text += "   HORDE SURGE %d" % ceili(run.surge_left)
 	shrine_markers.queue_redraw()
 	xp_bar.max_value = run.xp_needed()
 	xp_bar.value = run.xp

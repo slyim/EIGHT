@@ -284,6 +284,13 @@ const SCORCHED_CHANCE: float = 1.0 / 3.0
 const SCORCHED_BURN: float = 1.5
 const SCORCHED_INTERVAL: float = 0.85
 const SCORCHED_FEATHERS: float = 1.25
+## PLACEHOLDER random event Horde Surge (the only timed event so far; one at a time): every
+## 90-150 s of horde time, 20 s of quicker, bigger spawns, announced and counted down on the HUD.
+const SURGE_GAP_MIN: float = 90.0
+const SURGE_GAP_MAX: float = 150.0
+const SURGE_TIME: float = 20.0
+const SURGE_INTERVAL: float = 0.6
+const SURGE_BATCH: int = 2
 
 ## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
 ## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
@@ -390,6 +397,9 @@ var elapsed: float = 0.0
 var spawn_left: float = 1.0
 ## Seconds until the next horde spawn comes out a champion elite.
 var elite_left: float = ELITE_START
+## Seconds until the next Horde Surge, and left in the current one (0 when none is running).
+var surge_next: float = randf_range(SURGE_GAP_MIN, SURGE_GAP_MAX)
+var surge_left: float = 0.0
 ## This run's map modifier (set before it enters the tree; see Game.start_map).
 var scorched: bool = false
 var shrine_time_left: float = 0.0
@@ -845,10 +855,22 @@ func _physics_process(delta: float) -> void:
 		return
 	spawn_left -= delta
 	elite_left -= delta
+	if surge_left > 0.0:
+		surge_left = maxf(0.0, surge_left - delta)
+		if surge_left == 0.0:
+			surge_next = randf_range(SURGE_GAP_MIN, SURGE_GAP_MAX)
+	else:
+		surge_next -= delta
+		if surge_next <= 0.0:
+			surge_left = SURGE_TIME
+			# A line already showing (a relic find) keeps it; the title counts the surge down anyway.
+			if not hud.relic_label.visible:
+				hud.announce("HORDE SURGE", Hud.ALERT_TINT)
+	var surging: bool = surge_left > 0.0
 	if spawn_left <= 0.0:
-		var interval: float = spawn_interval() * SIN_SPAWN_PACE[sin_index]
+		var interval: float = spawn_interval() * SIN_SPAWN_PACE[sin_index] * (SURGE_INTERVAL if surging else 1.0)
 		spawn_left = interval * (2.0 if current_boss != null else 1.0)
-		for count: int in range(spawn_batch()):
+		for count: int in range(spawn_batch() + (SURGE_BATCH if surging else 0)):
 			if enemy_count < max_enemies:
 				var enemy: Enemy = spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
 				# A sleeper could doze off screen and hold an elite slot forever; the next spawn takes it.

@@ -2,24 +2,32 @@ class_name Hub
 extends Control
 ## The pentagram: the game's main menu. The seven sins sit evenly on the outer ring; entering
 ## one opens its map. Each sealed sin's relic glows on its pedestal and a gold chord joins it to
-## the center, where Satan waits until all seven relics are in place. Vector UI drawn by Godot
-## from the shared theme; the pentagram geometry is code-drawn, not art.
+## the center, where Satan waits until all seven relics are in place. Each node has a difficulty
+## picker (< >) showing its chosen tier and the hardest tier beaten (BEST). Vector UI drawn by
+## Godot from the shared theme; the pentagram geometry is code-drawn, not art.
 
 ## Set by Game when a map is won, so the hub can play the sealing shockwave once.
 static var just_sealed: int = -1
+## The tier chosen per map this session (map index -> tier); unpicked maps offer their hardest
+## open tier, so beating a tier moves the node on to the next.
+static var picked: Dictionary = {}
 
 const NUMERALS: Array[String] = ["I", "II", "III", "IV", "V", "VI", "VII"]
 ## Ring radius in UI units (the UI scales with the window).
-const RING_RADIUS: float = 240.0
+const RING_RADIUS: float = 232.0
 const PEDESTAL_INSET: float = 78.0
 const GOLD: Color = Color(0.902, 0.886, 0.6196, 1.0)
 const PLUM: Color = Color(0.4314, 0.2471, 0.3725, 1.0)
 const CRIMSON: Color = Color(0.85, 0.32, 0.3, 1.0)
 const STONE: Color = Color(0.2275, 0.1294, 0.251, 1.0)
+const ARROW_SIZE: Vector2 = Vector2(22.0, 44.0)
+const ARROW_GAP: float = 3.0
 
 var progress: Progress
 var sin_buttons: Array[Button] = []
 var satan_button: Button
+## Per map (sins then Satan): [lower tier, higher tier] buttons.
+var tier_arrows: Array[Array] = []
 ## 0..1 while the sealing shockwave expands from the newly sealed sin.
 var seal_wave: float = 0.0:
 	set(value):
@@ -36,8 +44,8 @@ func _ready() -> void:
 		var button: Button = Button.new()
 		button.name = "Sin%d" % (index + 1)
 		button.focus_mode = Control.FOCUS_NONE
-		button.custom_minimum_size = Vector2(150.0, 62.0)
-		button.add_theme_font_size_override(&"font_size", 18)
+		button.custom_minimum_size = Vector2(136.0, 62.0)
+		button.add_theme_font_size_override(&"font_size", 16)
 		button.pressed.connect(enter_sin.bind(index))
 		add_child(button)
 		sin_buttons.append(button)
@@ -48,6 +56,20 @@ func _ready() -> void:
 	satan_button.add_theme_font_size_override(&"font_size", 20)
 	satan_button.pressed.connect(summon_satan)
 	add_child(satan_button)
+	for map: int in range(Run.SATAN + 1):
+		var pair: Array[Button] = []
+		for step: int in [-1, 1]:
+			var arrow: Button = Button.new()
+			arrow.name = "Tier%s%d" % ["Down" if step < 0 else "Up", map + 1]
+			arrow.text = "<" if step < 0 else ">"
+			arrow.focus_mode = Control.FOCUS_NONE
+			arrow.theme_type_variation = &"ArrowButton"
+			arrow.custom_minimum_size = ARROW_SIZE
+			arrow.add_theme_font_size_override(&"font_size", 18)
+			arrow.pressed.connect(step_tier.bind(map, step))
+			add_child(arrow)
+			pair.append(arrow)
+		tier_arrows.append(pair)
 	($Quit as Button).pressed.connect(get_tree().quit)
 	($Shop as Button).pressed.connect(open_shop)
 	($Settings as Button).pressed.connect(open_settings)
@@ -77,23 +99,53 @@ func _on_size_changed() -> void:
 		get_window().content_scale_factor = ui
 
 
+## The tier a map's node will enter on.
+func tier_for(map: int) -> int:
+	return clampi(int(picked.get(map, progress.max_tier(map))), 0, progress.max_tier(map))
+
+
+func step_tier(map: int, step: int) -> void:
+	picked[map] = clampi(tier_for(map) + step, 0, progress.max_tier(map))
+	_refresh()
+
+
+## Keyboard: the next open tier, wrapping back to the first.
+func cycle_tier(map: int) -> void:
+	if map == Run.SATAN and not progress.satan_unlocked():
+		return
+	picked[map] = (tier_for(map) + 1) % (progress.max_tier(map) + 1)
+	_refresh()
+
+
+func _tier_name(tier: int) -> String:
+	return Run.TIERS[tier]["name"]
+
+
 func _refresh() -> void:
 	for index: int in range(sin_buttons.size()):
-		var sealed: bool = progress.sealed.has(index)
-		sin_buttons[index].text = "%s  %s\n%s" % [NUMERALS[index], Run.BOSSES[index]["name"], "SEALED" if sealed else "ENTER  [%d]" % (index + 1)]
+		var beaten: String = "BEST %s" % _tier_name(progress.best[index]) if progress.best.has(index) else "ENTER  [%d]" % (index + 1)
+		sin_buttons[index].text = "%s  %s\n%s\n%s" % [NUMERALS[index], Run.BOSSES[index]["name"], _tier_name(tier_for(index)), beaten]
 	var relics: int = progress.sealed.size()
 	satan_button.disabled = not progress.satan_unlocked()
+	var tier_line: String = _tier_name(tier_for(Run.SATAN))
 	if progress.satan_defeated:
-		satan_button.text = "SATAN HAS FALLEN\nSUMMON AGAIN  [S]"
+		satan_button.text = "SATAN HAS FALLEN\n%s  ·  BEST %s\nSUMMON AGAIN  [S]" % [tier_line, _tier_name(progress.best.get(Run.SATAN, 0))]
 	elif progress.satan_unlocked():
-		satan_button.text = "SUMMON SATAN\n[S]"
+		satan_button.text = "SUMMON SATAN\n%s\n[S]" % tier_line
 	else:
 		satan_button.text = "SATAN\n%d / %d RELICS" % [relics, Run.SATAN]
-	pentagram.queue_redraw()
+	# A map with only one open tier shows no picker.
+	for map: int in range(tier_arrows.size()):
+		var open: bool = progress.max_tier(map) > 0 and (map != Run.SATAN or progress.satan_unlocked())
+		(tier_arrows[map][0] as Button).visible = open
+		(tier_arrows[map][1] as Button).visible = open
+		(tier_arrows[map][0] as Button).disabled = tier_for(map) == 0
+		(tier_arrows[map][1] as Button).disabled = tier_for(map) == progress.max_tier(map)
+	_layout()
 
 
 func ring_center() -> Vector2:
-	return size * 0.5 + Vector2(0.0, 40.0)
+	return size * 0.5 + Vector2(0.0, 52.0)
 
 
 ## Where sin index sits on the ring, the first at the top, then clockwise.
@@ -110,6 +162,14 @@ func _layout() -> void:
 	satan_button.size = satan_button.get_combined_minimum_size()
 	satan_button.position = (ring_center() - satan_button.size * 0.5).round()
 	satan_button.pivot_offset = satan_button.size * 0.5
+	# Each node's tier arrows sit at its sides.
+	for map: int in range(tier_arrows.size()):
+		var node: Button = sin_buttons[map] if map < sin_buttons.size() else satan_button
+		var middle: float = node.position.y + (node.size.y - ARROW_SIZE.y) * 0.5
+		(tier_arrows[map][0] as Button).position = Vector2(node.position.x - ARROW_SIZE.x - ARROW_GAP, middle).round()
+		(tier_arrows[map][1] as Button).position = Vector2(node.position.x + node.size.x + ARROW_GAP, middle).round()
+		(tier_arrows[map][0] as Button).size = ARROW_SIZE
+		(tier_arrows[map][1] as Button).size = ARROW_SIZE
 	pentagram.queue_redraw()
 
 
@@ -120,7 +180,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if key == null or not key.pressed or key.echo:
 		return
 	var index: int = key.physical_keycode - KEY_1
-	if index >= 0 and index < Run.SATAN:
+	# Shift with a node's key cycles its tier instead of entering it.
+	if key.shift_pressed and (index >= 0 and index < Run.SATAN or key.physical_keycode == KEY_S):
+		get_viewport().set_input_as_handled()
+		cycle_tier(index if key.physical_keycode != KEY_S else Run.SATAN)
+	elif index >= 0 and index < Run.SATAN:
 		get_viewport().set_input_as_handled()
 		enter_sin(index)
 	elif key.physical_keycode == KEY_S:
@@ -142,13 +206,13 @@ func open_shop() -> void:
 
 
 func enter_sin(index: int) -> void:
-	Game.start_map(get_tree(), index)
+	Game.start_map(get_tree(), index, tier_for(index), randf() < Run.SCORCHED_CHANCE)
 
 
 ## Only with all seven relics on their pedestals.
 func summon_satan() -> void:
 	if progress.satan_unlocked():
-		Game.start_map(get_tree(), Run.SATAN)
+		Game.start_map(get_tree(), Run.SATAN, tier_for(Run.SATAN), randf() < Run.SCORCHED_CHANCE)
 
 
 func _pop_in(control: Control, delay: float) -> void:

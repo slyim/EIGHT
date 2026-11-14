@@ -128,7 +128,7 @@ func _run() -> void:
 	player.max_health = 100
 	player.health = player.max_health
 
-	_check(hud.difficulty_label.text.contains("TIME") and hud.difficulty_label.text.contains("DIFFICULTY 1"), "Clock and difficulty must stay visible.")
+	_check(hud.difficulty_label.text.contains("TIME") and hud.difficulty_label.text.contains("PENANCE   THREAT 1"), "Clock and difficulty must stay visible.")
 	_check(hud.stage_label.text == "REALM OF PRIDE", "The sin's realm must show.")
 	_check(hud.stats_label.text.contains("SHRINES 0 / 5"), "Broken shrines must be counted, got %s." % hud.stats_label.text)
 	# The shrine countdown and the boss bar share a slot, so exactly one shows.

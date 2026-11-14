@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=6 format=3]
+[gd_resource type="Theme" load_steps=8 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/AlegreyaSans-Regular.ttf" id="1_body"]
 [ext_resource type="FontFile" path="res://assets/fonts/Marcellus-Regular.ttf" id="2_heading"]
@@ -94,6 +94,42 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 36.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_arrow"]
+bg_color = Color(0.1176, 0.0941, 0.1804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4314, 0.2471, 0.3725, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 1
+content_margin_left = 4.0
+content_margin_top = 8.0
+content_margin_right = 4.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_arrow_hover"]
+bg_color = Color(0.2275, 0.1294, 0.251, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.886, 0.6196, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 1
+shadow_color = Color(0.902, 0.886, 0.6196, 0.28)
+shadow_size = 10
+content_margin_left = 4.0
+content_margin_top = 8.0
+content_margin_right = 4.0
+content_margin_bottom = 8.0
+
 [resource]
 resource_name = "EIGHT UI theme: repo palette, Alegreya Sans body, Marcellus headings, chamfered glowing frames"
 default_font = ExtResource("1_body")
@@ -108,6 +144,12 @@ Button/styles/disabled = SubResource("StyleBoxFlat_button")
 Button/styles/normal = SubResource("StyleBoxFlat_button")
 Button/styles/pressed = SubResource("StyleBoxFlat_button_hover")
 Button/styles/focus = SubResource("StyleBoxFlat_button_hover")
+ArrowButton/base_type = &"Button"
+ArrowButton/styles/disabled = SubResource("StyleBoxFlat_arrow")
+ArrowButton/styles/focus = SubResource("StyleBoxFlat_arrow_hover")
+ArrowButton/styles/hover = SubResource("StyleBoxFlat_arrow_hover")
+ArrowButton/styles/normal = SubResource("StyleBoxFlat_arrow")
+ArrowButton/styles/pressed = SubResource("StyleBoxFlat_arrow_hover")
 ChoiceButton/base_type = &"Button"
 ChoiceButton/styles/hover = SubResource("StyleBoxFlat_choice_hover")
 ChoiceButton/styles/normal = SubResource("StyleBoxFlat_choice")

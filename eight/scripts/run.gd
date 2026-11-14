@@ -4,6 +4,9 @@ extends Node2D
 ## The run is over: emitted after the angel's ascension on a win, or once the fallen angel
 ## has dropped on a defeat. A host (Game) returns to the hub from here.
 signal finished(victory: bool)
+## Any enemy (horde, guard, sin, Satan) took damage: where (world), how much, whether it was a
+## finisher or evolved strike (shown gold), and a stable key per enemy so numbers can stack.
+signal enemy_damaged(at: Vector2, amount: int, heavy: bool, key: int)
 ## Survival run on one sin's map: horde spawning, experience, life, items, Satan's five
 ## shrines with their guards and countdown, then the sin boss and an exit portal. Arena
 ## layout, sprites, audio, stats, upgrades, and items are PLACEHOLDER content, not final design.
@@ -23,10 +26,11 @@ const DECOR_COUNT: int = 460
 const LANDING_CLEARANCE: float = 260.0
 const DESCENT_HEIGHT: float = 420.0
 const DESCENT_TIME: float = 1.6
-## BOSSES index of Satan's map: no shrines; calm until Satan arrives after the ritual.
+## BOSSES index of Satan's map: no shrines; the horde comes through the ritual, then Satan.
 const SATAN: int = 7
-## PLACEHOLDER seconds of calm after landing on Satan's map before Satan arrives.
-const RITUAL_TIME: float = 3.0
+## PLACEHOLDER seconds after landing on Satan's map before Satan arrives; the horde comes
+## meanwhile, so the angel levels before the final fight.
+const RITUAL_TIME: float = 40.0
 ## PLACEHOLDER win: the angel rises this high over this many seconds as the world heals.
 const ASCENT_HEIGHT: float = 520.0
 const ASCENT_TIME: float = 2.4
@@ -97,35 +101,136 @@ const SFX: Dictionary[StringName, AudioStream] = {
 const SFX_SPACING: float = 0.045
 const SFX_VOICES: int = 16
 
+## Roster indices into ENEMY_TYPES (and the columns of ENEMY_UNLOCK and SIN_ENEMY_WEIGHTS).
+const HUSK: int = 0
+const IMP: int = 1
+const BRUTE: int = 2
+const FLYER: int = 3
+const CHARGER: int = 4
+const CASTER: int = 5
+const BOMBER: int = 6
+const SPLITTER: int = 7
+const SHIELDER: int = 8
+const MORTAR: int = 9
+const SLEEPER: int = 10
+const MIRROR: int = 11
 ## PLACEHOLDER horde types. An optional "scene" key instantiates a different enemy;
-## the rest spawn the plain Enemy scene.
+## the rest spawn the plain Enemy scene. "knockback" is the type's weight: light imps fly back,
+## heavy brutes barely move. An optional "split" key makes the enemy die into that many of a
+## type (which never split themselves).
 const ENEMY_TYPES: Array[Dictionary] = [
-	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
-	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
-	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
+	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "knockback": 240.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
+	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "knockback": 310.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
+	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "knockback": 120.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
 	# Flying: hovers at a distance and fires aimed shots that reach an airborne player.
-	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
+	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "knockback": 220.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
+	# Charger: stops, shows a lane, dashes along it, then stands still (punish it then).
+	{"health": 3, "speed": 95.0, "radius": 18.0, "xp": 3, "damage": 18, "knockback": 160.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/charger.tscn")},
+	# Ground caster: keeps its distance and fires ground shots after an ember glint.
+	{"health": 2, "speed": 110.0, "radius": 12.0, "xp": 3, "damage": 8, "knockback": 260.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/ground_caster.tscn")},
+	# Bomber: runs in, lights a fuse, and explodes, hurting the angel and nearby enemies.
+	{"health": 1, "speed": 150.0, "radius": 11.0, "xp": 2, "damage": 22, "knockback": 300.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/bomber.tscn")},
+	# Splitter: dies into two husks.
+	{"health": 4, "speed": 80.0, "radius": 20.0, "xp": 2, "damage": 15, "knockback": 140.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/splitter.tscn"), "split": {"type": HUSK, "count": 2}},
+	# Shielder: blocks blows from its front; finishers break its guard.
+	{"health": 4, "speed": 70.0, "radius": 20.0, "xp": 4, "damage": 18, "knockback": 100.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/shielder.tscn")},
+	# Mortar: stands back and marks circles under the angel that land a moment later.
+	{"health": 3, "speed": 85.0, "radius": 18.0, "xp": 3, "damage": 12, "knockback": 160.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite"), "scene": preload("res://scenes/mortar.tscn")},
+	# Sleeper: still until woken, then fast, pulsing a slowing ring.
+	{"health": 4, "speed": 95.0, "radius": 14.0, "xp": 3, "damage": 12, "knockback": 200.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite"), "scene": preload("res://scenes/sleeper.tscn")},
+	# Mirror: rushes a spear, shoots at a bow.
+	{"health": 3, "speed": 140.0, "radius": 12.0, "xp": 4, "damage": 12, "knockback": 240.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/mirror.tscn")},
 ]
 
 ## One sin per map (sin_index); the last entry is Satan. Stats and patterns are PLACEHOLDER.
 const BOSSES: Array[Dictionary] = [
-	{"name": "PRIDE", "health": 60, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE]},
-	{"name": "GREED", "health": 90, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.SUMMON, Boss.Pattern.BURST]},
+	# Pride: phase 2 (half health) adds a guard stance that ends in a slam. Smarter tiers chain
+	# its charges (smarts 1+) and turn some aimed fans into air fans (smarts 2+).
+	{"name": "PRIDE", "health": 100, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE],
+		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE], [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.GUARD]],
+		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM]}],
+		"smart": {"chain_charges": 1, "air_fans": 2}},
+	# Greed: coin rings with gaps either side of the angel, and ground casters at its side; at 60%
+	# violet rain falls around the angel; at a quarter its coin rings spiral. Smarter tiers add a
+	# coin wave to each volley (smarts 1+) and lead the rain (smarts 2+).
+	{"name": "GREED", "health": 130, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.COINS, Boss.Pattern.SUMMON],
+		"phase_thresholds": [0.6, 0.25],
+		"phase_patterns": [[Boss.Pattern.COINS, Boss.Pattern.SUMMON], [Boss.Pattern.COINS, Boss.Pattern.RAIN, Boss.Pattern.SUMMON], [Boss.Pattern.COINS, Boss.Pattern.RAIN]],
+		"phase_combos": [{}, {}, {Boss.Pattern.COINS: [Boss.Pattern.COINS, Boss.Pattern.COINS]}],
+		"summon_type": CASTER, "smart": {"extra_waves": 1, "lead_rain": 2}},
+	# Lust: charges and slow violet air kisses; at half health it blinks behind the angel and charges
+	# at once (a quicker lane). Smarter tiers blink twice in a row (smarts 1+) and summon flyers once
+	# past half health (smarts 2+).
 	{"name": "LUST", "health": 110, "speed": 140.0, "radius": 32.0, "interval": 2.0, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_lust.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.AIMED]},
-	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_lust.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.KISSES],
+		"phase_patterns": [[Boss.Pattern.CHARGE, Boss.Pattern.KISSES], [Boss.Pattern.CHARGE, Boss.Pattern.KISSES, Boss.Pattern.BLINK]],
+		"phase_combos": [{}, {Boss.Pattern.BLINK: [Boss.Pattern.CHARGE]}],
+		"chained_charge_windup": 0.5,
+		"smart": {"reaim": 0, "double_blink": 1, "summon": [2, FLYER]}},
+	# Envy: mirrors the angel's weapon (a thrust against the spear; keeps away and shoots three in
+	# the bow's rhythm against the bow) and fires aimed fans; at 60% it raises a darker decoy
+	# that copies its fans (only the real Envy has the name tag). Smarter tiers mirror quicker
+	# (smarts 1+), and raise two decoys and some air fans (smarts 2+).
+	{"name": "ENVY", "health": 165, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.MIRROR, Boss.Pattern.AIMED],
+		"phase_thresholds": [0.6],
+		"phase_patterns": [[Boss.Pattern.MIRROR, Boss.Pattern.AIMED], [Boss.Pattern.MIRROR, Boss.Pattern.AIMED, Boss.Pattern.DECOY]],
+		"phase_combos": [{Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT]}, {Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT]}],
+		"mirrors": true, "smart": {"quick_mirror": 1, "two_decoys": 2, "air_fans": 2}},
+	# Gluttony: leaps onto the angel's spot and leaves bile, and vomits a wide fan; at half health
+	# it devours (pulls the angel and the horde into its mouth, eats horde enemies, bites; it never
+	# heals); at a fifth it summons splitters. Smarter tiers leap twice (smarts 1+) and leave bile
+	# longer (smarts 2+).
 	{"name": "GLUTTONY", "health": 220, "speed": 60.0, "radius": 54.0, "interval": 2.6, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_gluttony.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_gluttony.aseprite"), "patterns": [Boss.Pattern.LEAP, Boss.Pattern.VOMIT],
+		"phase_thresholds": [0.5, 0.2],
+		"phase_patterns": [[Boss.Pattern.LEAP, Boss.Pattern.VOMIT], [Boss.Pattern.LEAP, Boss.Pattern.VOMIT, Boss.Pattern.DEVOUR],
+			[Boss.Pattern.LEAP, Boss.Pattern.VOMIT, Boss.Pattern.DEVOUR, Boss.Pattern.SUMMON]],
+		"phase_combos": [{}, {}, {}], "summon_type": SPLITTER,
+		"smart": {"double_leap": 1, "long_bile": 2}},
+	# Wrath: charges twice and slams where it stops; at half health it enrages (faster, and a
+	# burst after each charge); at a fifth it adds shockwaves. Smarter tiers re-aim its second
+	# charge (smarts 1+) and let it summon bombers once enraged (smarts 2+).
 	{"name": "WRATH", "health": 200, "speed": 125.0, "radius": 40.0, "interval": 1.8, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST]},
-	{"name": "SLOTH", "health": 260, "speed": 45.0, "radius": 46.0, "interval": 2.8, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_sloth.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.AIMED],
+		"phase_thresholds": [0.5, 0.2],
+		"phase_patterns": [[Boss.Pattern.CHARGE, Boss.Pattern.AIMED], [Boss.Pattern.CHARGE], [Boss.Pattern.CHARGE, Boss.Pattern.SHOCKWAVE]],
+		"phase_combos": [{Boss.Pattern.CHARGE: [Boss.Pattern.CHARGE, Boss.Pattern.SLAM]},
+			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]},
+			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]}],
+		"phase_speeds": [1.0, 1.2, 1.2], "phase_paces": [1.0, 0.75, 0.75], "slam_radius": 90.0, "slam_windup": 0.5,
+		"smart": {"reaim": 1, "summon": [2, BOMBER]}},
+	# Sloth: snores slow rings and spreads slowing sludge; at half health it yawns (a huge slam
+	# with a long tell) and naps (a long punish window); at a fifth it wakes: a new tint, three times
+	# as fast, charging, attacking far more often. Smarter tiers spread longer-lasting sludge
+	# (smarts 1+) and rain from the air right after a yawn (smarts 2+).
+	{"name": "SLOTH", "health": 240, "speed": 45.0, "radius": 46.0, "interval": 2.4, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_sloth.aseprite"), "patterns": [Boss.Pattern.SNORE, Boss.Pattern.SLUDGE],
+		"phase_thresholds": [0.65, 0.25],
+		"phase_patterns": [[Boss.Pattern.SNORE, Boss.Pattern.SLUDGE], [Boss.Pattern.SNORE, Boss.Pattern.SLUDGE, Boss.Pattern.YAWN],
+			[Boss.Pattern.CHARGE, Boss.Pattern.SNORE, Boss.Pattern.SLUDGE]],
+		"phase_combos": [{}, {Boss.Pattern.YAWN: [Boss.Pattern.NAP]}, {}],
+		"phase_speeds": [1.0, 1.0, 2.5], "phase_paces": [1.0, 0.85, 0.7],
+		"phase_tints": [Color.WHITE, Color.WHITE, Color(1.35, 0.8, 0.75, 1.0)],
+		"smart": {"long_sludge": 1, "rain_after_yawn": 2}},
+	# Satan: violet hellfire fans, a charge, and air rain; at two thirds it cycles the seven sins'
+	# signatures in pentagram order; at a third it strikes with the pentagram's five beams (ember
+	# and violet in turn) and summons the sins' creatures. Smarter tiers turn the beams between
+	# volleys (smarts 1+) and pair the sins' signatures back to back (smarts 2+).
 	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST,
-		Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN],
+		"phase_thresholds": [0.66, 0.33],
+		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN],
+			[Boss.Pattern.GUARD, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.MIRROR, Boss.Pattern.LEAP, Boss.Pattern.CHARGE, Boss.Pattern.YAWN],
+			[Boss.Pattern.BEAMS, Boss.Pattern.AIMED, Boss.Pattern.SUMMON]],
+		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM], Boss.Pattern.BLINK: [Boss.Pattern.CHARGE],
+			Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT], Boss.Pattern.CHARGE: [Boss.Pattern.CHARGE, Boss.Pattern.SLAM],
+			Boss.Pattern.YAWN: [Boss.Pattern.NAP]}, {}],
+		"phase_cycles": [false, true, false], "fans_always_air": true, "chained_charge_windup": 0.5,
+		"summon_types": [CHARGER, CASTER, BOMBER, SPLITTER, SHIELDER, MORTAR, SLEEPER, MIRROR],
+		"smart": {"reaim": 0, "rotating_beams": 1, "paired_sins": 2}},
 ]
 
 ## Level-up choices. PLACEHOLDER names and values.
@@ -160,6 +265,32 @@ const FEATHERS_PER_SHRINE: int = 15
 const FEATHERS_PER_SIN: int = 50
 const FEATHERS_PER_SATAN: int = 100
 const FEATHER_GEM_VALUE: int = 5
+## PLACEHOLDER champion elites: from 30 s in, about one horde spawn a minute (never more than
+## two alive) comes out gold-tinted and ringed, tougher and faster, worth more experience, and
+## always dropping a feather gem. Multipliers apply after the tier and the clock.
+const ELITE_START: float = 30.0
+const ELITE_GAP_MIN: float = 45.0
+const ELITE_GAP_MAX: float = 75.0
+const ELITE_MAX: int = 2
+const ELITE_HEALTH: float = 4.0
+const ELITE_DAMAGE: float = 1.5
+const ELITE_SPEED: float = 1.1
+const ELITE_XP: int = 4
+const ELITE_TINT: Color = Color(1.35, 1.1, 0.45, 1.0)
+const ELITE_RING: Color = Color(1.0, 0.82, 0.3, 1.0)
+## PLACEHOLDER map modifier Scorched Earth, rolled by the hub for one run in three and announced
+## on landing: lava burns harder and more often, and the run's feathers count for more.
+const SCORCHED_CHANCE: float = 1.0 / 3.0
+const SCORCHED_BURN: float = 1.5
+const SCORCHED_INTERVAL: float = 0.85
+const SCORCHED_FEATHERS: float = 1.25
+## PLACEHOLDER random event Horde Surge (the only timed event so far; one at a time): every
+## 90-150 s of horde time, 20 s of quicker, bigger spawns, announced and counted down on the HUD.
+const SURGE_GAP_MIN: float = 90.0
+const SURGE_GAP_MAX: float = 150.0
+const SURGE_TIME: float = 20.0
+const SURGE_INTERVAL: float = 0.6
+const SURGE_BATCH: int = 2
 
 ## Weapon evolutions, per MountedPlayer.Weapon, in path order (path 1, path 2). Each changes
 ## that weapon's finisher; a weapon evolves once per run. PLACEHOLDER names and wording.
@@ -185,13 +316,22 @@ const ITEMS: Array[Dictionary] = [
 ]
 
 ## Difficulty (minutes) at which each roster entry joins the horde: husk, imp, brute, flyer.
-const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0]
-## PLACEHOLDER horde mix per map: weights for husk, imp, brute, flyer among the unlocked ones.
-## Pride balanced, Greed imps, Lust imps and flyers, Envy flyers, Gluttony brutes, Wrath imps
-## and brutes, Sloth husks only, Satan everything.
+## (Husk, imp, brute, flyer, charger, caster, bomber, splitter, shielder, mortar, sleeper,
+## mirror.)
+const ENEMY_UNLOCK: Array[float] = [0.0, 0.75, 2.0, 1.0, 1.5, 1.25, 2.5, 2.0, 2.25, 2.0, 1.75, 3.0]
+## PLACEHOLDER horde mix per map: weights per roster type among the unlocked ones.
+## Pride balanced with chargers and shielders, Greed imps, casters and mortars, Lust imps,
+## flyers and casters, Envy flyers, splitters and mirrors, Gluttony brutes and splitters, Wrath
+## imps, brutes, chargers and bombers, Sloth husks, sleepers and mortars, Satan everything.
 const SIN_ENEMY_WEIGHTS: Array[Array] = [
-	[4.0, 2.0, 1.0, 1.0], [2.0, 5.0, 1.0, 1.0], [1.0, 4.0, 0.0, 3.0], [2.0, 1.0, 1.0, 5.0],
-	[2.0, 1.0, 5.0, 0.0], [1.0, 4.0, 4.0, 0.0], [1.0, 0.0, 0.0, 0.0], [3.0, 3.0, 2.0, 2.0],
+	[4.0, 2.0, 1.0, 1.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0],
+	[2.0, 5.0, 1.0, 1.0, 0.0, 3.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0],
+	[1.0, 4.0, 0.0, 3.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[2.0, 1.0, 1.0, 5.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0],
+	[2.0, 1.0, 5.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0],
+	[1.0, 4.0, 4.0, 0.0, 3.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.0],
+	[3.0, 3.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
 ]
 ## PLACEHOLDER spawn pace per map (interval multiplier): Sloth's horde comes slower.
 const SIN_SPAWN_PACE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.4, 1.0]
@@ -208,6 +348,27 @@ const BASE_SPAWN_INTERVAL: float = 1.1
 const MIN_SPAWN_INTERVAL: float = 0.18
 const SPAWN_PRESSURE_GAIN: float = 0.35
 const MAX_SPAWN_BATCH: int = 12
+## Difficulty tiers, chosen per map on the pentagram (see Progress.max_tier). PLACEHOLDER
+## values (Kimi's proposal, health growth softened so the 8-minute countdown stays reachable). "health"/"damage"/"speed" multiply the horde's base stats and the
+## "*_scaling" ones multiply its per-minute gains; "spawn_interval" and "spawn_pressure" shape
+## the spawn pace and "batch" adds enemies per wave. "boss_*" do the same for the sin, Satan and
+## the guards; "attack_rate" divides their attack interval and "patterns" adds that many of the
+## generic patterns they lack. "feathers" multiplies every feather earned. The countdown never
+## changes.
+const TIERS: Array[Dictionary] = [
+	{"name": "PENANCE", "health": 1.0, "damage": 1.0, "speed": 1.0, "health_scaling": 1.0, "damage_scaling": 1.0, "speed_scaling": 1.0,
+		"spawn_interval": 1.0, "spawn_pressure": 1.0, "batch": 0, "boss_health": 1.0, "boss_damage": 1.0, "boss_speed": 1.0,
+		"boss_scaling": 1.0, "attack_rate": 1.0, "patterns": 0, "feathers": 1.0},
+	{"name": "PURGATORY", "health": 1.4, "damage": 1.25, "speed": 1.05, "health_scaling": 1.1, "damage_scaling": 1.15, "speed_scaling": 1.1,
+		"spawn_interval": 0.85, "spawn_pressure": 1.15, "batch": 0, "boss_health": 1.3, "boss_damage": 1.2, "boss_speed": 1.03,
+		"boss_scaling": 1.1, "attack_rate": 1.2, "patterns": 1, "feathers": 1.5},
+	{"name": "DAMNATION", "health": 1.9, "damage": 1.6, "speed": 1.1, "health_scaling": 1.2, "damage_scaling": 1.3, "speed_scaling": 1.2,
+		"spawn_interval": 0.7, "spawn_pressure": 1.3, "batch": 1, "boss_health": 1.7, "boss_damage": 1.5, "boss_speed": 1.06,
+		"boss_scaling": 1.2, "attack_rate": 1.45, "patterns": 2, "feathers": 2.0},
+	{"name": "ABYSS", "health": 2.5, "damage": 2.0, "speed": 1.15, "health_scaling": 1.35, "damage_scaling": 1.5, "speed_scaling": 1.3,
+		"spawn_interval": 0.55, "spawn_pressure": 1.5, "batch": 2, "boss_health": 2.2, "boss_damage": 1.85, "boss_speed": 1.1,
+		"boss_scaling": 1.25, "attack_rate": 1.75, "patterns": 2, "feathers": 3.0},
+]
 ## PLACEHOLDER floor tints per sin map.
 const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6"),
 	Color("9bbfd5"), Color("b6b58a"), Color("d69a91"), Color("aba0cb"), Color("c08bba")]
@@ -217,6 +378,8 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 @export var intro_enabled: bool = true
 ## Which sin this map belongs to (index into BOSSES; 7 is Satan). Seeds the layout and tint.
 @export_range(0, 7, 1) var sin_index: int = 0
+## Difficulty tier (index into TIERS). Set before the run enters the tree: guards are made in _ready.
+@export_range(0, 3, 1) var tier: int = 0
 ## PLACEHOLDER countdown: seconds after landing to destroy every shrine, or the angel dies.
 @export_range(10.0, 3600.0, 10.0) var shrine_time: float = 480.0
 @export_range(10, 1000, 10) var max_enemies: int = 220
@@ -232,6 +395,13 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 
 var elapsed: float = 0.0
 var spawn_left: float = 1.0
+## Seconds until the next horde spawn comes out a champion elite.
+var elite_left: float = ELITE_START
+## Seconds until the next Horde Surge, and left in the current one (0 when none is running).
+var surge_next: float = randf_range(SURGE_GAP_MIN, SURGE_GAP_MAX)
+var surge_left: float = 0.0
+## This run's map modifier (set before it enters the tree; see Game.start_map).
+var scorched: bool = false
 var shrine_time_left: float = 0.0
 var shrines_left: int = 0
 ## Shrines the map started with (0 on Satan's map, or on a map authored without any).
@@ -271,6 +441,7 @@ var sfx_last_played: Dictionary[StringName, float] = {}
 ## Static decorations, drawn once with the floor: [texture, position, flip].
 var decor_props: Array[Array] = []
 var has_landed: bool = false
+var sparks: ImpactSparks
 
 @onready var geometry: StaticBody2D = $Geometry
 @onready var obstacles: Node2D = $Obstacles
@@ -301,6 +472,11 @@ func _ready() -> void:
 	player.jumped.connect(play_sfx.bind(&"jump"))
 	player.landed.connect(_on_player_landed)
 	player.dashed.connect(play_sfx.bind(&"dash"))
+	# PLACEHOLDER AUDIO: a perfect dodge reuses the item chime.
+	player.perfect_dodged.connect(play_sfx.bind(&"pickup_item", 0.0))
+	sparks = ImpactSparks.new()
+	sparks.name = &"Sparks"
+	effects.add_child(sparks)
 	# PLACEHOLDER AUDIO: the bow reuses the spear thrust sound.
 	player.arrow_fired.connect(play_sfx.bind(&"spear_thrust", 0.12).unbind(1))
 	hud.run = self
@@ -323,6 +499,9 @@ func _ready() -> void:
 		_scatter_lava()
 	else:
 		lava.set_pools(lava_layout)
+	if scorched:
+		lava.burn_damage = roundi(lava.burn_damage * SCORCHED_BURN)
+		lava.burn_interval *= SCORCHED_INTERVAL
 	_scatter_decor()
 	_spawn_guards()
 	_place_chests()
@@ -331,7 +510,13 @@ func _ready() -> void:
 		player.begin_descent(DESCENT_HEIGHT, DESCENT_TIME)
 	else:
 		has_landed = true
+		_announce_modifier()
 		music.play()
+
+
+func _announce_modifier() -> void:
+	if scorched:
+		hud.announce("SCORCHED EARTH: THE LAVA BURNS HOTTER", Hud.BURN_TINT)
 
 
 ## Pins the haze to the world: the veil learns which world area the view shows this frame.
@@ -355,6 +540,7 @@ func _on_player_landed() -> void:
 		return
 	# First touchdown on the plain: the run begins.
 	has_landed = true
+	_announce_modifier()
 	play_sfx(&"holy_land", 0.0)
 	_spawn_poof(player.global_position + Vector2(0.0, 12.0))
 	music.play()
@@ -615,7 +801,7 @@ func _spawn_guards() -> void:
 		var shrine: Breakable = child as Breakable
 		if shrine == null or shrine.kind != Breakable.Kind.SHRINE:
 			continue
-		var guard: Boss = _make_boss(GUARD_HEALTH_SCALE)
+		var guard: Boss = _make_boss(GUARD_HEALTH_SCALE, true)
 		guard.boss_name = "%s GUARD (PLACEHOLDER)" % BOSSES[sin_index]["name"]
 		guard.home = shrine.position
 		guard.leash = GUARD_LEASH
@@ -661,20 +847,36 @@ func _physics_process(delta: float) -> void:
 		# No shrines stand (all broken, or none were authored): the sin comes.
 		spawn_sin_boss()
 	if sin_index == SATAN and not sin_boss_defeated and current_boss == null:
-		# The ritual: calm until Satan arrives.
+		# The ritual: the horde comes until Satan arrives.
 		ritual_left -= delta
 		if ritual_left <= 0.0:
 			spawn_sin_boss()
-		return
 	if not spawning_enabled:
 		return
 	spawn_left -= delta
+	elite_left -= delta
+	if surge_left > 0.0:
+		surge_left = maxf(0.0, surge_left - delta)
+		if surge_left == 0.0:
+			surge_next = randf_range(SURGE_GAP_MIN, SURGE_GAP_MAX)
+	else:
+		surge_next -= delta
+		if surge_next <= 0.0:
+			surge_left = SURGE_TIME
+			# A line already showing (a relic find) keeps it; the title counts the surge down anyway.
+			if not hud.relic_label.visible:
+				hud.announce("HORDE SURGE", Hud.ALERT_TINT)
+	var surging: bool = surge_left > 0.0
 	if spawn_left <= 0.0:
-		var interval: float = spawn_interval() * SIN_SPAWN_PACE[sin_index]
+		var interval: float = spawn_interval() * SIN_SPAWN_PACE[sin_index] * (SURGE_INTERVAL if surging else 1.0)
 		spawn_left = interval * (2.0 if current_boss != null else 1.0)
-		for count: int in range(spawn_batch()):
+		for count: int in range(spawn_batch() + (SURGE_BATCH if surging else 0)):
 			if enemy_count < max_enemies:
-				spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
+				var enemy: Enemy = spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
+				# A sleeper could doze off screen and hold an elite slot forever; the next spawn takes it.
+				if elite_left <= 0.0 and not enemy is Sleeper and get_tree().get_nodes_in_group(&"elites").size() < ELITE_MAX:
+					_make_elite(enemy)
+					elite_left = randf_range(ELITE_GAP_MIN, ELITE_GAP_MAX)
 
 
 func difficulty() -> float:
@@ -686,11 +888,17 @@ func difficulty_tier() -> int:
 
 
 func spawn_interval() -> float:
-	return maxf(MIN_SPAWN_INTERVAL, BASE_SPAWN_INTERVAL / (1.0 + difficulty() * SPAWN_PRESSURE_GAIN))
+	var rules: Dictionary = TIERS[tier]
+	return maxf(MIN_SPAWN_INTERVAL, BASE_SPAWN_INTERVAL * rules["spawn_interval"] / (1.0 + difficulty() * SPAWN_PRESSURE_GAIN * rules["spawn_pressure"]))
 
 
 func spawn_batch() -> int:
-	return mini(MAX_SPAWN_BATCH, 1 + int(difficulty() / 1.5))
+	return mini(MAX_SPAWN_BATCH, 1 + int(difficulty() / 1.5) + int(TIERS[tier]["batch"]))
+
+
+## Feathers this run is worth: everything earned times the tier's reward.
+func feathers_total() -> int:
+	return floori(feathers_earned * float(TIERS[tier]["feathers"]) * (SCORCHED_FEATHERS if scorched else 1.0))
 
 
 ## Search outward from the death site, keeping the whole portal clear of walls and obstacles.
@@ -739,41 +947,182 @@ func _random_offscreen_point() -> Vector2:
 
 func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	var data: Dictionary = ENEMY_TYPES[type_index]
+	var rules: Dictionary = TIERS[tier]
 	var enemy: Enemy = (data.get("scene", ENEMY_SCENE) as PackedScene).instantiate() as Enemy
-	enemy.max_health = roundi(float(data["health"]) * (1.0 + difficulty() * HORDE_HEALTH_GAIN))
-	enemy.speed = float(data["speed"]) * (1.0 + difficulty() * HORDE_SPEED_GAIN)
+	var health_scale: float = rules["health"] * (1.0 + difficulty() * HORDE_HEALTH_GAIN * rules["health_scaling"])
+	enemy.max_health = maxi(1, roundi(float(data["health"]) * health_scale))
+	enemy.speed = float(data["speed"]) * rules["speed"] * (1.0 + difficulty() * HORDE_SPEED_GAIN * rules["speed_scaling"])
 	enemy.radius = float(data["radius"])
 	enemy.xp_value = int(data["xp"])
-	enemy.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * HORDE_DAMAGE_GAIN))
+	enemy.knockback_strength = float(data["knockback"])
+	if data.has("split"):
+		enemy.set_meta(&"split", data["split"])
+	if enemy is Bomber:
+		(enemy as Bomber).enemy_damage = maxi(1, roundi(Bomber.ENEMY_DAMAGE * health_scale))
+	var damage_scale: float = rules["damage"] * (1.0 + difficulty() * HORDE_DAMAGE_GAIN * rules["damage_scaling"])
+	enemy.contact_damage = roundi(float(data["damage"]) * damage_scale)
 	if enemy is FlyingEnemy:
-		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * (1.0 + difficulty() * HORDE_DAMAGE_GAIN))
+		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * damage_scale)
 	enemy.frames = data["frames"] as SpriteFrames
 	enemy.position = at
 	enemy.target = player
 	enemy.died.connect(_on_enemy_died)
 	enemy.hit.connect(_on_enemy_hit)
+	enemy.damaged.connect(_on_enemy_damaged)
 	actors.add_child(enemy)
 	enemy_count += 1
 	return enemy
 
 
-## A boss from this map's sin, scaled by difficulty; health_scale weakens guards.
-func _make_boss(health_scale: float = 1.0) -> Boss:
+## Turns a freshly spawned horde enemy into a champion elite (PLACEHOLDER tint and ring).
+func _make_elite(enemy: Enemy) -> void:
+	enemy.max_health = roundi(enemy.max_health * ELITE_HEALTH)
+	enemy.health = enemy.max_health
+	enemy.contact_damage = roundi(enemy.contact_damage * ELITE_DAMAGE)
+	if enemy is FlyingEnemy:
+		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * ELITE_DAMAGE)
+	enemy.speed *= ELITE_SPEED
+	if enemy is Charger:
+		(enemy as Charger).dash_speed *= ELITE_SPEED
+	if enemy is Bomber:
+		(enemy as Bomber).enemy_damage = roundi((enemy as Bomber).enemy_damage * ELITE_DAMAGE)
+	enemy.xp_value *= ELITE_XP
+	enemy.add_to_group(&"elites")
+	# Gilds the type's own colour rather than replacing it, so an elite caster still reads as a caster.
+	enemy.sprite.self_modulate *= ELITE_TINT
+	# A gold ring on a dark backing behind the sprite: at a ground enemy's feet, around a flyer in
+	# the air. A child of the sprite, so enemies keep their own _draw.
+	var size: float = enemy.sprite.scale.x # Drawn in the sprite's space: undo its scale.
+	var ring: Node2D = Node2D.new()
+	ring.name = &"EliteRing"
+	ring.show_behind_parent = true
+	if not enemy.flying:
+		ring.position = -enemy.sprite.position / size # At the feet, like the ground tells.
+	var paint: Callable = func() -> void:
+		ring.draw_arc(Vector2.ZERO, (enemy.radius + 6.0) / size, 0.0, TAU, 32, Boss.BACKING, 6.0 / size)
+		ring.draw_arc(Vector2.ZERO, (enemy.radius + 6.0) / size, 0.0, TAU, 32, ELITE_RING, 2.0 / size)
+	ring.draw.connect(paint)
+	enemy.sprite.add_child(ring)
+
+
+## A boss from this map's sin, scaled by difficulty and tier; health_scale weakens guards.
+## Guards never summon, so their extra tier patterns are real attacks.
+func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	var data: Dictionary = BOSSES[sin_index]
+	var rules: Dictionary = TIERS[tier]
+	var growth: float = difficulty() * rules["boss_scaling"]
 	var boss: Boss = BOSS_SCENE.instantiate() as Boss
 	boss.boss_name = "%s (PLACEHOLDER)" % data["name"]
-	boss.max_health = maxi(1, roundi(float(data["health"]) * health_scale * (1.0 + difficulty() * BOSS_HEALTH_GAIN)))
-	boss.speed = float(data["speed"]) * (1.0 + difficulty() * BOSS_SPEED_GAIN)
+	boss.max_health = maxi(1, roundi(float(data["health"]) * health_scale * rules["boss_health"] * (1.0 + growth * BOSS_HEALTH_GAIN)))
+	boss.speed = float(data["speed"]) * rules["boss_speed"] * (1.0 + growth * BOSS_SPEED_GAIN)
 	boss.radius = float(data["radius"])
-	boss.attack_interval = float(data["interval"])
-	boss.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * BOSS_DAMAGE_GAIN))
+	boss.attack_interval = float(data["interval"]) / rules["attack_rate"]
+	var damage_scale: float = rules["boss_damage"] * (1.0 + growth * BOSS_DAMAGE_GAIN)
+	boss.contact_damage = roundi(float(data["damage"]) * damage_scale)
+	boss.shot_damage = roundi(boss.shot_damage * damage_scale)
 	boss.frames = data["frames"] as SpriteFrames
 	boss.patterns.assign(data["patterns"])
+	if guard:
+		boss.patterns.erase(Boss.Pattern.SUMMON)
+	# Smarter tiers add the generic patterns this sin lacks, in a fixed order.
+	var extras: Array[int] = []
+	var extra: int = rules["patterns"]
+	# A sin with its own summon rule (smart "summon") keeps summons to that rule, and a pattern a
+	# sin uses in any of its phases is never an extra (it keeps its place in the fight).
+	var own_summons: bool = (data.get("smart", {}) as Dictionary).has("summon")
+	var own: Array = []
+	for list: Array in data.get("phase_patterns", []):
+		own.append_array(list)
+	for pattern: int in [Boss.Pattern.CHARGE, Boss.Pattern.AIMED, Boss.Pattern.BURST, Boss.Pattern.SUMMON]:
+		if extra > 0 and not boss.patterns.has(pattern) and not own.has(pattern) and not ((guard or own_summons) and pattern == Boss.Pattern.SUMMON):
+			extras.append(pattern)
+			extra -= 1
+	boss.patterns.append_array(extras)
+	# A sin with its own phases swaps in each phase's patterns (plus the same extras), combos, and
+	# speeds; guards fight with phase one only (its patterns and combos, no thresholds).
+	var smart: Dictionary = data.get("smart", {})
+	var combo_list: Array = data.get("phase_combos", [])
+	for index: int in range(combo_list.size()):
+		var combo: Dictionary = (combo_list[index] as Dictionary).duplicate(true)
+		if smart.has("chain_charges") and tier >= int(smart["chain_charges"]):
+			# A smarter boss follows each charge with a second, re-aimed one.
+			combo[Boss.Pattern.CHARGE] = [Boss.Pattern.CHARGE] + combo.get(Boss.Pattern.CHARGE, [])
+		if smart.has("double_blink") and tier >= int(smart["double_blink"]) and combo.has(Boss.Pattern.BLINK):
+			# A smarter Lust blinks and charges twice in a row.
+			combo[Boss.Pattern.BLINK] = combo[Boss.Pattern.BLINK] + [Boss.Pattern.BLINK] + combo[Boss.Pattern.BLINK]
+		if smart.has("rain_after_yawn") and tier >= int(smart["rain_after_yawn"]) and combo.has(Boss.Pattern.YAWN):
+			# A smarter Sloth rains from the air right after a yawn, before it naps.
+			combo[Boss.Pattern.YAWN] = [Boss.Pattern.RAIN] + combo[Boss.Pattern.YAWN]
+		if smart.has("double_leap") and tier >= int(smart["double_leap"]):
+			# A smarter Gluttony leaps twice in a row.
+			combo[Boss.Pattern.LEAP] = [Boss.Pattern.LEAP]
+		if smart.has("extra_waves") and tier >= int(smart["extra_waves"]):
+			# A smarter Greed adds a coin wave to every volley.
+			combo[Boss.Pattern.COINS] = combo.get(Boss.Pattern.COINS, []) + [Boss.Pattern.COINS]
+		boss.phase_combos.append(combo)
+	if not boss.phase_combos.is_empty():
+		boss.combos = boss.phase_combos[0]
+	if guard:
+		boss.phase_combos.clear()
+		boss.combos.clear()
+		boss.phase_thresholds.clear()
+	elif data.has("phase_patterns"):
+		var summons: Array = smart.get("summon", [])
+		var cycle_list: Array = data.get("phase_cycles", [])
+		for list: Array in data["phase_patterns"]:
+			var phase_list: Array[int] = []
+			phase_list.assign(list)
+			# A phase taken in order (Satan's seven sins) keeps exactly its own patterns.
+			var in_order: bool = boss.phase_patterns.size() < cycle_list.size() and bool(cycle_list[boss.phase_patterns.size()])
+			if not in_order:
+				phase_list.append_array(extras)
+			# Smarter bosses summon their realm's enemy once past their first phase.
+			if not summons.is_empty() and tier >= int(summons[0]) and boss.phase_patterns.size() > 0 and not phase_list.has(Boss.Pattern.SUMMON):
+				phase_list.append(Boss.Pattern.SUMMON)
+			boss.phase_patterns.append(phase_list)
+		boss.phase_thresholds.assign(data.get("phase_thresholds", [0.5]))
+		boss.phase_speeds.assign(data.get("phase_speeds", []))
+		boss.phase_paces.assign(data.get("phase_paces", []))
+		boss.phase_tints.assign(data.get("phase_tints", []))
+	boss.summon_type = int(data.get("summon_type", HUSK))
+	if smart.has("summon"):
+		boss.summon_type = int((smart["summon"] as Array)[1])
+	if smart.has("lead_rain") and tier >= int(smart["lead_rain"]):
+		boss.lead_rain = true
+	if smart.has("long_bile") and tier >= int(smart["long_bile"]):
+		boss.bile_time = 6.0
+	if smart.has("long_sludge") and tier >= int(smart["long_sludge"]):
+		boss.sludge_time = 7.0
+	boss.mirrors = bool(data.get("mirrors", false))
+	boss.fans_always_air = bool(data.get("fans_always_air", false))
+	boss.summon_types.assign(data.get("summon_types", []))
+	if not guard:
+		boss.phase_cycles.assign(data.get("phase_cycles", []))
+	if smart.has("rotating_beams") and tier >= int(smart["rotating_beams"]):
+		boss.rotating_beams = true
+	if smart.has("paired_sins") and tier >= int(smart["paired_sins"]):
+		boss.cycle_pairs = true
+	if smart.has("quick_mirror") and tier >= int(smart["quick_mirror"]):
+		boss.quick_mirror = true
+	if smart.has("two_decoys") and tier >= int(smart["two_decoys"]):
+		boss.decoy_count = 2
+	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
+	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
+	boss.chained_charge_windup = float(data.get("chained_charge_windup", Boss.WINDUPS[Boss.Pattern.CHARGE]))
+	boss.smarts = tier
+	# A smarter boss re-aims chained charges (Pride's chain always re-aims).
+	if (smart.has("reaim") and tier >= int(smart["reaim"])) or (smart.has("chain_charges") and tier >= int(smart["chain_charges"])):
+		boss.reaim_chains = true
+	if smart.has("air_fans") and tier >= int(smart["air_fans"]):
+		boss.air_fans = true
 	boss.xp_value = roundi((20 + sin_index * 5) * maxf(health_scale, 0.5))
 	boss.knockback_strength = 0.0
 	boss.target = player
 	boss.hit.connect(_on_enemy_hit)
+	boss.damaged.connect(_on_enemy_damaged)
 	boss.attacked.connect(play_sfx.bind(&"boss_attack", 0.05).unbind(1))
+	boss.phase_changed.connect(play_sfx.bind(&"boss_spawn", 0.0).unbind(1))
+	boss.ate.connect(_on_boss_ate)
 	return boss
 
 
@@ -788,16 +1137,68 @@ func spawn_sin_boss() -> Boss:
 	boss.died.connect(_on_boss_died)
 	# Only the sin summons; guards stay local to their shrines and off the horde cap.
 	boss.summon_requested.connect(_on_boss_summon)
+	boss.attacked.connect(_plan_summon)
+	boss.decoys_requested.connect(_on_decoys)
 	actors.add_child(boss)
 	current_boss = boss
 	play_sfx(&"boss_spawn", 0.0)
 	return boss
 
 
+## A summon's spots are chosen when its wind-up starts, so its marks show exactly where the
+## minions will appear.
+## A devoured horde enemy is simply gone: no kill, no loot, and the boss does not heal.
+func _on_boss_ate(_boss: Boss, enemy: Enemy) -> void:
+	if not is_instance_valid(enemy) or enemy.health <= 0:
+		return
+	enemy.health = 0
+	enemy.collision_shape.set_deferred(&"disabled", true)
+	enemy_count -= 1
+	_spawn_poof(enemy.global_position)
+	enemy.queue_free()
+
+
+func _plan_summon(boss: Boss) -> void:
+	if boss.pending != Boss.Pattern.SUMMON:
+		return
+	for offset: Vector2 in boss.summon_offsets():
+		boss.summon_spots.append(_open_spot(boss.global_position + offset, 20.0))
+
+
 func _on_boss_summon(boss: Boss, count: int) -> void:
+	var offsets: Array[Vector2] = boss.summon_offsets()
 	for index: int in range(count):
 		if enemy_count < max_enemies:
-			spawn_enemy(0, _open_spot(boss.global_position + Vector2.RIGHT.rotated(TAU * index / count) * (boss.radius + 30.0), 20.0))
+			var at: Vector2 = boss.summon_spots[index] if index < boss.summon_spots.size() else _open_spot(boss.global_position + offsets[index % offsets.size()], 20.0)
+			spawn_enemy(boss.summon_types.pick_random() if not boss.summon_types.is_empty() else boss.summon_type, at)
+	boss.summon_spots.clear()
+
+
+## A splitter's children spread across the line to the angel from where it fell (never onto
+## the angel), within the horde cap.
+func _split(rule: Dictionary, at: Vector2) -> void:
+	var count: int = rule["count"]
+	var side: Vector2 = (at - player.global_position).orthogonal().normalized()
+	if side.is_zero_approx():
+		side = Vector2.UP
+	for index: int in range(count):
+		if ended or enemy_count >= max_enemies:
+			return
+		var offset: float = (float(index) - (count - 1) * 0.5) * 48.0
+		spawn_enemy(rule["type"], _open_spot(at + side * offset, 20.0))
+
+
+## Sparks along the push (or away from the angel for enemies too heavy to push), and the HUD's
+## damage number.
+func _on_enemy_damaged(enemy: Enemy, amount: int, heavy: bool) -> void:
+	if amount == 0 and enemy.blocked_last:
+		# PLACEHOLDER AUDIO: a blocked blow reuses the landing thud.
+		play_sfx(&"land", 0.0)
+	var direction: Vector2 = enemy.knockback.normalized()
+	if direction.is_zero_approx():
+		direction = (enemy.global_position - player.global_position).normalized()
+	sparks.add(enemy.global_position - direction * enemy.radius * 0.5, direction, heavy)
+	enemy_damaged.emit(enemy.global_position - Vector2(0.0, enemy.radius), amount, heavy, enemy.get_instance_id())
 
 
 func _on_enemy_hit(_enemy: Enemy) -> void:
@@ -806,11 +1207,16 @@ func _on_enemy_hit(_enemy: Enemy) -> void:
 
 func _on_enemy_died(enemy: Enemy) -> void:
 	enemy_count -= 1
+	if ended:
+		return # Nothing earned after the run is over.
 	kills += 1
 	feathers_earned += FEATHERS_PER_KILL
 	play_sfx(&"enemy_death")
 	_spawn_poof(enemy.global_position)
 	spawn_pickup(Pickup.Kind.XP, enemy.global_position, enemy.xp_value)
+	if enemy.has_meta(&"split"):
+		# Deferred: deaths arrive inside hit callbacks and physics queries.
+		_split.call_deferred(enemy.get_meta(&"split"), enemy.global_position)
 	if randf() < heart_drop_chance * player.luck:
 		spawn_pickup(Pickup.Kind.HEART, enemy.global_position + Vector2(12.0, 0.0), 20)
 	if randf() < item_drop_chance * player.luck:
@@ -819,11 +1225,37 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		spawn_pickup(Pickup.Kind.FEATHER, enemy.global_position + Vector2(0.0, 12.0), FEATHER_GEM_VALUE)
 	if randf() < evolution_drop_chance * player.luck:
 		drop_evolution(enemy.global_position + Vector2(-12.0, 0.0))
+	if enemy.is_in_group(&"elites"):
+		spawn_pickup(Pickup.Kind.FEATHER, enemy.global_position + Vector2(0.0, -12.0), FEATHER_GEM_VALUE)
+
+
+## PLACEHOLDER decoys (Envy): weak, darker copies that only fire its aimed fans. They are not
+## part of the horde (no count, no loot), only the real boss has the name tag and health bar,
+## and they vanish with it. At most the call's count stand at once.
+const DECOY_HEALTH_SCALE: float = 0.08
+
+
+## Raises a decoy on each spot the boss marked (planned when its tell started, on open ground).
+func _on_decoys(boss: Boss, _count: int) -> void:
+	for spot: Vector2 in boss.decoy_plan:
+		var decoy: Boss = _make_boss(DECOY_HEALTH_SCALE, true)
+		decoy.boss_name = "DECOY"
+		decoy.patterns.assign([Boss.Pattern.AIMED])
+		decoy.air_fans = boss.air_fans
+		decoy.mirrors = true
+		decoy.xp_value = 0
+		decoy.add_to_group(&"decoys")
+		decoy.position = spot
+		decoy.died.connect(func(gone: Enemy) -> void: _spawn_poof(gone.global_position))
+		actors.add_child(decoy)
+		decoy.sprite.self_modulate = Boss.DECOY_TINT
 
 
 ## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
 ## then the horde keeps scaling and the angel keeps growing.
 func _on_boss_died(enemy: Enemy) -> void:
+	for decoy: Node in get_tree().get_nodes_in_group(&"decoys"):
+		decoy.queue_free()
 	kills += 1
 	feathers_earned += FEATHERS_PER_SATAN if sin_index == SATAN else FEATHERS_PER_SIN
 	var at: Vector2 = enemy.global_position

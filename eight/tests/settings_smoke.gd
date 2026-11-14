@@ -66,23 +66,32 @@ func _run() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	var fps_before: int = Engine.max_fps
 
-	# 1. The store: HIGH by default, bad values fall back, a round trip keeps everything.
+	# 1. The store: HIGH and feel options on/100% by default, bad values fall back, a round trip keeps everything.
 	var settings: Settings = Settings.load_saved()
 	_check(settings.quality == Settings.Quality.HIGH and settings.vsync and settings.fps_cap == 3 and not settings.fullscreen, "Missing settings must be the defaults.")
+	_check(settings.damage_numbers and settings.shake == 2 and is_equal_approx(Settings.SHAKE_SCALES[settings.shake], 1.0) and settings.hit_stop, "Missing gameplay-feel settings must default to on / 100%.")
 	var file: ConfigFile = ConfigFile.new()
 	file.set_value("graphics", "quality", 9)
 	file.set_value("display", "vsync", "no")
 	file.set_value("display", "fps_cap", -2)
 	file.set_value("display", "fullscreen", 3)
+	file.set_value("gameplay", "damage_numbers", "yes")
+	file.set_value("gameplay", "shake", 7)
+	file.set_value("gameplay", "hit_stop", 1)
 	file.save(TEST_SETTINGS)
 	settings = Settings.load_saved()
 	_check(settings.quality == Settings.Quality.HIGH and settings.vsync and settings.fps_cap == 3 and not settings.fullscreen, "Damaged settings must fall back to the defaults.")
+	_check(settings.damage_numbers and settings.shake == 2 and settings.hit_stop, "Damaged gameplay-feel settings must fall back to defaults.")
 	settings.quality = Settings.Quality.LOW
 	settings.vsync = false
 	settings.fps_cap = 1
+	settings.damage_numbers = false
+	settings.shake = 1
+	settings.hit_stop = false
 	_check(settings.save() == OK, "Settings must save.")
 	var reloaded: Settings = Settings.load_saved()
 	_check(reloaded.quality == Settings.Quality.LOW and not reloaded.vsync and reloaded.fps_cap == 1, "Settings must load back.")
+	_check(not reloaded.damage_numbers and reloaded.shake == 1 and not reloaded.hit_stop, "Gameplay-feel settings must load back.")
 	reloaded.apply_display(root)
 	_check(Engine.max_fps == 60, "The frame cap must apply (got %d)." % Engine.max_fps)
 
@@ -110,12 +119,38 @@ func _run() -> void:
 	await _ticks(2)
 	var panel: SettingsPanel = run.hud.get_node(^"SettingsPanel") as SettingsPanel
 	_check(panel != null and not run.hud.pause_menu.visible, "Settings must open over the pause menu.")
+	var panel_rect: Rect2 = (panel.get_node(^"Panel") as Control).get_rect()
+	var close_rect: Rect2 = (panel.get_node(^"Panel/Box/Close") as Control).get_global_rect()
+	_check(panel_rect.position.y >= 0.0 and panel_rect.end.y <= 720.0 and close_rect.end.y <= panel_rect.end.y, "Settings panel must fit without clipping at 1280x720 (panel %s, close %s)." % [panel_rect, close_rect])
 	_check(panel.quality.value == Settings.Quality.LOW, "The panel must show the saved quality.")
+	_check(not panel.damage_numbers.button_pressed and panel.shake.selected == 1 and not panel.hit_stop.button_pressed, "The panel must show the saved gameplay-feel settings.")
+	_check(panel.shake.get_item_text(0) == "SCREEN SHAKE 0%" and panel.shake.get_item_text(1) == "SCREEN SHAKE 50%" and panel.shake.get_item_text(2) == "SCREEN SHAKE 100%", "Shake options must show 0%/50%/100%.")
 	panel.quality.value = Settings.Quality.HIGH
 	await _ticks(2)
 	_check(_effects(run)[4] and _effects(run)[2], "Raising quality must apply live to the run.")
 	_check(Settings.load_saved().quality == Settings.Quality.HIGH, "A change must save at once.")
 	_check(panel.quality_label.text == "QUALITY  HIGH" and panel.quality_note.text.contains("haze"), "The panel must name the step and what it adds.")
+	# Toggle each gameplay-feel control and verify live save + live run application.
+	panel.damage_numbers.button_pressed = true
+	await _ticks(1)
+	_check(run.hud.damage_numbers_enabled and Settings.load_saved().damage_numbers, "Enabling damage numbers must save and apply live.")
+	panel.damage_numbers.button_pressed = false
+	await _ticks(1)
+	_check(not run.hud.damage_numbers_enabled and not Settings.load_saved().damage_numbers, "Disabling damage numbers must save and apply live.")
+	panel.shake.select(0)
+	panel.shake.item_selected.emit(0)
+	await _ticks(1)
+	_check(is_equal_approx(run.player.shake_scale, 0.0) and Settings.load_saved().shake == 0, "Selecting 0% shake must save and apply live.")
+	panel.shake.select(2)
+	panel.shake.item_selected.emit(2)
+	await _ticks(1)
+	_check(is_equal_approx(run.player.shake_scale, 1.0) and Settings.load_saved().shake == 2, "Selecting 100% shake must save and apply live.")
+	panel.hit_stop.button_pressed = true
+	await _ticks(1)
+	_check(run.player.hit_stop_enabled and Settings.load_saved().hit_stop, "Enabling hit-stop must save and apply live.")
+	panel.hit_stop.button_pressed = false
+	await _ticks(1)
+	_check(not run.player.hit_stop_enabled and not Settings.load_saved().hit_stop, "Disabling hit-stop must save and apply live.")
 	# R and F3 are held while the panel is open (no restart, no overlay).
 	await _key(KEY_R)
 	await _key(KEY_F3)
@@ -161,5 +196,5 @@ func _run() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	if failures == 0:
-		print("Settings smoke passed: defaults, damaged settings, round trip, frame cap, LOW/MEDIUM/HIGH/ULTRA effect layers on a hub run, panel from the pause menu (live, saved, Esc back to pause), panel from the hub (keys held, Esc closes).")
+		print("Settings smoke passed: defaults, damaged settings, round trip, frame cap, LOW/MEDIUM/HIGH/ULTRA effect layers on a hub run, gameplay-feel toggles (damage numbers, shake, hit-stop) saved and applied live, panel fit at 1280x720, panel from the pause menu (live, saved, Esc back to pause), panel from the hub (keys held, Esc closes).")
 	quit(1 if failures > 0 else 0)

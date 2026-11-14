@@ -75,7 +75,10 @@ func _run() -> void:
 	_check(not player.is_invulnerable(), "Dash protection must end once normal movement resumes.")
 	_check(player.take_damage(1), "Damage must resume after the dash expires.")
 
-	# Check a live dash separately so the boundary fix cannot disable dashing.
+	# Check a live dash separately so the boundary fix cannot disable dashing (after the
+	# hurt hit-stop above has let time run again).
+	while Engine.time_scale < 1.0:
+		await process_frame
 	player.invulnerable_left = 0.0
 	player.dash_cooldown_left = 0.0
 	Input.action_press(&"dash")

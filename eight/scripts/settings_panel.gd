@@ -1,9 +1,10 @@
 class_name SettingsPanel
 extends Control
 ## The settings overlay, opened from the pentagram and the pause menu: a quality slider that
-## layers the effects, and display options. It covers the whole screen (a dim layer takes
-## every click outside the panel), and the screens behind it ignore their keys while it is open. Every change saves at once and applies live (to
-## the window, and to `run` when one is open). Works while the tree is paused.
+## layers the effects, display options, and gameplay-feel options. It covers the whole screen
+## (a dim layer takes every click outside the panel), and the screens behind it ignore their
+## keys while it is open. Every change saves at once and applies live (to the window, and to
+## `run` when one is open). Works while the tree is paused.
 
 signal closed
 
@@ -17,6 +18,9 @@ var run: Run
 @onready var vsync: CheckButton = $Panel/Box/VSync
 @onready var fps_cap: OptionButton = $Panel/Box/FpsCap
 @onready var fullscreen: CheckButton = $Panel/Box/Fullscreen
+@onready var damage_numbers: CheckButton = $Panel/Box/DamageNumbers
+@onready var shake: OptionButton = $Panel/Box/Shake
+@onready var hit_stop: CheckButton = $Panel/Box/HitStop
 @onready var notice: Label = $Panel/Box/Notice
 
 
@@ -30,14 +34,22 @@ func _ready() -> void:
 	settings = Settings.load_saved()
 	for cap: int in Settings.FPS_CAPS:
 		fps_cap.add_item("FRAME CAP  " + ("UNLIMITED" if cap == 0 else "%d FPS" % cap))
+	for scale: float in Settings.SHAKE_SCALES:
+		shake.add_item("SCREEN SHAKE %d%%" % roundi(scale * 100.0))
 	quality.value = settings.quality
 	vsync.button_pressed = settings.vsync
 	fps_cap.selected = settings.fps_cap
 	fullscreen.button_pressed = settings.fullscreen
+	damage_numbers.button_pressed = settings.damage_numbers
+	shake.selected = settings.shake
+	hit_stop.button_pressed = settings.hit_stop
 	quality.value_changed.connect(func(value: float) -> void: _change(&"quality", int(value)))
 	vsync.toggled.connect(func(on: bool) -> void: _change(&"vsync", on))
 	fps_cap.item_selected.connect(func(index: int) -> void: _change(&"fps_cap", index))
 	fullscreen.toggled.connect(func(on: bool) -> void: _change(&"fullscreen", on))
+	damage_numbers.toggled.connect(func(on: bool) -> void: _change(&"damage_numbers", on))
+	shake.item_selected.connect(func(index: int) -> void: _change(&"shake", index))
+	hit_stop.toggled.connect(func(on: bool) -> void: _change(&"hit_stop", on))
 	($Panel/Box/Close as Button).pressed.connect(close)
 	_show_quality()
 

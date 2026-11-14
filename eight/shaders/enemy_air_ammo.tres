@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/emissive.gdshader" id="1"]
+
+[resource]
+resource_name = "PLACEHOLDER-tunable enemy_air_ammo (shots from the air: violet)"
+shader = ExtResource("1")
+shader_parameter/glow = Color(0.72, 0.5, 1, 1)
+shader_parameter/energy = 9.5
+shader_parameter/whole = true
+metadata/light = Color(0.65, 0.4, 1, 0.45)
+metadata/light_radius = 64.0

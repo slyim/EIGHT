@@ -15,7 +15,7 @@ func _ready() -> void:
 	_update_label()
 
 
-func take_hit(damage: int) -> void:
+func take_hit(damage: int, _heavy: bool = false, _from: Vector2 = Vector2.INF) -> void:
 	if health <= 0:
 		return
 	health = maxi(0, health - maxi(0, damage))

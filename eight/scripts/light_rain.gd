@@ -19,6 +19,8 @@ var hit_mask: int = 28
 ## Query cap: above Run's largest horde (max_enemies tops out at 1000), so none is skipped.
 const MAX_TARGETS: int = 1024
 var struck: bool = false
+## Called once when the light lands on at least one target (the angel's shake and hit-stop).
+var on_impact: Callable
 var time_left: float = 0.0
 
 
@@ -49,10 +51,14 @@ func _strike() -> void:
 	query.shape = circle
 	query.transform = Transform2D(0.0, global_position)
 	query.collision_mask = hit_mask
+	var landed: bool = false
 	for result: Dictionary in get_world_2d().direct_space_state.intersect_shape(query, MAX_TARGETS):
 		var collider: Object = result["collider"]
 		if collider != null and collider.has_method(&"take_hit"):
-			collider.call(&"take_hit", damage)
+			collider.call(&"take_hit", damage, true, global_position)
+			landed = true
+	if landed and on_impact.is_valid():
+		on_impact.call()
 
 
 func _draw() -> void:

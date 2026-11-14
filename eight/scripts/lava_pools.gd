@@ -22,22 +22,27 @@ extends Node2D
 ## Seconds between shimmer repaints; a cheap fixed rate, never per frame.
 @export_range(0.05, 1.0, 0.01) var shimmer_period: float = 0.12
 
-## Dark solidified rim. PLACEHOLDER colors: the molten channels exceed 1.0, so the pools
-## glow once the HDR 2D + glow settings land (plain orange until then).
-const CRUST_COLOR: Color = Color(0.11, 0.045, 0.025)
-const MOLTEN_COLOR: Color = Color(1.02, 0.46, 0.09)
-const BUBBLE_COLOR: Color = Color(1.9, 0.85, 0.25)
-const CRUST_WIDTH: float = 10.0
-const BUBBLES_PER_POOL: int = 3
-const BUBBLE_DISTANCES: Array[float] = [0.35, 0.7, 0.5]
+## Dark solidified rim, heat-seared inner shelf, molten magma, and hot upwelling core.
+## PLACEHOLDER colors: tuned so ambient + lava light pushes only hot veins, cores, and
+## bubbles into HDR bloom instead of clipping the whole pool to flat orange.
+const CRUST_COLOR: Color = Color(0.16, 0.06, 0.045)
+const RIM_COLOR: Color = Color(0.40, 0.16, 0.06)
+const MOLTEN_COLOR: Color = Color(0.74, 0.44, 0.09)
+const CORE_COLOR: Color = Color(0.88, 0.56, 0.13)
+const BUBBLE_COLOR: Color = Color(1.35, 0.82, 0.26)
+const CRUST_WIDTH: float = 14.0
+const RIM_INSET: float = 6.0
+const CORE_SCALE: float = 0.58
+const BUBBLES_PER_POOL: int = 5
+const BUBBLE_DISTANCES: Array[float] = [0.28, 0.68, 0.48, 0.78, 0.38]
 ## Orange wash on the angel after each burn tick; RGB only, so the hurt-blink alpha and
 ## the death tint stay untouched.
 const BURN_FLASH_COLOR: Color = Color(1.7, 0.75, 0.4)
 const BURN_FLASH_TIME: float = 0.45
 ## PLACEHOLDER glow: every blob is an orange light (alpha is energy / 4) reaching this many
-## blob radii, so the pools stay readable in the dark.
-const LIGHT_COLOR: Color = Color(1.0, 0.5, 0.14, 0.3)
-const LIGHT_REACH: float = 2.2
+## blob radii, so the pools cast warm volcanic light without overexposing their own fill.
+const LIGHT_COLOR: Color = Color(1.0, 0.58, 0.22, 0.11)
+const LIGHT_REACH: float = 1.75
 
 ## Per pool: center, extent (blob reach from center), blobs [[Vector2, radius], ...],
 ## and fixed bubble anchors inside the main blob.
@@ -147,18 +152,25 @@ func _decay_flash(delta: float) -> void:
 
 
 func _draw() -> void:
-	# PLACEHOLDER lava art: dark crust rims, molten fill, and slow bubbles. Each pool
-	# draws all crusts before its molten so overlapping blobs merge without seams.
+	# PLACEHOLDER lava art: dark crust rims, cooling inner shelf, molten fill, hot core, and
+	# slow bubbles. Each pool draws all crusts before its molten so overlapping blobs merge.
 	for index: int in pools.size():
 		var pool: Dictionary = pools[index]
 		for blob: Array in pool["blobs"]:
 			draw_circle(blob[0], blob[1], CRUST_COLOR)
-		var heat: float = 0.92 + 0.08 * sin(shimmer_time * 2.1 + 1.7 * float(index))
+		for blob: Array in pool["blobs"]:
+			draw_circle(blob[0], maxf(0.0, (blob[1] as float) - RIM_INSET), RIM_COLOR)
+		var heat: float = 0.94 + 0.06 * sin(shimmer_time * 2.1 + 1.7 * float(index))
 		var molten: Color = Color(MOLTEN_COLOR.r * heat, MOLTEN_COLOR.g * heat, MOLTEN_COLOR.b * heat)
+		var core: Color = Color(CORE_COLOR.r * heat, CORE_COLOR.g * heat, CORE_COLOR.b * heat)
 		for blob: Array in pool["blobs"]:
 			draw_circle(blob[0], maxf(0.0, (blob[1] as float) - CRUST_WIDTH), molten)
+		for blob: Array in pool["blobs"]:
+			draw_circle(blob[0], maxf(0.0, ((blob[1] as float) - CRUST_WIDTH) * CORE_SCALE), core)
 		for bubble: Vector2 in pool["bubbles"]:
 			var rise: float = 0.5 + 0.5 * sin(shimmer_time * 3.1 + bubble.x * 0.37 + bubble.y * 0.11)
 			if rise < 0.2:
 				continue
-			draw_circle(bubble, 2.0 + 4.0 * rise, BUBBLE_COLOR)
+			var radius: float = 2.0 + 4.0 * rise
+			draw_circle(bubble, radius + 2.0, RIM_COLOR)
+			draw_circle(bubble, radius, BUBBLE_COLOR)

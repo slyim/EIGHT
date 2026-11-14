@@ -22,6 +22,12 @@ func _ticks(count: int) -> void:
 	await process_frame
 
 
+## Shrine pacts pause the run like a level-up; these checks walk away from every offer.
+func _leave_pacts(run: Run) -> void:
+	while not run.level_up_options.is_empty() and run.level_up_options[0].has("id"):
+		run.choose_upgrade(run.level_up_options.size() - 1)
+
+
 func _shrines(run: Run) -> Array[Breakable]:
 	var found: Array[Breakable] = []
 	for child: Node in run.obstacles.get_children():
@@ -120,6 +126,7 @@ func _run() -> void:
 	for index: int in range(shrines.size() - 1):
 		shrines[index].take_blow(1000)
 		shrines[index].take_blow(1000)
+	_leave_pacts(run)
 	await _ticks(2)
 	_check(run.shrines_left == 1 and run.healed_spots.size() == Run.SHRINE_COUNT - 1, "Each broken shrine must count once and heal its ground.")
 	_check(run.current_boss == null, "The sin must wait for the last shrine.")
@@ -129,6 +136,7 @@ func _run() -> void:
 			healed_lights += 1
 	_check(healed_lights == Run.SHRINE_COUNT - 1, "Each healed spot must carry a light (got %d)." % healed_lights)
 	shrines[shrines.size() - 1].take_blow(1000)
+	_leave_pacts(run)
 	await _ticks(2)
 	var boss: Boss = run.current_boss
 	var horde_before: int = run.enemy_count

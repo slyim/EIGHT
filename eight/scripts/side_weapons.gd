@@ -168,7 +168,7 @@ func _fire_feathers() -> void:
 	if targets.is_empty():
 		return # Ready again the moment something comes in range.
 	var level: int = levels[Kind.FEATHERS]
-	waits[Kind.FEATHERS] = FEATHER_INTERVAL * player.haste
+	waits[Kind.FEATHERS] = FEATHER_INTERVAL * player.attack_haste()
 	for index: int in range(mini(FEATHER_COUNT[level - 1], targets.size())):
 		var feather: Arrow = MountedPlayer.ARROW_SCENE.instantiate() as Arrow
 		feather.direction = (targets[index].global_position - player.global_position).normalized()
@@ -184,7 +184,7 @@ func _fire_feathers() -> void:
 
 func _pulse() -> void:
 	var level: int = levels[Kind.PULSE]
-	waits[Kind.PULSE] = PULSE_INTERVAL * player.haste
+	waits[Kind.PULSE] = PULSE_INTERVAL * player.attack_haste()
 	pulse_left = PULSE_SHOW
 	var damage: int = player.dealt(PULSE_DAMAGE[level - 1])
 	for target: Node2D in _targets_near(player.global_position, PULSE_RADIUS[level - 1]):
@@ -199,7 +199,7 @@ func _bolt() -> void:
 	if targets.is_empty():
 		return
 	var level: int = levels[Kind.BOLT]
-	waits[Kind.BOLT] = BOLT_INTERVAL[level - 1] * player.haste
+	waits[Kind.BOLT] = BOLT_INTERVAL[level - 1] * player.attack_haste()
 	var target: Node2D = targets.pick_random()
 	bolt_at = target.global_position
 	bolt_left = BOLT_SHOW

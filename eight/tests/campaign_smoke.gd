@@ -1,6 +1,6 @@
 extends SceneTree
 ## The campaign: saved progress, the eight authored map scenes and their horde mixes, Satan's
-## calm ritual map, the pentagram hub, and the loop hub -> map -> win (saved) -> hub, plus
+## ritual map, the pentagram hub, and the loop hub -> map -> win (saved) -> hub, plus
 ## defeat -> hub. Uses its own save file; native Godot only.
 
 const TEST_SAVE: String = "user://test_progress.cfg"
@@ -99,7 +99,7 @@ func _run() -> void:
 	bare.free()
 	await _ticks(2)
 
-	# 3. Horde mixes: Sloth is husks only and slower, Gluttony brutes, Envy flyers.
+	# 3. Horde mixes: Sloth is husks, sleepers, and mortars, and slower, Gluttony brutes, Envy flyers.
 	var mix: Run = (load(Game.map_path(0)) as PackedScene).instantiate() as Run
 	mix.intro_enabled = false
 	mix.spawning_enabled = false
@@ -109,32 +109,37 @@ func _run() -> void:
 	mix.elapsed = 600.0
 	for sin: int in [6, 4, 3]:
 		mix.sin_index = sin
-		var counts: Array[int] = [0, 0, 0, 0]
+		var counts: Array[int] = []
+		counts.resize(Run.ENEMY_TYPES.size())
 		for roll: int in range(400):
 			counts[mix._pick_enemy_type()] += 1
 		match sin:
 			6:
-				_check(counts[0] == 400, "Sloth must send only husks (got %s)." % [counts])
+				_check(counts[Run.HUSK] + counts[Run.SLEEPER] + counts[Run.MORTAR] == 400 and counts[Run.SLEEPER] > 0 and counts[Run.MORTAR] > 0, "Sloth must send only husks, sleepers, and mortars (got %s)." % [counts])
 			4:
-				_check(counts[2] > counts[0] and counts[2] > counts[1] and counts[3] == 0, "Gluttony must favor brutes and send no flyers (got %s)." % [counts])
+				_check(counts[2] > counts[0] and counts[2] > counts[1] and counts[Run.FLYER] == 0, "Gluttony must favor brutes and send no flyers (got %s)." % [counts])
 			3:
 				_check(counts[3] > counts[0] and counts[3] > counts[1] and counts[3] > counts[2], "Envy must favor flyers (got %s)." % [counts])
 	mix.elapsed = 10.0
 	mix.sin_index = 3
-	var early: Array[int] = [0, 0, 0, 0]
+	var early: Array[int] = []
+	early.resize(Run.ENEMY_TYPES.size())
 	for roll: int in range(200):
 		early[mix._pick_enemy_type()] += 1
 	_check(early[0] == 200, "Before anything unlocks, every map must send husks (got %s)." % [early])
 	_check(Run.SIN_SPAWN_PACE[6] > 1.0 and Run.SIN_SPAWN_PACE[0] == 1.0, "Sloth's horde must come slower.")
 	mix.free()
 
-	# 4. Satan's map: no shrines or countdown, calm through the ritual, then Satan; his fall wins.
+	# 4. Satan's map: no shrines or countdown, the horde through the ritual, then Satan; his fall wins.
 	var satan_map: Run = (load(Game.map_path(Run.SATAN)) as PackedScene).instantiate() as Run
 	satan_map.intro_enabled = false
 	root.add_child(satan_map)
 	satan_map.player.invulnerable_left = 100000.0
-	await _ticks(roundi(Run.RITUAL_TIME * 60.0) - 30)
-	_check(satan_map.current_boss == null and satan_map.enemy_count == 0, "Satan's map must stay calm through the ritual.")
+	await _ticks(90)
+	_check(Run.RITUAL_TIME >= 30.0 and satan_map.ritual_left > Run.RITUAL_TIME - 3.0, "Satan's ritual must be long enough to level up (%.1f s left)." % satan_map.ritual_left)
+	_check(satan_map.current_boss == null and satan_map.enemy_count > 0, "The horde must come during Satan's ritual.")
+	satan_map.ritual_left = 0.5 # Skip the rest of the long ritual.
+	await _ticks(2)
 	_check(satan_map.hud.boss_status_label.text.begins_with("THE RITUAL IS COMPLETE") and satan_map.hud.boss_status_label.text.contains("SATAN COMES IN"), "Satan's map must announce the ritual (got %s)." % satan_map.hud.boss_status_label.text)
 	_check(not satan_map.hud.stats_label.text.contains("SHRINES"), "Satan's map must not count shrines it does not have (got %s)." % satan_map.hud.stats_label.text)
 	_check(satan_map.shrine_time_left == satan_map.shrine_time, "Satan's map must have no countdown.")
@@ -142,7 +147,7 @@ func _run() -> void:
 	var satan: Boss = satan_map.current_boss
 	_check(satan != null and satan.boss_name.begins_with("SATAN"), "Satan must arrive after the ritual.")
 	await _ticks(90)
-	_check(satan_map.enemy_count > 0, "The horde must rise once Satan arrives.")
+	_check(satan_map.enemy_count > 0, "The horde must stay once Satan arrives.")
 	satan.take_hit(satan.max_health)
 	await _ticks(2)
 	_check(satan_map.ended and satan_map.victory and satan_map.exit_portal == null, "Satan's fall must win at once, with no portal.")
@@ -164,7 +169,7 @@ func _run() -> void:
 		_check(not rect.intersects(hub.get_node("Header").get_global_rect()), "Sin %d must not cover the header." % index)
 		for other: int in range(index + 1, hub.sin_buttons.size()):
 			_check(not rect.intersects(hub.sin_buttons[other].get_global_rect()), "Sins %d and %d must not overlap." % [index, other])
-		_check(hub.sin_buttons[index].text.contains("SEALED") == (index < 6), "Sin %d must show whether it is sealed." % index)
+		_check(hub.sin_buttons[index].text.contains("BEST PENANCE") == (index < 6), "Sin %d must show its best tier once sealed." % index)
 	_check(hub.satan_button.disabled and hub.satan_button.text.contains("6 / 7"), "Satan must stay locked at six relics (%s)." % hub.satan_button.text)
 	await _key(KEY_S)
 	_check(current_scene == hub, "S must not summon Satan while locked.")

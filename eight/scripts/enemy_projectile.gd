@@ -20,7 +20,8 @@ var life_left: float = LIFETIME
 
 func _ready() -> void:
 	add_to_group(&"enemy_projectiles")
-	material = preload("res://shaders/enemy_ammo.tres")
+	# Shots from the air glow violet, ground shots ember, so the dodge reads from the glow too.
+	material = preload("res://shaders/enemy_air_ammo.tres") if from_air else preload("res://shaders/enemy_ammo.tres")
 	add_to_group(&"light")
 	sprite_frames = FRAMES
 	scale = Vector2(2.0, 2.0)

@@ -26,6 +26,12 @@ func _ticks(count: int) -> void:
 	await process_frame
 
 
+## Shrine pacts pause the run like a level-up; these checks walk away from every offer.
+func _leave_pacts(run: Run) -> void:
+	while not run.level_up_options.is_empty() and run.level_up_options[0].has("id"):
+		run.choose_upgrade(run.level_up_options.size() - 1)
+
+
 func _save(feathers: Variant, ranks: Dictionary = {}) -> void:
 	var file: ConfigFile = ConfigFile.new()
 	file.set_value("progress", "feathers", feathers)
@@ -65,6 +71,7 @@ func _run() -> void:
 	before = run.feathers_earned
 	var shrines: Array = run.obstacles.get_children().filter(func(node: Node) -> bool: return (node as Breakable).kind == Breakable.Kind.SHRINE)
 	(shrines[0] as Breakable).take_blow(1000)
+	_leave_pacts(run)
 	_check(run.feathers_earned == before + Run.FEATHERS_PER_SHRINE, "A shrine must earn feathers.")
 	before = run.feathers_earned
 	run.spawn_pickup(Pickup.Kind.FEATHER, run.player.global_position + Vector2(60.0, 0.0), Run.FEATHER_GEM_VALUE)
@@ -79,6 +86,7 @@ func _run() -> void:
 	for shrine: Variant in shrines:
 		if is_instance_valid(shrine):
 			(shrine as Breakable).take_blow(1000)
+	_leave_pacts(run)
 	await _ticks(2)
 	before = run.feathers_earned
 	run.current_boss.take_hit(100000)

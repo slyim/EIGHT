@@ -4,13 +4,13 @@ render_mode blend_mul, unshaded;
 // screen_texture; this pass multiplies the finished world by ambient + light. Light is read
 // once per art pixel and stepped into dithered bands, so it sits on the pixel-art grid.
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_nearest;
-uniform vec4 ambient : source_color = vec4(0.32, 0.38, 0.50, 1.0);
+uniform vec4 ambient : source_color = vec4(1.0, 1.05, 1.2, 1.0);
 uniform float art_pixel = 2.0;
 // 0 bands is a smooth gradient; dither is the checkered share of each band edge.
-uniform float bands : hint_range(0.0, 16.0, 1.0) = 6.0;
-uniform float dither : hint_range(0.0, 1.0) = 0.28;
+uniform float bands : hint_range(0.0, 16.0, 1.0) = 8.0;
+uniform float dither : hint_range(0.0, 1.0) = 0.10;
 // Brightest light kept; overlapping lights saturate here instead of washing out to white.
-uniform float max_light : hint_range(0.5, 4.0) = 2.4;
+uniform float max_light : hint_range(0.5, 4.0) = 1.45;
 varying vec2 world;
 void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy; }
 float bayer(vec2 cell) {

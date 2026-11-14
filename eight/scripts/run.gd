@@ -148,6 +148,7 @@ const BOSSES: Array[Dictionary] = [
 	{"name": "PRIDE", "health": 100, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE],
 		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE], [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.GUARD]],
+		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM]}],
 		"smart": {"chain_charges": 1, "air_fans": 2}},
 	{"name": "GREED", "health": 90, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.SUMMON, Boss.Pattern.BURST]},
@@ -157,8 +158,18 @@ const BOSSES: Array[Dictionary] = [
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
 	{"name": "GLUTTONY", "health": 220, "speed": 60.0, "radius": 54.0, "interval": 2.6, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_gluttony.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
+	# Wrath: charges twice and slams where it stops; at half health it enrages (faster, and a
+	# burst after each charge); at a fifth it adds shockwaves. Smarter tiers re-aim its second
+	# charge (smarts 1+) and let it summon bombers once enraged (smarts 2+).
 	{"name": "WRATH", "health": 200, "speed": 125.0, "radius": 40.0, "interval": 1.8, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE, Boss.Pattern.BURST]},
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_wrath.aseprite"), "patterns": [Boss.Pattern.CHARGE],
+		"phase_thresholds": [0.5, 0.2],
+		"phase_patterns": [[Boss.Pattern.CHARGE], [Boss.Pattern.CHARGE], [Boss.Pattern.CHARGE, Boss.Pattern.SHOCKWAVE]],
+		"phase_combos": [{Boss.Pattern.CHARGE: [Boss.Pattern.CHARGE, Boss.Pattern.SLAM]},
+			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]},
+			{Boss.Pattern.CHARGE: [Boss.Pattern.BURST, Boss.Pattern.CHARGE, Boss.Pattern.BURST, Boss.Pattern.SLAM]}],
+		"phase_speeds": [1.0, 1.2, 1.2], "phase_paces": [1.0, 0.75, 0.75], "slam_radius": 90.0, "slam_windup": 0.5,
+		"smart": {"reaim": 1, "summon": [2, BOMBER]}},
 	{"name": "SLOTH", "health": 260, "speed": 45.0, "radius": 46.0, "interval": 2.8, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_sloth.aseprite"), "patterns": [Boss.Pattern.BURST, Boss.Pattern.SUMMON]},
 	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5, "damage": 20,
@@ -875,18 +886,43 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 			extras.append(pattern)
 			extra -= 1
 	boss.patterns.append_array(extras)
-	# A sin with its own phases swaps in each phase's patterns (plus the same extras); guards
-	# fight with phase one only.
-	if data.has("phase_patterns") and not guard:
+	# A sin with its own phases swaps in each phase's patterns (plus the same extras), combos, and
+	# speeds; guards fight with phase one only (its patterns and combos, no thresholds).
+	var smart: Dictionary = data.get("smart", {})
+	var combo_list: Array = data.get("phase_combos", [])
+	for index: int in range(combo_list.size()):
+		var combo: Dictionary = (combo_list[index] as Dictionary).duplicate(true)
+		if smart.has("chain_charges") and tier >= int(smart["chain_charges"]):
+			# A smarter boss follows each charge with a second, re-aimed one.
+			combo[Boss.Pattern.CHARGE] = [Boss.Pattern.CHARGE] + combo.get(Boss.Pattern.CHARGE, [])
+		boss.phase_combos.append(combo)
+	if not boss.phase_combos.is_empty():
+		boss.combos = boss.phase_combos[0]
+	if guard:
+		boss.phase_combos.clear()
+		boss.combos.clear()
+		boss.phase_thresholds.clear()
+	elif data.has("phase_patterns"):
+		var summons: Array = smart.get("summon", [])
 		for list: Array in data["phase_patterns"]:
 			var phase_list: Array[int] = []
 			phase_list.assign(list)
 			phase_list.append_array(extras)
+			# Smarter bosses summon their realm's enemy once past their first phase.
+			if not summons.is_empty() and tier >= int(summons[0]) and boss.phase_patterns.size() > 0 and not phase_list.has(Boss.Pattern.SUMMON):
+				phase_list.append(Boss.Pattern.SUMMON)
 			boss.phase_patterns.append(phase_list)
+		boss.phase_thresholds.assign(data.get("phase_thresholds", [0.5]))
+		boss.phase_speeds.assign(data.get("phase_speeds", []))
+		boss.phase_paces.assign(data.get("phase_paces", []))
+	if smart.has("summon"):
+		boss.summon_type = int((smart["summon"] as Array)[1])
+	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
+	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
 	boss.smarts = tier
-	var smart: Dictionary = data.get("smart", {})
-	if smart.has("chain_charges") and tier >= int(smart["chain_charges"]):
-		boss.chain_charges = 1
+	# A smarter boss re-aims chained charges (Pride's chain always re-aims).
+	if (smart.has("reaim") and tier >= int(smart["reaim"])) or (smart.has("chain_charges") and tier >= int(smart["chain_charges"])):
+		boss.reaim_chains = true
 	if smart.has("air_fans") and tier >= int(smart["air_fans"]):
 		boss.air_fans = true
 	boss.xp_value = roundi((20 + sin_index * 5) * maxf(health_scale, 0.5))
@@ -931,7 +967,7 @@ func _on_boss_summon(boss: Boss, count: int) -> void:
 	for index: int in range(count):
 		if enemy_count < max_enemies:
 			var at: Vector2 = boss.summon_spots[index] if index < boss.summon_spots.size() else _open_spot(boss.global_position + offsets[index % offsets.size()], 20.0)
-			spawn_enemy(0, at)
+			spawn_enemy(boss.summon_type, at)
 	boss.summon_spots.clear()
 
 

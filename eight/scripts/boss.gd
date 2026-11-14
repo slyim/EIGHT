@@ -8,22 +8,24 @@ extends Enemy
 ## health threshold (phase). A phase change is announced by a short pose (the boss stands, and can
 ## still be hit) and may swap in that phase's own patterns. A guard stance blocks blows from the
 ## front like a shielder (heavy blows break it, opening a long punish window) and ends in a slam
-## around the boss.
+## around the boss. An attack can open a combo: the patterns that follow it at once, each behind
+## its own tell (a sin's data sets them per phase), before the boss rests. A shockwave sends three
+## expanding ember rings out from the boss.
 
 signal summon_requested(boss: Boss, count: int)
 signal attacked(boss: Boss)
 signal phase_changed(boss: Boss)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6]
 ## PLACEHOLDER phase-change pose: the boss stands for this long (still hittable).
 const PHASE_POSE: float = 0.8
 ## PLACEHOLDER guard stance and the slam it ends in.
@@ -79,10 +81,29 @@ var guard_left: float = 0.0
 var guard_facing: Vector2 = Vector2.RIGHT
 var block_flash_left: float = 0.0
 var slam_flash_left: float = 0.0
-## Smarter tiers: extra charges chained after each charge, and aimed fans that may come from
-## the air. Set by the run from the boss's data and the tier.
-var chain_charges: int = 0
-var charges_left: int = 0
+## Combos for the current phase (pattern -> the patterns that follow it), one per phase from the
+## sin's data, and the steps still to come in the running combo.
+var phase_combos: Array[Dictionary] = []
+var combos: Dictionary = {}
+var combo_queue: Array[int] = []
+## Movement speed and attack interval multipliers per phase (index 0 is phase 1), against the
+## values the boss spawned with. Without paces, each phase multiplies the interval by PHASE_PACE.
+var phase_speeds: Array[float] = []
+var phase_paces: Array[float] = []
+var base_speed: float = 0.0
+var base_interval: float = 0.0
+## This boss's slam (PLACEHOLDER; Wrath's is smaller and quicker than Pride's).
+var slam_radius: float = SLAM_RADIUS
+var slam_windup: float = WINDUPS[Pattern.SLAM]
+## A charge that follows another in a combo: smarter bosses re-aim it at the angel; otherwise it
+## heads for where the angel stood when the combo began.
+var reaim_chains: bool = false
+var combo_anchor: Vector2 = Vector2.ZERO
+## The horde type a summon brings (an index into Run.ENEMY_TYPES).
+var summon_type: int = 0
+## The full length of the running wind-up (the tell's fill is measured against it).
+var windup_total: float = 0.0
+## Smarter tiers: aimed fans that may come from the air. Set by the run from the boss's data.
 var air_fans: bool = false
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
@@ -104,6 +125,8 @@ func _ready() -> void:
 	super()
 	set_meta(&"light", TELEGRAPH_LIGHT)
 	set_meta(&"light_radius", 180.0)
+	base_speed = speed
+	base_interval = attack_interval
 	hit.connect(_check_phase.unbind(1))
 
 
@@ -153,7 +176,7 @@ func _physics_process(delta: float) -> void:
 			guard_facing = guard_facing.rotated(clampf(guard_facing.angle_to(toward), -Shielder.TURN_RATE * delta, Shielder.TURN_RATE * delta))
 		if guard_left <= 0.0:
 			guard_left = 0.0
-			start_attack(Pattern.SLAM)
+			_finish(Pattern.GUARD)
 		queue_redraw()
 	elif windup_left > 0.0:
 		windup_left -= delta
@@ -165,18 +188,13 @@ func _physics_process(delta: float) -> void:
 			remove_from_group(&"light")
 			_attack(released)
 			if charge_left <= 0.0 and guard_left <= 0.0:
-				recover_left = RECOVERIES[released]
+				_finish(released)
 		queue_redraw()
 	elif charge_left > 0.0:
 		charge_left -= delta
 		velocity = charge_direction * charge_speed()
 		if charge_left <= 0.0:
-			if charges_left > 0:
-				# A smarter boss chains another charge, re-aimed, behind a fresh lane.
-				charges_left -= 1
-				start_attack(Pattern.CHARGE, true)
-			else:
-				recover_left = RECOVERIES[Pattern.CHARGE]
+			_finish(Pattern.CHARGE)
 	else:
 		velocity = (target.global_position - global_position).normalized() * speed
 		if can_attack():
@@ -193,14 +211,20 @@ func _physics_process(delta: float) -> void:
 	_touch_player()
 
 
-## Begins a wind-up: the attack's telegraph shows (aim locked now) until it lands. A chained
-## charge keeps the chain's count.
+## Begins a wind-up: the attack's telegraph shows (aim locked now) until it lands. A fresh attack
+## opens its combo; a chained one is a step of the running combo.
 func start_attack(pattern: int, chained: bool = false) -> void:
 	pending = pattern
-	windup_left = WINDUPS[pattern]
-	charge_direction = _aim(pattern)
-	if pattern == Pattern.CHARGE and not chained:
-		charges_left = chain_charges
+	windup_left = slam_windup if pattern == Pattern.SLAM else WINDUPS[pattern]
+	windup_total = windup_left
+	if not chained:
+		combo_queue.assign(combos.get(pattern, []))
+		combo_anchor = target.global_position
+	if chained and pattern == Pattern.CHARGE and not reaim_chains:
+		var toward: Vector2 = combo_anchor - global_position
+		charge_direction = toward.normalized() if toward.length() > 1.0 else _aim(pattern)
+	else:
+		charge_direction = _aim(pattern)
 	fan_from_air = pattern == Pattern.AIMED and air_fans and randf() < 0.5
 	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
@@ -214,11 +238,19 @@ func start_attack(pattern: int, chained: bool = false) -> void:
 	queue_redraw()
 
 
+## An attack is done: the next step of its combo starts behind its own tell, or the boss rests.
+func _finish(pattern: int) -> void:
+	if not combo_queue.is_empty():
+		start_attack(combo_queue.pop_front(), true)
+	else:
+		recover_left = RECOVERIES[pattern]
+
+
 func _cancel() -> void:
 	windup_left = 0.0
 	charge_left = 0.0
 	guard_left = 0.0
-	charges_left = 0
+	combo_queue.clear()
 	pending = -1
 	remove_from_group(&"light")
 	queue_redraw()
@@ -266,8 +298,14 @@ func _attack(pattern: int) -> void:
 			guard_facing = charge_direction
 		Pattern.SLAM:
 			slam_flash_left = SLAM_FLASH
-			if global_position.distance_to(target.global_position) <= SLAM_RADIUS + MountedPlayer.HURT_RADIUS:
+			if global_position.distance_to(target.global_position) <= slam_radius + MountedPlayer.HURT_RADIUS:
 				target.take_damage(contact_damage)
+		Pattern.SHOCKWAVE:
+			var wave: Shockwave = Shockwave.new()
+			wave.damage = contact_damage
+			wave.target = target
+			get_parent().add_child(wave)
+			wave.global_position = global_position
 
 
 ## A raised guard blocks blows from inside the shield's front cone (sparks, no damage, no push);
@@ -279,6 +317,7 @@ func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> 
 		if heavy:
 			# A heavy blow from any side breaks the stance: no slam, a long opening.
 			guard_left = 0.0
+			combo_queue.clear()
 			recover_left = GUARD_BROKEN_RECOVERY
 		else:
 			var source: Vector2 = from
@@ -297,10 +336,17 @@ func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> 
 func _check_phase() -> void:
 	while phase - 1 < phase_thresholds.size() and health > 0 and health <= max_health * phase_thresholds[phase - 1]:
 		phase += 1
-		attack_interval *= PHASE_PACE
+		if phase - 1 < phase_paces.size():
+			attack_interval = base_interval * phase_paces[phase - 1]
+		else:
+			attack_interval *= PHASE_PACE
 		attack_left = minf(attack_left, attack_interval)
 		if phase - 1 < phase_patterns.size():
 			patterns.assign(phase_patterns[phase - 1])
+		if phase - 1 < phase_combos.size():
+			combos = phase_combos[phase - 1]
+		if phase - 1 < phase_speeds.size():
+			speed = base_speed * phase_speeds[phase - 1]
 		# The pose: whatever it was doing stops, and it stands (still hittable) to announce it.
 		_cancel()
 		recover_left = 0.0
@@ -322,9 +368,9 @@ func _fire(direction: Vector2) -> void:
 
 ## Stepped fill (quarters), so the telegraph grows in pixel-sized beats.
 func windup_progress() -> float:
-	if pending < 0:
+	if pending < 0 or windup_total <= 0.0:
 		return 0.0
-	return floorf((1.0 - windup_left / WINDUPS[pending]) * 4.0) / 4.0
+	return floorf((1.0 - windup_left / windup_total) * 4.0) / 4.0
 
 
 ## Where the minions of a summon appear, relative to the boss.
@@ -371,7 +417,7 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, BACKING, 6.0)
 		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, Shielder.BLOCK_COLOR if block_flash_left > 0.0 else Shielder.SHIELD_COLOR, 2.0)
 	if slam_flash_left > 0.0:
-		draw_circle(Vector2.ZERO, SLAM_RADIUS, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
+		draw_circle(Vector2.ZERO, slam_radius, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
 	if windup_left <= 0.0 or pending < 0:
 		return
 	var fill: float = windup_progress()
@@ -402,7 +448,13 @@ func _draw() -> void:
 			draw_arc(Vector2.ZERO, radius + 10.0, at - span, at + span, 24, BACKING, 6.0)
 			draw_arc(Vector2.ZERO, radius + 10.0, at - span, at + span, 24, Shielder.SHIELD_COLOR, 2.0)
 		Pattern.SLAM:
-			draw_circle_tell(self, SLAM_RADIUS, fill)
+			draw_circle_tell(self, slam_radius, fill)
+		Pattern.SHOCKWAVE:
+			# Rings gathering at the boss's feet, about to roll out.
+			for ring: int in range(Shockwave.RINGS):
+				var gather: float = roundf((radius + 8.0 + ring * 10.0 * (1.0 - fill)) / 2.0) * 2.0
+				draw_arc(Vector2.ZERO, gather, 0.0, TAU, 32, BACKING, 6.0)
+				draw_arc(Vector2.ZERO, gather, 0.0, TAU, 32, Color(EMBER, 0.85), 2.0)
 		Pattern.SUMMON:
 			for spot: Vector2 in summon_offsets():
 				draw_arc(spot, 6.0 + 8.0 * fill, 0.0, TAU, 12, BACKING, 6.0)

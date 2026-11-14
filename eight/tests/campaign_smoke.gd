@@ -164,7 +164,7 @@ func _run() -> void:
 		_check(not rect.intersects(hub.get_node("Header").get_global_rect()), "Sin %d must not cover the header." % index)
 		for other: int in range(index + 1, hub.sin_buttons.size()):
 			_check(not rect.intersects(hub.sin_buttons[other].get_global_rect()), "Sins %d and %d must not overlap." % [index, other])
-		_check(hub.sin_buttons[index].text.contains("SEALED") == (index < 6), "Sin %d must show whether it is sealed." % index)
+		_check(hub.sin_buttons[index].text.contains("BEST PENANCE") == (index < 6), "Sin %d must show its best tier once sealed." % index)
 	_check(hub.satan_button.disabled and hub.satan_button.text.contains("6 / 7"), "Satan must stay locked at six relics (%s)." % hub.satan_button.text)
 	await _key(KEY_S)
 	_check(current_scene == hub, "S must not summon Satan while locked.")

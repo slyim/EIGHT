@@ -1,10 +1,10 @@
 class_name Settings
 extends RefCounted
 ## Player settings, saved apart from progress in user://settings.cfg: a graphics quality step
-## that layers the look-development effects (each step adds to the one below), and display
-## options that trade smoothness for cost. Invalid or missing values fall back to defaults.
-## Applied to hub-launched runs and the window; F6 runs and tests keep the scene defaults
-## (which match HIGH).
+## that layers the look-development effects (each step adds to the one below), display options
+## that trade smoothness for cost, and gameplay-feel options (damage numbers, screen shake,
+## and hit-stop). Invalid or missing values fall back to defaults. Applied to hub-launched runs
+## and the window; F6 runs and tests keep the scene defaults (which match HIGH, all feel on).
 
 ## Tests point this at their own file so they never touch the player's settings.
 static var path: String = "user://settings.cfg"
@@ -21,6 +21,8 @@ const QUALITY_NOTES: Array[String] = [
 ]
 ## Frame-rate caps; 0 is unlimited.
 const FPS_CAPS: Array[int] = [30, 60, 120, 0]
+## Screen-shake scales; 1.0 is full strength.
+const SHAKE_SCALES: Array[float] = [0.0, 0.5, 1.0]
 ## PLACEHOLDER-tunable strengths the quality steps switch between (on values match the
 ## approved look; off is 0).
 const HAZE_ON: float = 0.18
@@ -35,6 +37,10 @@ var vsync: bool = true
 ## Index into FPS_CAPS.
 var fps_cap: int = 3
 var fullscreen: bool = false
+var damage_numbers: bool = true
+## Index into SHAKE_SCALES.
+var shake: int = 2
+var hit_stop: bool = true
 
 
 static func load_saved() -> Settings:
@@ -52,6 +58,13 @@ static func load_saved() -> Settings:
 		settings.fps_cap = stored
 	stored = file.get_value("display", "fullscreen", false)
 	settings.fullscreen = stored if stored is bool else false
+	stored = file.get_value("gameplay", "damage_numbers", true)
+	settings.damage_numbers = stored if stored is bool else true
+	stored = file.get_value("gameplay", "shake", 2)
+	if stored is int and stored >= 0 and stored < SHAKE_SCALES.size():
+		settings.shake = stored
+	stored = file.get_value("gameplay", "hit_stop", true)
+	settings.hit_stop = stored if stored is bool else true
 	return settings
 
 
@@ -61,6 +74,9 @@ func save() -> Error:
 	file.set_value("display", "vsync", vsync)
 	file.set_value("display", "fps_cap", fps_cap)
 	file.set_value("display", "fullscreen", fullscreen)
+	file.set_value("gameplay", "damage_numbers", damage_numbers)
+	file.set_value("gameplay", "shake", shake)
+	file.set_value("gameplay", "hit_stop", hit_stop)
 	return file.save(path)
 
 
@@ -72,7 +88,7 @@ func apply_display(window: Window) -> void:
 		window.mode = Window.MODE_FULLSCREEN if fullscreen else Window.MODE_WINDOWED
 
 
-## The run's effects for this quality step. Safe to call again mid-run.
+## The run's effects for this quality step and gameplay-feel options. Safe to call again mid-run.
 func apply_run(run: Run) -> void:
 	var medium: bool = quality >= Quality.MEDIUM
 	var high: bool = quality >= Quality.HIGH
@@ -88,3 +104,6 @@ func apply_run(run: Run) -> void:
 	# The sin eyes share one material across every enemy.
 	Enemy.EYE_MATERIAL.set_shader_parameter(&"pulse", PULSE_ON if medium else 0.0)
 	(run.get_node(^"Lighting/Lights").material as ShaderMaterial).set_shader_parameter(&"core_whiten", CORE_WHITEN_ON if quality >= Quality.ULTRA else 0.0)
+	run.hud.damage_numbers_enabled = damage_numbers
+	run.player.shake_scale = SHAKE_SCALES[shake]
+	run.player.hit_stop_enabled = hit_stop

@@ -24,6 +24,16 @@ const ALERT_TINT: Color = Color(1.0, 0.8, 0.45, 1.0)
 const ABILITY_WAIT_TINT: Color = Color(0.6, 0.6, 0.6, 1.0)
 ## PLACEHOLDER burn callout tint while the angel stands in lava.
 const BURN_TINT: Color = Color(1.0, 0.55, 0.2, 1.0)
+## PLACEHOLDER crimson screen-edge vignette for low health and hurt flashes.
+const VIGNETTE_COLOR: Color = Color(0.85, 0.14, 0.18, 1.0)
+const VIGNETTE_WIDTH: float = 56.0
+const VIGNETTE_BANDS: int = 4
+const VIGNETTE_PULSE_HZ: float = 0.8
+const HURT_FLASH_TIME: float = 0.15
+## PLACEHOLDER "PERFECT" dodge callout above the angel.
+const PERFECT_TIME: float = 0.6
+const PERFECT_OFFSET: float = 34.0
+const PERFECT_RISE: float = 16.0
 
 ## The player chose to leave for the pentagram hub (only offered when a Game hosts the run).
 signal hub_requested
@@ -45,6 +55,20 @@ var weapon_bar: ProgressBar
 var weapon_label: Label
 ## Hidden "BURNING" callout, built in code like the weapon gauge.
 var burn_label: Label
+## Settings: floating damage numbers on or off.
+var damage_numbers_enabled: bool = true:
+	set(value):
+		damage_numbers_enabled = value
+		if not value and damage_numbers != null:
+			damage_numbers.clear()
+var damage_numbers: DamageNumbers
+## Crimson screen-edge vignette for low health and hurt flashes, over the world view.
+var vignette: Control
+var hurt_flash_left: float = 0.0
+var vignette_pulse: float = 0.0
+## Short gold "PERFECT" callout near the angel on a perfect dodge.
+var perfect_label: Label
+var perfect_left: float = 0.0
 
 @onready var stats_label: Label = $Stats
 @onready var xp_bar: ProgressBar = $XPBar
@@ -102,6 +126,21 @@ func _ready() -> void:
 	burn_label.offset_bottom = -76.0
 	burn_label.visible = false
 	add_child(burn_label)
+	vignette = Control.new()
+	vignette.name = &"Vignette"
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vignette.visible = false
+	vignette.draw.connect(_draw_vignette)
+	add_child(vignette)
+	move_child(vignette, 0)
+	damage_numbers = DamageNumbers.new()
+	damage_numbers.name = &"DamageNumbers"
+	damage_numbers.hud = self
+	damage_numbers.set_anchors_preset(Control.PRESET_FULL_RECT)
+	damage_numbers.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(damage_numbers)
+	move_child(damage_numbers, 0)
 	shrine_markers = Control.new()
 	shrine_markers.name = &"ShrineMarkers"
 	shrine_markers.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -136,6 +175,10 @@ func _ready() -> void:
 	boss_tag = _world_tag(&"BossTag", &"HeadingLabel", 18)
 	portal_tag = _world_tag(&"PortalTag", &"Label", 18)
 	portal_tag.text = "EXIT  [HOLD E]"
+	perfect_label = _world_tag(&"PerfectLabel", &"HeadingLabel", 20)
+	perfect_label.text = "PERFECT"
+	if run != null and not run.enemy_damaged.is_connected(damage_numbers.record):
+		run.enemy_damaged.connect(damage_numbers.record)
 	($PauseMenu/Box/Resume as Button).pressed.connect(set_paused.bind(false))
 	($PauseMenu/Box/Restart as Button).pressed.connect(restart)
 	($PauseMenu/Box/Hub as Button).pressed.connect(hub_requested.emit)
@@ -182,11 +225,19 @@ func _place_tag(tag: Label, point: Vector2) -> void:
 	tag.position = (at - Vector2(tag.size.x * 0.5, tag.size.y)).round()
 
 
-## The run assigns itself once it is ready; hook the player's health signal then.
+## The run assigns itself once it is ready; hook the player's and run's combat signals then.
 func _set_run(value: Run) -> void:
 	run = value
-	if value != null and not value.player.health_changed.is_connected(_update_life):
+	if value == null:
+		return
+	if not value.player.health_changed.is_connected(_update_life):
 		value.player.health_changed.connect(_update_life)
+	if not value.player.hurt.is_connected(_on_player_hurt):
+		value.player.hurt.connect(_on_player_hurt)
+	if not value.player.perfect_dodged.is_connected(_on_perfect_dodged):
+		value.player.perfect_dodged.connect(_on_perfect_dodged)
+	if damage_numbers != null and not value.enemy_damaged.is_connected(damage_numbers.record):
+		value.enemy_damaged.connect(damage_numbers.record)
 
 
 func _process(_delta: float) -> void:
@@ -198,10 +249,10 @@ func _process(_delta: float) -> void:
 		debug_label.text = _stats_text()
 	var minutes: int = int(run.elapsed) / 60
 	var seconds: int = int(run.elapsed) % 60
-	stats_label.text = "KILLS %s    FEATHERS %s" % [compact(run.kills), compact(run.feathers_earned)]
+	stats_label.text = "KILLS %s    FEATHERS %s" % [compact(run.kills), compact(run.feathers_total())]
 	if run.shrine_total > 0:
 		stats_label.text += "    SHRINES %d / %d" % [run.shrine_total - run.shrines_left, run.shrine_total]
-	difficulty_label.text = "TIME %02d:%02d   DIFFICULTY %d" % [minutes, seconds, run.difficulty_tier()]
+	difficulty_label.text = "TIME %02d:%02d   %s   THREAT %d" % [minutes, seconds, Run.TIERS[run.tier]["name"], run.difficulty_tier()]
 	stage_label.text = "REALM OF %s" % Run.BOSSES[run.sin_index]["name"]
 	shrine_markers.queue_redraw()
 	xp_bar.max_value = run.xp_needed()
@@ -209,7 +260,16 @@ func _process(_delta: float) -> void:
 	xp_label.text = "LEVEL %d    XP %d / %d" % [run.level, run.xp, run.xp_needed()]
 
 	var player: MountedPlayer = run.player
+	# Hits, edges, and callouts belong to the live world; a paused screen shows none of them.
+	damage_numbers.visible = not get_tree().paused
+	hurt_flash_left = maxf(0.0, hurt_flash_left - _delta)
+	vignette_pulse += _delta
 	_update_life(player.health, player.max_health)
+	if perfect_left > 0.0:
+		perfect_left = maxf(0.0, perfect_left - _delta)
+		_place_perfect()
+	elif perfect_label.visible:
+		perfect_label.visible = false
 	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
 	_update_flight(player)
 	_update_weapon(player)
@@ -372,8 +432,72 @@ func _update_ability(bar: ProgressBar, label: Label, ability: String, wait: floa
 
 func _update_life(current: int, maximum: int) -> void:
 	life_label.text = "LIFE %d / %d" % [current, maximum]
+	var low_life: bool = not run.ended and not run.player.is_dead and current > 0 and current <= roundi(LOW_LIFE_FRACTION * maximum)
 	life_label.self_modulate = LOW_LIFE_TINT if current <= roundi(LOW_LIFE_FRACTION * maximum) else Color.WHITE
+	if vignette != null:
+		vignette.visible = not run.ended and not get_tree().paused and (low_life or hurt_flash_left > 0.0)
+		if vignette.visible:
+			vignette.queue_redraw()
 	health_orb.queue_redraw()
+
+
+func _is_low_life() -> bool:
+	if run == null or run.ended or run.player.is_dead or run.player.health <= 0:
+		return false
+	return run.player.health <= roundi(LOW_LIFE_FRACTION * run.player.max_health)
+
+
+func _on_player_hurt() -> void:
+	if run == null or run.ended:
+		return
+	hurt_flash_left = HURT_FLASH_TIME
+	if vignette != null:
+		vignette.visible = true
+		vignette.queue_redraw()
+
+
+func _draw_vignette() -> void:
+	if run == null or run.ended:
+		return
+	var low_alpha: float = (0.18 + 0.1 * (0.5 + 0.5 * sin(vignette_pulse * TAU * VIGNETTE_PULSE_HZ))) if _is_low_life() else 0.0
+	var flash_alpha: float = 0.42 * clampf(hurt_flash_left / HURT_FLASH_TIME, 0.0, 1.0)
+	var strength: float = maxf(low_alpha, flash_alpha)
+	if strength <= 0.0:
+		return
+	var rect: Rect2 = world_view.get_rect() if world_view != null else Rect2(Vector2.ZERO, size)
+	var step_w: float = VIGNETTE_WIDTH / VIGNETTE_BANDS
+	for band: int in range(VIGNETTE_BANDS):
+		var weight: float = float(VIGNETTE_BANDS - band) / float(VIGNETTE_BANDS)
+		var color: Color = VIGNETTE_COLOR
+		color.a = strength * weight * weight
+		var r: Rect2 = rect.grow(-band * step_w)
+		vignette.draw_rect(Rect2(r.position.x, r.position.y, r.size.x, step_w), color)
+		vignette.draw_rect(Rect2(r.position.x, r.end.y - step_w, r.size.x, step_w), color)
+		vignette.draw_rect(Rect2(r.position.x, r.position.y + step_w, step_w, r.size.y - 2.0 * step_w), color)
+		vignette.draw_rect(Rect2(r.end.x - step_w, r.position.y + step_w, step_w, r.size.y - 2.0 * step_w), color)
+
+
+func _on_perfect_dodged() -> void:
+	if run == null or run.ended or perfect_label == null:
+		return
+	perfect_left = PERFECT_TIME
+	_place_perfect()
+	perfect_label.pivot_offset = perfect_label.size * 0.5
+	perfect_label.scale = Vector2(0.85, 0.85)
+	perfect_label.modulate = Color(1.15, 1.1, 0.85, 1.0)
+	var tween: Tween = perfect_label.create_tween().set_ignore_time_scale()
+	tween.tween_property(perfect_label, ^"scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _place_perfect() -> void:
+	if perfect_left <= 0.0 or run == null or run.ended or get_tree().paused:
+		perfect_label.visible = false
+		return
+	var progress: float = 1.0 - clampf(perfect_left / PERFECT_TIME, 0.0, 1.0)
+	var anchor: Vector2 = run.player.global_position - Vector2(0.0, PERFECT_OFFSET + run.player.height)
+	_place_tag(perfect_label, anchor)
+	perfect_label.position.y = roundf(perfect_label.position.y - PERFECT_RISE * progress)
+	perfect_label.modulate.a = clampf(perfect_left / (PERFECT_TIME * 0.45), 0.0, 1.0)
 
 
 func _draw_health_orb() -> void:
@@ -634,6 +758,11 @@ func show_end(victory: bool) -> void:
 	level_up_panel.hide()
 	evolution_panel.hide()
 	pause_menu.hide()
+	vignette.hide()
+	perfect_label.hide()
+	perfect_left = 0.0
+	hurt_flash_left = 0.0
+	damage_numbers.clear()
 	var hosted: bool = world_view != null
 	if victory and run.sin_index == Run.SATAN:
 		end_label.text = "SATAN DEFEATED\nTHE WORLD IS SAVED"

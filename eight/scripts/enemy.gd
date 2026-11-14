@@ -4,6 +4,8 @@ extends CharacterBody2D
 
 signal died(enemy: Enemy)
 signal hit(enemy: Enemy)
+## Every hit: how much (the weapon's damage) and whether it was a finisher or evolved strike.
+signal damaged(enemy: Enemy, amount: int, heavy: bool)
 
 ## Sin glow: every cream pixel of the sprite glows red, and the sprite is a small red light.
 const EYE_MATERIAL: ShaderMaterial = preload("res://shaders/eyes.tres")
@@ -66,6 +68,8 @@ func _face(direction_x: float) -> void:
 func _tick_flash(delta: float) -> void:
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - delta)
+		# Enemies too heavy to push (bosses, guards) shudder a pixel instead.
+		sprite.offset = Vector2(randi_range(-1, 1), 0.0) if knockback_strength <= 0.0 and hit_flash > 0.0 else Vector2.ZERO
 		if hit_flash == 0.0:
 			sprite.modulate = Color.WHITE
 
@@ -75,14 +79,21 @@ func _touch_player() -> void:
 		target.take_damage(contact_damage)
 
 
-func take_hit(damage: int) -> void:
+## heavy marks a finisher or evolved strike; from is where the blow came from (an arrow's
+## tail, a light circle's center), so the push follows it. By default the push is away from
+## the angel.
+func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> void:
 	if health <= 0:
 		return
 	health = maxi(0, health - maxi(0, damage))
 	hit_flash = 0.08
 	sprite.modulate = FLASH_COLOR
-	if is_instance_valid(target):
-		knockback = (global_position - target.global_position).normalized() * knockback_strength
+	if from == Vector2.INF and is_instance_valid(target):
+		from = target.global_position
+	if from != Vector2.INF:
+		var away: Vector2 = global_position - from
+		knockback = (away.normalized() if away.length() > 0.01 else Vector2.RIGHT) * knockback_strength
+	damaged.emit(self, maxi(0, damage), heavy)
 	hit.emit(self)
 	if health == 0:
 		collision_shape.set_deferred(&"disabled", true)

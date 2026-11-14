@@ -4,6 +4,9 @@ extends Node2D
 ## The run is over: emitted after the angel's ascension on a win, or once the fallen angel
 ## has dropped on a defeat. A host (Game) returns to the hub from here.
 signal finished(victory: bool)
+## Any enemy (horde, guard, sin, Satan) took damage: where (world), how much, whether it was a
+## finisher or evolved strike (shown gold), and a stable key per enemy so numbers can stack.
+signal enemy_damaged(at: Vector2, amount: int, heavy: bool, key: int)
 ## Survival run on one sin's map: horde spawning, experience, life, items, Satan's five
 ## shrines with their guards and countdown, then the sin boss and an exit portal. Arena
 ## layout, sprites, audio, stats, upgrades, and items are PLACEHOLDER content, not final design.
@@ -98,13 +101,14 @@ const SFX_SPACING: float = 0.045
 const SFX_VOICES: int = 16
 
 ## PLACEHOLDER horde types. An optional "scene" key instantiates a different enemy;
-## the rest spawn the plain Enemy scene.
+## the rest spawn the plain Enemy scene. "knockback" is the type's weight: light imps fly back,
+## heavy brutes barely move.
 const ENEMY_TYPES: Array[Dictionary] = [
-	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
-	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
-	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
+	{"health": 1, "speed": 105.0, "radius": 14.0, "xp": 1, "damage": 10, "knockback": 240.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_husk.aseprite")},
+	{"health": 1, "speed": 165.0, "radius": 10.0, "xp": 1, "damage": 8, "knockback": 310.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite")},
+	{"health": 4, "speed": 72.0, "radius": 22.0, "xp": 4, "damage": 25, "knockback": 120.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_brute.aseprite")},
 	# Flying: hovers at a distance and fires aimed shots that reach an airborne player.
-	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
+	{"health": 2, "speed": 120.0, "radius": 14.0, "xp": 3, "damage": 8, "knockback": 220.0, "frames": preload("res://assets/art/placeholder/placeholder_enemy_imp.aseprite"), "scene": preload("res://scenes/flying_enemy.tscn")},
 ]
 
 ## One sin per map (sin_index); the last entry is Satan. Stats and patterns are PLACEHOLDER.
@@ -208,6 +212,27 @@ const BASE_SPAWN_INTERVAL: float = 1.1
 const MIN_SPAWN_INTERVAL: float = 0.18
 const SPAWN_PRESSURE_GAIN: float = 0.35
 const MAX_SPAWN_BATCH: int = 12
+## Difficulty tiers, chosen per map on the pentagram (see Progress.max_tier). PLACEHOLDER
+## values (Kimi's proposal, health growth softened so the 8-minute countdown stays reachable). "health"/"damage"/"speed" multiply the horde's base stats and the
+## "*_scaling" ones multiply its per-minute gains; "spawn_interval" and "spawn_pressure" shape
+## the spawn pace and "batch" adds enemies per wave. "boss_*" do the same for the sin, Satan and
+## the guards; "attack_rate" divides their attack interval and "patterns" adds that many of the
+## generic patterns they lack. "feathers" multiplies every feather earned. The countdown never
+## changes.
+const TIERS: Array[Dictionary] = [
+	{"name": "PENANCE", "health": 1.0, "damage": 1.0, "speed": 1.0, "health_scaling": 1.0, "damage_scaling": 1.0, "speed_scaling": 1.0,
+		"spawn_interval": 1.0, "spawn_pressure": 1.0, "batch": 0, "boss_health": 1.0, "boss_damage": 1.0, "boss_speed": 1.0,
+		"boss_scaling": 1.0, "attack_rate": 1.0, "patterns": 0, "feathers": 1.0},
+	{"name": "PURGATORY", "health": 1.4, "damage": 1.25, "speed": 1.05, "health_scaling": 1.1, "damage_scaling": 1.15, "speed_scaling": 1.1,
+		"spawn_interval": 0.85, "spawn_pressure": 1.15, "batch": 0, "boss_health": 1.3, "boss_damage": 1.2, "boss_speed": 1.03,
+		"boss_scaling": 1.1, "attack_rate": 1.2, "patterns": 1, "feathers": 1.5},
+	{"name": "DAMNATION", "health": 1.9, "damage": 1.6, "speed": 1.1, "health_scaling": 1.2, "damage_scaling": 1.3, "speed_scaling": 1.2,
+		"spawn_interval": 0.7, "spawn_pressure": 1.3, "batch": 1, "boss_health": 1.7, "boss_damage": 1.5, "boss_speed": 1.06,
+		"boss_scaling": 1.2, "attack_rate": 1.45, "patterns": 2, "feathers": 2.0},
+	{"name": "ABYSS", "health": 2.5, "damage": 2.0, "speed": 1.15, "health_scaling": 1.35, "damage_scaling": 1.5, "speed_scaling": 1.3,
+		"spawn_interval": 0.55, "spawn_pressure": 1.5, "batch": 2, "boss_health": 2.2, "boss_damage": 1.85, "boss_speed": 1.1,
+		"boss_scaling": 1.25, "attack_rate": 1.75, "patterns": 2, "feathers": 3.0},
+]
 ## PLACEHOLDER floor tints per sin map.
 const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6"),
 	Color("9bbfd5"), Color("b6b58a"), Color("d69a91"), Color("aba0cb"), Color("c08bba")]
@@ -217,6 +242,8 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 @export var intro_enabled: bool = true
 ## Which sin this map belongs to (index into BOSSES; 7 is Satan). Seeds the layout and tint.
 @export_range(0, 7, 1) var sin_index: int = 0
+## Difficulty tier (index into TIERS). Set before the run enters the tree: guards are made in _ready.
+@export_range(0, 3, 1) var tier: int = 0
 ## PLACEHOLDER countdown: seconds after landing to destroy every shrine, or the angel dies.
 @export_range(10.0, 3600.0, 10.0) var shrine_time: float = 480.0
 @export_range(10, 1000, 10) var max_enemies: int = 220
@@ -271,6 +298,7 @@ var sfx_last_played: Dictionary[StringName, float] = {}
 ## Static decorations, drawn once with the floor: [texture, position, flip].
 var decor_props: Array[Array] = []
 var has_landed: bool = false
+var sparks: ImpactSparks
 
 @onready var geometry: StaticBody2D = $Geometry
 @onready var obstacles: Node2D = $Obstacles
@@ -301,6 +329,11 @@ func _ready() -> void:
 	player.jumped.connect(play_sfx.bind(&"jump"))
 	player.landed.connect(_on_player_landed)
 	player.dashed.connect(play_sfx.bind(&"dash"))
+	# PLACEHOLDER AUDIO: a perfect dodge reuses the item chime.
+	player.perfect_dodged.connect(play_sfx.bind(&"pickup_item", 0.0))
+	sparks = ImpactSparks.new()
+	sparks.name = &"Sparks"
+	effects.add_child(sparks)
 	# PLACEHOLDER AUDIO: the bow reuses the spear thrust sound.
 	player.arrow_fired.connect(play_sfx.bind(&"spear_thrust", 0.12).unbind(1))
 	hud.run = self
@@ -615,7 +648,7 @@ func _spawn_guards() -> void:
 		var shrine: Breakable = child as Breakable
 		if shrine == null or shrine.kind != Breakable.Kind.SHRINE:
 			continue
-		var guard: Boss = _make_boss(GUARD_HEALTH_SCALE)
+		var guard: Boss = _make_boss(GUARD_HEALTH_SCALE, true)
 		guard.boss_name = "%s GUARD (PLACEHOLDER)" % BOSSES[sin_index]["name"]
 		guard.home = shrine.position
 		guard.leash = GUARD_LEASH
@@ -686,11 +719,17 @@ func difficulty_tier() -> int:
 
 
 func spawn_interval() -> float:
-	return maxf(MIN_SPAWN_INTERVAL, BASE_SPAWN_INTERVAL / (1.0 + difficulty() * SPAWN_PRESSURE_GAIN))
+	var rules: Dictionary = TIERS[tier]
+	return maxf(MIN_SPAWN_INTERVAL, BASE_SPAWN_INTERVAL * rules["spawn_interval"] / (1.0 + difficulty() * SPAWN_PRESSURE_GAIN * rules["spawn_pressure"]))
 
 
 func spawn_batch() -> int:
-	return mini(MAX_SPAWN_BATCH, 1 + int(difficulty() / 1.5))
+	return mini(MAX_SPAWN_BATCH, 1 + int(difficulty() / 1.5) + int(TIERS[tier]["batch"]))
+
+
+## Feathers this run is worth: everything earned times the tier's reward.
+func feathers_total() -> int:
+	return floori(feathers_earned * float(TIERS[tier]["feathers"]))
 
 
 ## Search outward from the death site, keeping the whole portal clear of walls and obstacles.
@@ -739,41 +778,61 @@ func _random_offscreen_point() -> Vector2:
 
 func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	var data: Dictionary = ENEMY_TYPES[type_index]
+	var rules: Dictionary = TIERS[tier]
 	var enemy: Enemy = (data.get("scene", ENEMY_SCENE) as PackedScene).instantiate() as Enemy
-	enemy.max_health = roundi(float(data["health"]) * (1.0 + difficulty() * HORDE_HEALTH_GAIN))
-	enemy.speed = float(data["speed"]) * (1.0 + difficulty() * HORDE_SPEED_GAIN)
+	enemy.max_health = maxi(1, roundi(float(data["health"]) * rules["health"] * (1.0 + difficulty() * HORDE_HEALTH_GAIN * rules["health_scaling"])))
+	enemy.speed = float(data["speed"]) * rules["speed"] * (1.0 + difficulty() * HORDE_SPEED_GAIN * rules["speed_scaling"])
 	enemy.radius = float(data["radius"])
 	enemy.xp_value = int(data["xp"])
-	enemy.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * HORDE_DAMAGE_GAIN))
+	enemy.knockback_strength = float(data["knockback"])
+	var damage_scale: float = rules["damage"] * (1.0 + difficulty() * HORDE_DAMAGE_GAIN * rules["damage_scaling"])
+	enemy.contact_damage = roundi(float(data["damage"]) * damage_scale)
 	if enemy is FlyingEnemy:
-		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * (1.0 + difficulty() * HORDE_DAMAGE_GAIN))
+		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * damage_scale)
 	enemy.frames = data["frames"] as SpriteFrames
 	enemy.position = at
 	enemy.target = player
 	enemy.died.connect(_on_enemy_died)
 	enemy.hit.connect(_on_enemy_hit)
+	enemy.damaged.connect(_on_enemy_damaged)
 	actors.add_child(enemy)
 	enemy_count += 1
 	return enemy
 
 
-## A boss from this map's sin, scaled by difficulty; health_scale weakens guards.
-func _make_boss(health_scale: float = 1.0) -> Boss:
+## A boss from this map's sin, scaled by difficulty and tier; health_scale weakens guards.
+## Guards never summon, so their extra tier patterns are real attacks.
+func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	var data: Dictionary = BOSSES[sin_index]
+	var rules: Dictionary = TIERS[tier]
+	var growth: float = difficulty() * rules["boss_scaling"]
 	var boss: Boss = BOSS_SCENE.instantiate() as Boss
 	boss.boss_name = "%s (PLACEHOLDER)" % data["name"]
-	boss.max_health = maxi(1, roundi(float(data["health"]) * health_scale * (1.0 + difficulty() * BOSS_HEALTH_GAIN)))
-	boss.speed = float(data["speed"]) * (1.0 + difficulty() * BOSS_SPEED_GAIN)
+	boss.max_health = maxi(1, roundi(float(data["health"]) * health_scale * rules["boss_health"] * (1.0 + growth * BOSS_HEALTH_GAIN)))
+	boss.speed = float(data["speed"]) * rules["boss_speed"] * (1.0 + growth * BOSS_SPEED_GAIN)
 	boss.radius = float(data["radius"])
-	boss.attack_interval = float(data["interval"])
-	boss.contact_damage = roundi(float(data["damage"]) * (1.0 + difficulty() * BOSS_DAMAGE_GAIN))
+	boss.attack_interval = float(data["interval"]) / rules["attack_rate"]
+	var damage_scale: float = rules["boss_damage"] * (1.0 + growth * BOSS_DAMAGE_GAIN)
+	boss.contact_damage = roundi(float(data["damage"]) * damage_scale)
+	boss.shot_damage = roundi(boss.shot_damage * damage_scale)
 	boss.frames = data["frames"] as SpriteFrames
 	boss.patterns.assign(data["patterns"])
+	if guard:
+		boss.patterns.erase(Boss.Pattern.SUMMON)
+	# Smarter tiers add the generic patterns this sin lacks, in a fixed order.
+	var extra: int = rules["patterns"]
+	for pattern: int in [Boss.Pattern.CHARGE, Boss.Pattern.AIMED, Boss.Pattern.BURST, Boss.Pattern.SUMMON]:
+		if extra > 0 and not boss.patterns.has(pattern) and not (guard and pattern == Boss.Pattern.SUMMON):
+			boss.patterns.append(pattern)
+			extra -= 1
+	boss.smarts = tier
 	boss.xp_value = roundi((20 + sin_index * 5) * maxf(health_scale, 0.5))
 	boss.knockback_strength = 0.0
 	boss.target = player
 	boss.hit.connect(_on_enemy_hit)
+	boss.damaged.connect(_on_enemy_damaged)
 	boss.attacked.connect(play_sfx.bind(&"boss_attack", 0.05).unbind(1))
+	boss.phase_changed.connect(play_sfx.bind(&"boss_spawn", 0.0).unbind(1))
 	return boss
 
 
@@ -788,16 +847,39 @@ func spawn_sin_boss() -> Boss:
 	boss.died.connect(_on_boss_died)
 	# Only the sin summons; guards stay local to their shrines and off the horde cap.
 	boss.summon_requested.connect(_on_boss_summon)
+	boss.attacked.connect(_plan_summon)
 	actors.add_child(boss)
 	current_boss = boss
 	play_sfx(&"boss_spawn", 0.0)
 	return boss
 
 
+## A summon's spots are chosen when its wind-up starts, so its marks show exactly where the
+## minions will appear.
+func _plan_summon(boss: Boss) -> void:
+	if boss.pending != Boss.Pattern.SUMMON:
+		return
+	for offset: Vector2 in boss.summon_offsets():
+		boss.summon_spots.append(_open_spot(boss.global_position + offset, 20.0))
+
+
 func _on_boss_summon(boss: Boss, count: int) -> void:
+	var offsets: Array[Vector2] = boss.summon_offsets()
 	for index: int in range(count):
 		if enemy_count < max_enemies:
-			spawn_enemy(0, _open_spot(boss.global_position + Vector2.RIGHT.rotated(TAU * index / count) * (boss.radius + 30.0), 20.0))
+			var at: Vector2 = boss.summon_spots[index] if index < boss.summon_spots.size() else _open_spot(boss.global_position + offsets[index % offsets.size()], 20.0)
+			spawn_enemy(0, at)
+	boss.summon_spots.clear()
+
+
+## Sparks along the push (or away from the angel for enemies too heavy to push), and the HUD's
+## damage number.
+func _on_enemy_damaged(enemy: Enemy, amount: int, heavy: bool) -> void:
+	var direction: Vector2 = enemy.knockback.normalized()
+	if direction.is_zero_approx():
+		direction = (enemy.global_position - player.global_position).normalized()
+	sparks.add(enemy.global_position - direction * enemy.radius * 0.5, direction, heavy)
+	enemy_damaged.emit(enemy.global_position - Vector2(0.0, enemy.radius), amount, heavy, enemy.get_instance_id())
 
 
 func _on_enemy_hit(_enemy: Enemy) -> void:

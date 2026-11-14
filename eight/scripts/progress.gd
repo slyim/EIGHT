@@ -1,7 +1,8 @@
 class_name Progress
 extends RefCounted
 ## Saved campaign progress: which sins are sealed (their relics stand on the hub's pedestals),
-## whether Satan has fallen, banked feathers, and the shop's permanent upgrade ranks. A
+## whether Satan has fallen, the hardest difficulty tier beaten on each map, banked feathers,
+## and the shop's permanent upgrade ranks. A
 ## ConfigFile in user://; a missing or damaged file is a fresh start, and unknown or invalid
 ## values are ignored or clamped rather than trusted.
 
@@ -24,6 +25,9 @@ const UPGRADES: Array[Dictionary] = [
 
 var sealed: Array[int] = []
 var satan_defeated: bool = false
+## Map index (a BOSSES index; 7 is Satan) -> hardest tier beaten there (index into Run.TIERS).
+## Missing means never beaten.
+var best: Dictionary = {}
 var feathers: int = 0
 ## Upgrade id -> rank (0..its number of costs).
 var ranks: Dictionary = {}
@@ -41,6 +45,15 @@ static func load_saved() -> Progress:
 				progress.sealed.append(value)
 	progress.sealed.sort()
 	progress.satan_defeated = file.get_value("progress", "satan_defeated", false) is bool and file.get_value("progress", "satan_defeated", false)
+	# A best tier counts only for a map the save says was won (a sealed sin, a fallen Satan).
+	var won: Array[int] = progress.sealed.duplicate()
+	if progress.satan_defeated:
+		won.append(Run.SATAN)
+	for map: int in won:
+		var tier: Variant = file.get_value("best", str(map), -1)
+		# Any win beat at least the first tier, so a missing (version 1 save) or damaged tier
+		# on a won map counts as the first.
+		progress.best[map] = tier if tier is int and tier >= 0 and tier < Run.TIERS.size() else 0
 	var banked: Variant = file.get_value("progress", "feathers", 0)
 	progress.feathers = maxi(0, banked) if banked is int else 0
 	for upgrade: Dictionary in UPGRADES:
@@ -53,10 +66,12 @@ static func load_saved() -> Progress:
 ## Writes the file; returns the error so callers never claim a save that failed.
 func save() -> Error:
 	var file: ConfigFile = ConfigFile.new()
-	file.set_value("progress", "version", 1)
+	file.set_value("progress", "version", 2)
 	file.set_value("progress", "sealed", sealed)
 	file.set_value("progress", "satan_defeated", satan_defeated)
 	file.set_value("progress", "feathers", feathers)
+	for map: int in best:
+		file.set_value("best", str(map), best[map])
 	for id: String in ranks:
 		file.set_value("upgrades", id, ranks[id])
 	return file.save(path)
@@ -101,13 +116,29 @@ func apply_upgrades(run: Run) -> void:
 			run._apply_bonus(entry["stat"], entry["amount"])
 
 
-## A won map: a sin's relic is sealed, or Satan falls. Winning again changes nothing.
-func record_win(map: int) -> void:
+## A won map: a sin's relic is sealed, or Satan falls, and its hardest tier beaten rises.
+## Winning again on the same or an easier tier changes nothing.
+func record_win(map: int, tier: int = 0) -> void:
+	if map < 0 or map > Run.SATAN:
+		return
+	best[map] = maxi(int(best.get(map, -1)), clampi(tier, 0, Run.TIERS.size() - 1))
 	if map == Run.SATAN:
 		satan_defeated = true
 	elif map >= 0 and map < Run.SATAN and not sealed.has(map):
 		sealed.append(map)
 		sealed.sort()
+
+
+## The hardest tier the pentagram offers for a map. Beating a sin on a tier opens the next one
+## for that sin; Satan offers up to the lowest tier beaten across all seven sins.
+func max_tier(map: int) -> int:
+	var top: int = Run.TIERS.size() - 1
+	if map == Run.SATAN:
+		var lowest: int = top
+		for sin: int in range(Run.SATAN):
+			lowest = mini(lowest, int(best.get(sin, 0)))
+		return lowest
+	return mini(int(best.get(map, -1)) + 1, top)
 
 
 ## All seven relics are on their pedestals.

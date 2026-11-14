@@ -15,8 +15,10 @@ const HUB_SCENE: String = "res://scenes/hub.tscn"
 ## Seconds the saved realm stays on screen before returning to the hub.
 const WIN_LINGER: float = 1.6
 
-## The map the next Game loads (a BOSSES index; 7 is Satan). Kept across a restart (R).
+## The map the next Game loads (a BOSSES index; 7 is Satan) and its difficulty tier. Kept
+## across a restart (R).
 static var map_index: int = 0
+static var tier: int = 0
 
 @onready var view: SubViewportContainer = $WorldView
 @onready var run: Run = $WorldView/World/Run
@@ -27,9 +29,10 @@ static func map_path(index: int) -> String:
 	return "res://scenes/sins/%s.tscn" % String(Run.BOSSES[index]["name"]).to_lower()
 
 
-## Opens a sin's map from anywhere (the hub).
-static func start_map(tree: SceneTree, index: int) -> void:
+## Opens a sin's map on a tier from anywhere (the hub).
+static func start_map(tree: SceneTree, index: int, on_tier: int = 0) -> void:
 	map_index = index
+	tier = clampi(on_tier, 0, Run.TIERS.size() - 1)
 	tree.paused = false
 	tree.change_scene_to_file(GAME_SCENE)
 
@@ -45,6 +48,7 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_SCENE_INSTANTIATED:
 		var map: Run = (load(map_path(map_index)) as PackedScene).instantiate() as Run
 		map.name = &"Run"
+		map.tier = tier
 		get_node(^"WorldView/World").add_child(map)
 
 
@@ -70,28 +74,29 @@ func _on_finished(victory: bool) -> void:
 		_save_win()
 		return
 	# A defeat keeps half the feathers; the end card says how many (and offers Retry or the hub).
-	var kept: int = run.feathers_earned / 2
+	var earned: int = run.feathers_total()
+	var kept: int = earned / 2
 	var progress: Progress = Progress.load_saved()
 	progress.feathers += kept
 	var error: Error = progress.save()
 	if error != OK:
 		push_error("Could not save feathers (error %d)." % error)
-	run.hud.show_feathers(kept, run.feathers_earned, error == OK)
+	run.hud.show_feathers(kept, earned, error == OK)
 
 
 ## A win is saved before anything else; only then does the hub show the new relic. If the
 ## save fails, the player is told and chooses: try again, or return knowingly unsaved.
 func _save_win() -> void:
 	var progress: Progress = Progress.load_saved()
-	progress.record_win(run.sin_index)
-	progress.feathers += run.feathers_earned
+	progress.record_win(run.sin_index, run.tier)
+	progress.feathers += run.feathers_total()
 	var error: Error = progress.save()
 	if error != OK:
 		push_error("Could not save progress (error %d)." % error)
 		run.hud.show_save_failed(error)
 		return
 	run.hud.save_failed.hide()
-	run.hud.show_feathers(run.feathers_earned, run.feathers_earned, true)
+	run.hud.show_feathers(run.feathers_total(), run.feathers_total(), true)
 	Hub.just_sealed = run.sin_index
 	# A static callable, so nothing resumes on this Game if the scene is gone by then.
 	get_tree().create_timer(WIN_LINGER).timeout.connect(go_to_hub.bind(get_tree()))

@@ -16,6 +16,9 @@ signal jumped
 signal landed
 ## Emitted when the winning ascension reaches the sky.
 signal ascended
+## A dash taken just before a hit: the hit missed, the dash cooldown refunds, and attacks
+## quicken briefly.
+signal perfect_dodged
 signal weapon_switched(weapon: Weapon)
 ## step is 0 and 1 for the opening shots, 2 for the finisher.
 signal arrow_fired(step: int)
@@ -48,6 +51,33 @@ const CHAIN_COLOR: Color = Color(1.4, 1.9, 1.8, 1.0)
 const CHAIN_TIME: float = 0.2
 ## The fastest haste allows: cooldowns at 40% of their base.
 const HASTE_FLOOR: float = 0.4
+## PLACEHOLDER bow finisher (every bow, evolved or not): more damage, one more pierce, and a
+## heavier, brighter arrow.
+const BOW_FINISHER_DAMAGE: float = 1.5
+const BOW_FINISHER_PIERCE: int = 1
+const HEAVY_ARROW_COLOR: Color = Color(1.3, 1.7, 1.55, 1.0)
+## PLACEHOLDER feel per weapon: shake on a bow release (shots, finisher), shake and hit-stop on
+## a finishing arrow's first hit and on Rain of Light landing, and on the angel being hurt.
+const BOW_SHOT_SHAKE: float = 1.5
+const BOW_FINISHER_SHAKE: float = 2.5
+const BOW_HIT_SHAKE: float = 3.5
+const BOW_HIT_STOP: float = 0.03
+const RAIN_SHAKE: float = 5.0
+const RAIN_HIT_STOP: float = 0.04
+const HURT_SHAKE: float = 8.0
+const HURT_HIT_STOP: float = 0.06
+const HURT_TINT: Color = Color(1.0, 0.35, 0.32, 1.0)
+const HURT_FLASH_TIME: float = 0.12
+## PLACEHOLDER perfect dodge: a hit that lands within the first PERFECT_WINDOW seconds of a
+## dash misses, refunds the dash cooldown, and quickens attacks (cooldowns x PERFECT_HASTE) for
+## PERFECT_BUFF_TIME seconds. One per buff, so dashing through a crowd cannot chain them.
+const PERFECT_WINDOW: float = 0.1
+const PERFECT_HASTE: float = 0.7
+const PERFECT_BUFF_TIME: float = 2.0
+## PLACEHOLDER dash afterimages: a fading copy of the angel every interval while dashing.
+const AFTERIMAGE_INTERVAL: float = 0.04
+const AFTERIMAGE_TIME: float = 0.2
+const AFTERIMAGE_COLOR: Color = Color(0.792, 0.922, 0.878, 0.5)
 
 @export_group("Movement")
 @export_range(80.0, 600.0, 10.0) var movement_speed: float = 260.0
@@ -190,6 +220,25 @@ var jump_buffer_left: float = 0.0
 var attack_connected: bool = false
 ## The running hit-stop; only the latest one restores the time scale.
 var hit_stop_timer: SceneTreeTimer
+## Settings: camera shake strength (0, 0.5 or 1) and whether hit-stop slows time.
+## Switching either off also stops one already running.
+var shake_scale: float = 1.0:
+	set(value):
+		shake_scale = value
+		if value <= 0.0:
+			shake_left = 0.0
+var hit_stop_enabled: bool = true:
+	set(value):
+		hit_stop_enabled = value
+		if not value and hit_stop_timer != null:
+			hit_stop_timer = null
+			Engine.time_scale = 1.0
+## The current dash can still earn a perfect dodge.
+var perfect_ready: bool = false
+## Seconds left of the perfect-dodge attack speed buff.
+var perfect_left: float = 0.0
+var hurt_flash_left: float = 0.0
+var afterimage_left: float = 0.0
 
 @onready var spear_cast: RayCast2D = $SpearCast
 @onready var sprite: AnimatedSprite2D = $Sprite
@@ -321,6 +370,7 @@ func _physics_process(delta: float) -> void:
 		_update_visuals(Vector2.ZERO, delta)
 		return
 	invulnerable_left = maxf(0.0, invulnerable_left - delta)
+	perfect_left = maxf(0.0, perfect_left - delta)
 	# Expire the dash before choosing this tick's movement, so every dash-speed
 	# movement tick also retains its dash invulnerability.
 	dash_time_left = maxf(0.0, dash_time_left - delta)
@@ -343,6 +393,8 @@ func _physics_process(delta: float) -> void:
 		dash_direction = movement.normalized() if not movement.is_zero_approx() else aim_direction
 		dash_time_left = dash_duration
 		dash_cooldown_left = dash_duration + dash_cooldown
+		perfect_ready = true
+		afterimage_left = 0.0
 		dashed.emit()
 
 	if dash_time_left > 0.0:
@@ -397,10 +449,16 @@ func _land(shake: float) -> void:
 	landed.emit()
 
 
-## Starts a camera shake without cutting short a stronger one already running.
+## Starts a camera shake without cutting short a stronger one already running. The shake
+## setting scales it (0 turns it off).
 func _shake(strength: float) -> void:
-	shake_strength = maxf(strength, shake_strength * shake_left / 0.25)
+	shake_strength = maxf(strength * shake_scale, shake_strength * shake_left / 0.25)
 	shake_left = 0.25
+
+
+## Cooldown multiplier for attacks: haste, quickened by a perfect dodge.
+func attack_haste() -> float:
+	return haste * (PERFECT_HASTE if perfect_left > 0.0 else 1.0)
 
 
 ## One hit-stop and shake per attack, on its first connecting hit.
@@ -409,8 +467,19 @@ func _on_attack_connected(finisher: bool) -> void:
 		return
 	attack_connected = true
 	_shake(finisher_shake if finisher else hit_shake)
-	var duration: float = finisher_hit_stop if finisher else hit_stop
-	if duration <= 0.0:
+	_hit_stop(finisher_hit_stop if finisher else hit_stop)
+
+
+## A finishing arrow's first hit, or Rain of Light landing.
+func _on_ranged_impact(strength: float, duration: float) -> void:
+	_shake(strength)
+	_hit_stop(duration)
+
+
+## Slows time briefly (real seconds), unless switched off in the settings. A longer stop
+## already running is not cut short.
+func _hit_stop(duration: float) -> void:
+	if duration <= 0.0 or not hit_stop_enabled:
 		return
 	if hit_stop_timer != null and hit_stop_timer.time_left >= duration:
 		return
@@ -450,13 +519,13 @@ func _update_attack(delta: float) -> void:
 		thrust_direction = aim_direction
 		if attack_step == COMBO_LENGTH - 1:
 			attack_duration = finisher_duration
-			cooldown_left = finisher_cooldown * haste
+			cooldown_left = finisher_cooldown * attack_haste()
 			finisher_resolved = false
 			_spawn_slash()
 		else:
 			attack_duration = thrust_duration
 			# The second thrust follows faster than the first.
-			cooldown_left = thrust_cooldown * (0.8 if attack_step == 1 else 1.0) * haste
+			cooldown_left = thrust_cooldown * (0.8 if attack_step == 1 else 1.0) * attack_haste()
 			thrust_hits_left = spear_pierce
 			spear_cast.clear_exceptions()
 		attack_time_left = attack_duration
@@ -498,15 +567,17 @@ func _update_bow() -> void:
 		call_rain()
 	else:
 		fire_arrow(attack_step)
+	_shake(BOW_FINISHER_SHAKE if attack_step == COMBO_LENGTH - 1 else BOW_SHOT_SHAKE)
 	if attack_step == COMBO_LENGTH - 1:
-		cooldown_left = bow_finisher_cooldown * haste
+		cooldown_left = bow_finisher_cooldown * attack_haste()
 		combo_window_left = 0.0
 	else:
-		cooldown_left = bow_cooldown * (0.8 if attack_step == 1 else 1.0) * haste
+		cooldown_left = bow_cooldown * (0.8 if attack_step == 1 else 1.0) * attack_haste()
 		combo_window_left = cooldown_left + combo_window
 
 
-## Fires one arrow toward the aim. The finishing arrow of a Ricochet bow bounces on.
+## Fires one arrow toward the aim. The finishing arrow hits harder and pierces one more (and
+## on a Ricochet bow bounces on); its first hit shakes and briefly stops time.
 func fire_arrow(step: int = 0) -> Arrow:
 	var arrow: Arrow = ARROW_SCENE.instantiate() as Arrow
 	arrow.direction = aim_direction
@@ -514,6 +585,12 @@ func fire_arrow(step: int = 0) -> Arrow:
 	arrow.damage = dealt(bow_damage)
 	arrow.range_left = bow_range
 	arrow.pierce = bow_pierce
+	if step == COMBO_LENGTH - 1:
+		arrow.damage = maxi(1, roundi(bow_damage * BOW_FINISHER_DAMAGE * might))
+		arrow.pierce = bow_pierce + BOW_FINISHER_PIERCE
+		arrow.heavy = true
+		arrow.color = HEAVY_ARROW_COLOR
+		arrow.on_first_hit = _on_ranged_impact.bind(BOW_HIT_SHAKE, BOW_HIT_STOP)
 	if step == COMBO_LENGTH - 1 and bow_path == BowPath.RICOCHET:
 		arrow.bounces = ricochet_bounces
 		arrow.bounce_range = ricochet_range
@@ -531,6 +608,7 @@ func call_rain() -> LightRain:
 	rain.delay = rain_delay
 	rain.damage = maxi(1, roundi(bow_damage * rain_damage_multiplier * might))
 	rain.position = global_position + aim_direction * minf(aim_distance, bow_range)
+	rain.on_impact = _on_ranged_impact.bind(RAIN_SHAKE, RAIN_HIT_STOP)
 	get_parent().add_child(rain)
 	arrow_fired.emit(COMBO_LENGTH - 1)
 	return rain
@@ -586,7 +664,7 @@ func _resolve_finisher() -> void:
 		)
 		if not space.intersect_ray(line_of_sight).is_empty():
 			continue
-		collider.call(&"take_hit", damage)
+		collider.call(&"take_hit", damage, true)
 		_push(collider, finisher_knockback_scale)
 		_on_attack_connected(true)
 		struck_targets.append(collider)
@@ -632,7 +710,7 @@ func _chain_light(struck_targets: Array[Node2D], damage: int) -> void:
 				next = collider
 		if next == null:
 			break
-		next.call(&"take_hit", damage)
+		next.call(&"take_hit", damage, true, from.global_position)
 		hit.append(next)
 		points.append(next.global_position)
 		from = next
@@ -715,6 +793,13 @@ func _update_visuals(movement: Vector2, delta: float) -> void:
 
 	var blink: bool = invulnerable_left > 0.0 and int(invulnerable_left * 16.0) % 2 == 0
 	modulate.a = 0.35 if blink else 1.0
+	hurt_flash_left = maxf(0.0, hurt_flash_left - delta)
+	sprite.self_modulate = HURT_TINT if hurt_flash_left > 0.0 else Color.WHITE
+	if dash_time_left > 0.0:
+		afterimage_left -= delta
+		if afterimage_left <= 0.0:
+			afterimage_left = AFTERIMAGE_INTERVAL
+			_spawn_afterimage()
 	queue_redraw()
 
 
@@ -727,17 +812,52 @@ func is_invulnerable() -> bool:
 ## Returns true when the damage landed.
 ## Ground attacks miss an airborne player; attacks from the air (from_air) reach the player at any height.
 func take_damage(amount: int, from_air: bool = false) -> bool:
-	if is_dead or amount <= 0 or is_descending() or invulnerable_left > 0.0 or dash_time_left > 0.0:
+	if is_dead or amount <= 0 or is_descending() or invulnerable_left > 0.0:
 		return false
 	if is_airborne() and not from_air:
 		return false
+	if dash_time_left > 0.0:
+		# Only a hit that would have landed can be dodged perfectly.
+		_check_perfect_dodge()
+		return false
 	health = maxi(0, health - maxi(1, amount - armor))
 	invulnerable_left = hurt_invulnerability
+	hurt_flash_left = HURT_FLASH_TIME
+	_shake(HURT_SHAKE)
+	_hit_stop(HURT_HIT_STOP)
 	health_changed.emit(health, max_health)
 	hurt.emit()
 	if health == 0:
 		_die()
 	return true
+
+
+## A hit early in a dash is a perfect dodge (once per dash, not while the buff runs).
+func _check_perfect_dodge() -> void:
+	if not perfect_ready or perfect_left > 0.0 or dash_duration - dash_time_left > PERFECT_WINDOW:
+		return
+	perfect_ready = false
+	perfect_left = PERFECT_BUFF_TIME
+	# The refund: the next dash is ready the moment this one ends.
+	dash_cooldown_left = dash_time_left
+	perfect_dodged.emit()
+
+
+## PLACEHOLDER: a fading mint copy of the angel's current frame, left behind on the ground.
+func _spawn_afterimage() -> void:
+	if sprite.sprite_frames == null or get_parent() == null:
+		return
+	var ghost: Sprite2D = Sprite2D.new()
+	ghost.texture = sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	ghost.flip_h = sprite.flip_h
+	ghost.centered = sprite.centered
+	ghost.offset = sprite.offset
+	ghost.modulate = AFTERIMAGE_COLOR
+	get_parent().add_child(ghost)
+	ghost.global_transform = sprite.global_transform
+	var tween: Tween = ghost.create_tween()
+	tween.tween_property(ghost, ^"modulate:a", 0.0, AFTERIMAGE_TIME)
+	tween.tween_callback(ghost.queue_free)
 
 
 ## Dies at once whatever protects the angel (the shrine countdown running out).

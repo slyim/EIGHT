@@ -114,7 +114,8 @@ func _run() -> void:
 	await _tap_attack()
 	_check(arrows == [0, 1, 2, 0], "After the finisher the combo must start over (got %s)." % [arrows])
 	await _wait_ticks(30)
-	_check(enemy.health == 50 - 4 * player.bow_damage, "Every combo arrow must deal bow damage (health %d)." % enemy.health)
+	var finisher: int = roundi(player.bow_damage * MountedPlayer.BOW_FINISHER_DAMAGE)
+	_check(finisher > player.bow_damage and enemy.health == 50 - 3 * player.bow_damage - finisher, "Combo arrows must deal bow damage and the finisher more (health %d)." % enemy.health)
 
 	# A pause longer than the combo window starts over at step 0.
 	await _wait_ticks(roundi((player.bow_cooldown + player.combo_window) * 60.0) + 4)

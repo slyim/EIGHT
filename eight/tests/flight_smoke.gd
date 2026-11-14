@@ -130,7 +130,10 @@ func _run() -> void:
 	player.invulnerable_left = 0.0
 	player.heal(10)
 
-	# 4. A dash in the air keeps the angel up and still bursts forward.
+	# 4. A dash in the air keeps the angel up and still bursts forward (once the hurt
+	# hit-stop above has let time run again).
+	while Engine.time_scale < 1.0:
+		await process_frame
 	var dash_start: Vector2 = player.global_position
 	player.dash_cooldown_left = 0.0
 	Input.action_press(&"dash")

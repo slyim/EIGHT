@@ -30,9 +30,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -260.0
-offset_top = -200.0
+offset_top = -280.0
 offset_right = 260.0
-offset_bottom = 200.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"MenuPanel"
@@ -88,6 +88,24 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 18
 text = "FULLSCREEN"
+
+[node name="DamageNumbers" type="CheckButton" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "DAMAGE NUMBERS"
+
+[node name="Shake" type="OptionButton" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+
+[node name="HitStop" type="CheckButton" parent="Panel/Box"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "HIT-STOP"
 
 [node name="Notice" type="Label" parent="Panel/Box"]
 layout_mode = 2

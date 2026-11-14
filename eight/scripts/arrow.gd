@@ -7,6 +7,8 @@ extends Node2D
 ## with a shared PLACEHOLDER-tunable cool emission material.
 
 const LENGTH: float = 22.0
+## Whole art pixels (an even number of world units).
+const HEAVY_LENGTH: float = 34.0
 const COLOR: Color = Color(0.792, 0.922, 0.878, 1.0)
 
 var direction: Vector2 = Vector2.RIGHT
@@ -27,6 +29,10 @@ var bounces: int = 0
 ## PLACEHOLDER tint: light for bow arrows, gold for side-weapon feathers.
 var color: Color = COLOR
 var bounce_range: float = 280.0
+## A finishing arrow: its hits show gold and it is drawn heavier.
+var heavy: bool = false
+## Called once, on the arrow's first hit (the angel's shake and hit-stop).
+var on_first_hit: Callable
 
 
 func _ready() -> void:
@@ -55,7 +61,10 @@ func _physics_process(delta: float) -> void:
 		var collider: Object = result["collider"]
 		if collider == null or not collider.has_method(&"take_hit"):
 			continue
-		collider.call(&"take_hit", damage)
+		collider.call(&"take_hit", damage, heavy, (result["position"] as Vector2) - direction * 8.0)
+		if on_first_hit.is_valid():
+			on_first_hit.call()
+			on_first_hit = Callable()
 		if bounces > 0 and _bounce_from(result["position"]):
 			return
 		pierce -= 1
@@ -102,5 +111,10 @@ func _bounce_from(at: Vector2) -> bool:
 func _draw() -> void:
 	# PLACEHOLDER arrow: a light shaft with a small head, lifted to screen-up by height.
 	draw_set_transform(Vector2(0.0, -height).rotated(-global_rotation))
+	if heavy:
+		# PLACEHOLDER finishing arrow: a longer, doubled shaft and a bigger head.
+		draw_line(Vector2(-HEAVY_LENGTH, 0.0), Vector2.ZERO, color, 4.0)
+		draw_colored_polygon(PackedVector2Array([Vector2(6.0, 0.0), Vector2(-6.0, -6.0), Vector2(-6.0, 6.0)]), color)
+		return
 	draw_line(Vector2(-LENGTH, 0.0), Vector2.ZERO, color, 2.0)
 	draw_colored_polygon(PackedVector2Array([Vector2(4.0, 0.0), Vector2(-4.0, -4.0), Vector2(-4.0, 4.0)]), color)

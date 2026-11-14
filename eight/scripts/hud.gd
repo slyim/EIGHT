@@ -617,13 +617,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			_on_choice(index)
 
 
-func show_level_up(options: Array[Dictionary]) -> void:
+## Level-up cards, or a shrine pact offer (its own heading; it may have fewer cards).
+func show_level_up(options: Array[Dictionary], heading: String = "") -> void:
 	for index: int in range(choice_buttons.size()):
-		var option: Dictionary = options[index]
-		choice_buttons[index].text = "%d   %s" % [index + 1, option["name"]]
-		choice_details[index].text = option["text"]
+		choice_buttons[index].visible = index < options.size()
+		choice_details[index].visible = index < options.size()
+		if index < options.size():
+			var option: Dictionary = options[index]
+			choice_buttons[index].text = "%d   %s" % [index + 1, option["name"]]
+			choice_details[index].text = option["text"]
+	($LevelUp/Box/Hint as Label).text = "Click a choice or press 1-%d" % options.size()
 	var more: int = run.pending_level_ups - 1
-	level_up_heading.text = "LEVEL UP - CHOOSE ONE" if more <= 0 else "LEVEL UP - CHOOSE ONE (+%d MORE)" % more
+	level_up_heading.text = heading if heading != "" else ("LEVEL UP - CHOOSE ONE" if more <= 0 else "LEVEL UP - CHOOSE ONE (+%d MORE)" % more)
 	# One pausing panel at a time: a level-up replaces the pause menu (the tree stays paused).
 	pause_menu.hide()
 	# No focus grab: Space is the flight key and must not pick a choice by accident.

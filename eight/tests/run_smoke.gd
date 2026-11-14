@@ -38,6 +38,12 @@ func _clear_actors(run: Run) -> void:
 	await _wait_ticks(1)
 
 
+## Shrine pacts pause the run like a level-up; these checks walk away from every offer.
+func _leave_pacts(run: Run) -> void:
+	while not run.level_up_options.is_empty() and run.level_up_options[0].has("id"):
+		run.choose_upgrade(run.level_up_options.size() - 1)
+
+
 func _run() -> void:
 	var run: Run = RUN_SCENE.instantiate() as Run
 	run.spawning_enabled = false
@@ -167,6 +173,7 @@ func _run() -> void:
 	for child: Node in run.obstacles.get_children():
 		if (child as Breakable).kind == Breakable.Kind.SHRINE:
 			(child as Breakable).take_blow(1000)
+	_leave_pacts(run)
 	await _wait_ticks(2)
 	var boss: Boss = run.current_boss
 	_check(boss != null and boss.boss_name.begins_with("PRIDE"), "The last shrine must summon Pride.")

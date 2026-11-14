@@ -233,6 +233,22 @@ const BOSSES: Array[Dictionary] = [
 		"smart": {"reaim": 0, "rotating_beams": 1, "paired_sins": 2}},
 ]
 
+## PLACEHOLDER shrine pacts: a broken shrine pauses like a level-up and offers two pacts still
+## untaken (or the one left), or leaving without one. At most PACT_MAX per run.
+const PACTS: Array[Dictionary] = [
+	{"id": "glass_light", "name": "Glass Light", "text": "+25% damage from every weapon, but -25% max health"},
+	{"id": "golden_tithe", "name": "Golden Tithe", "text": "+50% feathers, but hearts drop half as often"},
+	{"id": "swift_blood", "name": "Swift Blood", "text": "Attacks, side weapons and dash 15% quicker, but enemies hit 20% harder on contact"},
+]
+const PACT_LEAVE: Dictionary = {"id": "", "name": "Leave", "text": "Walk away without a pact"}
+const PACT_MAX: int = 3
+const GLASS_MIGHT: float = 0.25
+const GLASS_HEALTH: float = 0.75
+const TITHE_FEATHERS: float = 1.5
+const TITHE_HEARTS: float = 0.5
+const SWIFT_COOLDOWN: float = 0.85
+const SWIFT_ENEMY_DAMAGE: float = 1.2
+
 ## Level-up choices. PLACEHOLDER names and values.
 const UPGRADES: Array[Dictionary] = [
 	{"name": "Sharper spear", "text": "+1 spear damage", "stat": "damage", "amount": 1.0},
@@ -423,6 +439,11 @@ var level: int = 1
 var xp: int = 0
 var kills: int = 0
 var pending_level_ups: int = 0
+## Pacts taken this run (ids), pact offers waiting their turn, and what the pacts changed.
+var pacts: Array[String] = []
+var pending_pacts: int = 0
+var pact_feathers: float = 1.0
+var enemy_damage_scale: float = 1.0
 var level_up_options: Array[Dictionary] = []
 ## The weapon whose evolution choice is open, or -1.
 var evolution_weapon: int = -1
@@ -749,6 +770,10 @@ func _on_shrine_destroyed(shrine: Breakable) -> void:
 	queue_redraw()
 	if shrines_left == 0:
 		spawn_sin_boss()
+	if _pact_open():
+		pending_pacts += 1
+		if level_up_options.is_empty() and evolution_weapon < 0 and not ended:
+			_offer_pact()
 
 
 ## Authored chests are kept; a map without any gets CHEST_COUNT from its seed, on open ground
@@ -898,7 +923,7 @@ func spawn_batch() -> int:
 
 ## Feathers this run is worth: everything earned times the tier's reward.
 func feathers_total() -> int:
-	return floori(feathers_earned * float(TIERS[tier]["feathers"]) * (SCORCHED_FEATHERS if scorched else 1.0))
+	return floori(feathers_earned * float(TIERS[tier]["feathers"]) * (SCORCHED_FEATHERS if scorched else 1.0) * pact_feathers)
 
 
 ## Search outward from the death site, keeping the whole portal clear of walls and obstacles.
@@ -960,7 +985,7 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	if enemy is Bomber:
 		(enemy as Bomber).enemy_damage = maxi(1, roundi(Bomber.ENEMY_DAMAGE * health_scale))
 	var damage_scale: float = rules["damage"] * (1.0 + difficulty() * HORDE_DAMAGE_GAIN * rules["damage_scaling"])
-	enemy.contact_damage = roundi(float(data["damage"]) * damage_scale)
+	enemy.contact_damage = roundi(float(data["damage"]) * damage_scale * enemy_damage_scale)
 	if enemy is FlyingEnemy:
 		(enemy as FlyingEnemy).shot_damage = roundi((enemy as FlyingEnemy).shot_damage * damage_scale)
 	enemy.frames = data["frames"] as SpriteFrames
@@ -1018,7 +1043,7 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	boss.radius = float(data["radius"])
 	boss.attack_interval = float(data["interval"]) / rules["attack_rate"]
 	var damage_scale: float = rules["boss_damage"] * (1.0 + growth * BOSS_DAMAGE_GAIN)
-	boss.contact_damage = roundi(float(data["damage"]) * damage_scale)
+	boss.contact_damage = roundi(float(data["damage"]) * damage_scale * enemy_damage_scale)
 	boss.shot_damage = roundi(boss.shot_damage * damage_scale)
 	boss.frames = data["frames"] as SpriteFrames
 	boss.patterns.assign(data["patterns"])
@@ -1335,10 +1360,7 @@ func choose_evolution(index: int) -> void:
 	player.evolve(evolution_weapon, index + 1)
 	evolution_weapon = -1
 	hud.hide_evolution()
-	if pending_level_ups > 0:
-		_offer_level_up()
-	else:
-		get_tree().paused = false
+	_offer_next_choice()
 
 
 func add_xp(amount: int) -> void:
@@ -1363,18 +1385,68 @@ func _offer_level_up() -> void:
 	hud.show_level_up(level_up_options)
 
 
-func choose_upgrade(index: int) -> void:
-	if index < 0 or index >= level_up_options.size():
-		return
-	var upgrade: Dictionary = level_up_options[index]
-	_apply_bonus(upgrade["stat"] as String, float(upgrade["amount"]))
-	pending_level_ups -= 1
-	level_up_options.clear()
-	if pending_level_ups > 0:
+## A pact offer: two untaken pacts at random (or the one left) and leaving without one.
+func _offer_pact() -> void:
+	var pool: Array[Dictionary] = PACTS.filter(func(pact: Dictionary) -> bool: return not pacts.has(pact["id"]))
+	pool.shuffle()
+	level_up_options.assign(pool.slice(0, 2))
+	level_up_options.append(PACT_LEAVE)
+	get_tree().paused = true
+	play_sfx(&"level_up", 0.0)
+	hud.show_level_up(level_up_options, "SHRINE PACT - TAKE ONE OR LEAVE")
+
+
+## True while another pact can be taken (under PACT_MAX, and one is left untaken).
+func _pact_open() -> bool:
+	return pacts.size() < PACT_MAX and pacts.size() < PACTS.size()
+
+
+## The next waiting choice (a pact offer first, then a level-up), or back to play. Offers
+## queued before the last pact was taken lapse.
+func _offer_next_choice() -> void:
+	if not _pact_open():
+		pending_pacts = 0
+	if pending_pacts > 0:
+		_offer_pact()
+	elif pending_level_ups > 0:
 		_offer_level_up()
 	else:
 		hud.hide_level_up()
 		get_tree().paused = false
+
+
+func choose_upgrade(index: int) -> void:
+	if index < 0 or index >= level_up_options.size():
+		return
+	var upgrade: Dictionary = level_up_options[index]
+	if upgrade.has("id"):
+		pending_pacts -= 1
+		if upgrade["id"] != "":
+			_take_pact(upgrade["id"] as String)
+	else:
+		_apply_bonus(upgrade["stat"] as String, float(upgrade["amount"]))
+		pending_level_ups -= 1
+	level_up_options.clear()
+	_offer_next_choice()
+
+
+func _take_pact(id: String) -> void:
+	pacts.append(id)
+	match id:
+		"glass_light":
+			player.might += GLASS_MIGHT
+			player.max_health = maxi(1, roundi(player.max_health * GLASS_HEALTH))
+			player.health = mini(player.health, player.max_health)
+		"golden_tithe":
+			pact_feathers *= TITHE_FEATHERS
+			heart_drop_chance *= TITHE_HEARTS
+		"swift_blood":
+			player.haste = maxf(MountedPlayer.HASTE_FLOOR, player.haste * SWIFT_COOLDOWN)
+			player.dash_cooldown = maxf(0.1, player.dash_cooldown * SWIFT_COOLDOWN)
+			enemy_damage_scale *= SWIFT_ENEMY_DAMAGE
+			for actor: Node in actors.get_children():
+				if actor is Enemy:
+					(actor as Enemy).contact_damage = roundi((actor as Enemy).contact_damage * SWIFT_ENEMY_DAMAGE)
 
 
 func _apply_bonus(stat: String, amount: float) -> void:
@@ -1438,6 +1510,14 @@ func _end_run(won: bool) -> void:
 		child.set_physics_process(false)
 	music.stop()
 	play_sfx(&"victory" if won else &"defeat", 0.0)
+	# No choice survives the end (won or lost), or the paused tree would hold the ending back.
+	hud.hide_level_up()
+	hud.hide_evolution()
+	evolution_weapon = -1
+	pending_level_ups = 0
+	pending_pacts = 0
+	level_up_options.clear()
+	get_tree().paused = false
 	var tween: Tween = create_tween()
 	if won:
 		# The angel rises in a beam and the whole realm heals beneath it; the horde is gone.
@@ -1447,12 +1527,6 @@ func _end_run(won: bool) -> void:
 			child.queue_free()
 		if is_instance_valid(exit_portal):
 			exit_portal.queue_free()
-		hud.hide_level_up()
-		hud.hide_evolution()
-		evolution_weapon = -1
-		pending_level_ups = 0
-		level_up_options.clear()
-		get_tree().paused = false
 		player.begin_ascent(ASCENT_HEIGHT, ASCENT_TIME)
 		tween.set_parallel()
 		tween.tween_property(self, ^"heal_world", 1.0, ASCENT_TIME).set_trans(Tween.TRANS_SINE)

@@ -49,6 +49,12 @@ func _shots() -> int:
 	return get_nodes_in_group(&"enemy_projectiles").size()
 
 
+## Shrine pacts pause the run like a level-up; these checks walk away from every offer.
+func _leave_pacts(run: Run) -> void:
+	while not run.level_up_options.is_empty() and run.level_up_options[0].has("id"):
+		run.choose_upgrade(run.level_up_options.size() - 1)
+
+
 func _run() -> void:
 	root.size = Vector2i(1280, 720)
 	Progress.path = TEST_SAVE
@@ -209,6 +215,7 @@ func _run() -> void:
 		if shrine != null and shrine.kind == Breakable.Kind.SHRINE:
 			shrine.take_blow(1000)
 			shrine.take_blow(1000)
+	_leave_pacts(run)
 	await _ticks(3)
 	var sin: Boss = run.current_boss
 	sin.speed = 0.0

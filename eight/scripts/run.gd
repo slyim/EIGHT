@@ -143,8 +143,12 @@ const ENEMY_TYPES: Array[Dictionary] = [
 
 ## One sin per map (sin_index); the last entry is Satan. Stats and patterns are PLACEHOLDER.
 const BOSSES: Array[Dictionary] = [
-	{"name": "PRIDE", "health": 60, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE]},
+	# Pride: phase 2 (half health) adds a guard stance that ends in a slam. Smarter tiers chain
+	# its charges (smarts 1+) and turn some aimed fans into air fans (smarts 2+).
+	{"name": "PRIDE", "health": 100, "speed": 95.0, "radius": 36.0, "interval": 2.4, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_pride.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE],
+		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE], [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.GUARD]],
+		"smart": {"chain_charges": 1, "air_fans": 2}},
 	{"name": "GREED", "health": 90, "speed": 80.0, "radius": 38.0, "interval": 2.6, "damage": 20,
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_greed.aseprite"), "patterns": [Boss.Pattern.SUMMON, Boss.Pattern.BURST]},
 	{"name": "LUST", "health": 110, "speed": 140.0, "radius": 32.0, "interval": 2.0, "damage": 20,
@@ -864,12 +868,27 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	if guard:
 		boss.patterns.erase(Boss.Pattern.SUMMON)
 	# Smarter tiers add the generic patterns this sin lacks, in a fixed order.
+	var extras: Array[int] = []
 	var extra: int = rules["patterns"]
 	for pattern: int in [Boss.Pattern.CHARGE, Boss.Pattern.AIMED, Boss.Pattern.BURST, Boss.Pattern.SUMMON]:
 		if extra > 0 and not boss.patterns.has(pattern) and not (guard and pattern == Boss.Pattern.SUMMON):
-			boss.patterns.append(pattern)
+			extras.append(pattern)
 			extra -= 1
+	boss.patterns.append_array(extras)
+	# A sin with its own phases swaps in each phase's patterns (plus the same extras); guards
+	# fight with phase one only.
+	if data.has("phase_patterns") and not guard:
+		for list: Array in data["phase_patterns"]:
+			var phase_list: Array[int] = []
+			phase_list.assign(list)
+			phase_list.append_array(extras)
+			boss.phase_patterns.append(phase_list)
 	boss.smarts = tier
+	var smart: Dictionary = data.get("smart", {})
+	if smart.has("chain_charges") and tier >= int(smart["chain_charges"]):
+		boss.chain_charges = 1
+	if smart.has("air_fans") and tier >= int(smart["air_fans"]):
+		boss.air_fans = true
 	boss.xp_value = roundi((20 + sin_index * 5) * maxf(health_scale, 0.5))
 	boss.knockback_strength = 0.0
 	boss.target = player
@@ -933,7 +952,7 @@ func _split(rule: Dictionary, at: Vector2) -> void:
 ## Sparks along the push (or away from the angel for enemies too heavy to push), and the HUD's
 ## damage number.
 func _on_enemy_damaged(enemy: Enemy, amount: int, heavy: bool) -> void:
-	if amount == 0 and enemy is Shielder:
+	if amount == 0 and enemy.blocked_last:
 		# PLACEHOLDER AUDIO: a blocked blow reuses the landing thud.
 		play_sfx(&"land", 0.0)
 	var direction: Vector2 = enemy.knockback.normalized()

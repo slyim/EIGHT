@@ -18,8 +18,6 @@ const BLOCK_FLASH: float = 0.12
 var facing: Vector2 = Vector2.RIGHT
 var broken_left: float = 0.0
 var block_flash_left: float = 0.0
-## The last blow was blocked: weapons that pierce stop at the shield.
-var blocked_last: bool = false
 
 
 func _physics_process(delta: float) -> void:

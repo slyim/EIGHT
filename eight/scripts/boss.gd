@@ -5,22 +5,36 @@ extends Enemy
 ## Every attack is fair: a wind-up shows where it will land (ember = a ground attack, fly over
 ## or dash through it), then the boss stands in a short recovery the angel can punish. Bosses
 ## only start attacks while the angel is on screen and able to fight, and grow faster at each
-## health threshold (phase).
+## health threshold (phase). A phase change is announced by a short pose (the boss stands, and can
+## still be hit) and may swap in that phase's own patterns. A guard stance blocks blows from the
+## front like a shielder (heavy blows break it, opening a long punish window) and ends in a slam
+## around the boss.
 
 signal summon_requested(boss: Boss, count: int)
 signal attacked(boss: Boss)
 signal phase_changed(boss: Boss)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6]
+## PLACEHOLDER phase-change pose: the boss stands for this long (still hittable).
+const PHASE_POSE: float = 0.8
+## PLACEHOLDER guard stance and the slam it ends in.
+const GUARD_TIME: float = 1.5
+const GUARD_BROKEN_RECOVERY: float = 1.2
+const SLAM_RADIUS: float = 110.0
+const SLAM_FLASH: float = 0.15
+## Air shots (they reach a flying angel): violet, like the flyer's.
+const VIOLET: Color = Color(1.15, 0.75, 1.8, 1.0)
+const AIR_TELEGRAPH_LIGHT: Color = Color(0.65, 0.4, 1.0, 0.35)
+const POSE_COLOR: Color = Color(1.6, 1.5, 1.2, 1.0)
 ## PLACEHOLDER: each phase multiplies the attack interval by this.
 const PHASE_PACE: float = 0.75
 ## Attacks start only while the angel is this close on each axis (the view is 1280x720 world units).
@@ -57,6 +71,21 @@ var charge_length: float = 0.0
 var summon_spots: Array[Vector2] = []
 var recover_left: float = 0.0
 var attack_pose_left: float = 0.0
+## Patterns per phase (index 0 is phase 1); empty keeps one list for the whole fight.
+var phase_patterns: Array[Array] = []
+var pose_left: float = 0.0
+## The guard stance: seconds left, and the way the shield faces (it turns slowly).
+var guard_left: float = 0.0
+var guard_facing: Vector2 = Vector2.RIGHT
+var block_flash_left: float = 0.0
+var slam_flash_left: float = 0.0
+## Smarter tiers: extra charges chained after each charge, and aimed fans that may come from
+## the air. Set by the run from the boss's data and the tier.
+var chain_charges: int = 0
+var charges_left: int = 0
+var air_fans: bool = false
+## This aimed fan's shots come from the air (decided when its tell starts).
+var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
 var shot_damage: int = 12
 ## Fractions of max health; crossing each one starts the next phase. PLACEHOLDER.
@@ -97,16 +126,35 @@ func _physics_process(delta: float) -> void:
 		return
 	_tick_flash(delta)
 	attack_pose_left = maxf(0.0, attack_pose_left - delta)
+	block_flash_left = maxf(0.0, block_flash_left - delta)
+	if slam_flash_left > 0.0:
+		slam_flash_left = maxf(0.0, slam_flash_left - delta)
+		queue_redraw()
 	var leashed: bool = leash > 0.0 and target.global_position.distance_to(home) > leash
-	if leashed and (windup_left > 0.0 or charge_left > 0.0):
+	if leashed and (windup_left > 0.0 or charge_left > 0.0 or guard_left > 0.0):
 		_cancel()
-	if recover_left > 0.0:
+	if pose_left > 0.0:
+		pose_left -= delta
+		velocity = Vector2.ZERO
+		queue_redraw()
+	elif recover_left > 0.0:
 		# The punish window holds even if the angel leaves a guard's leash.
 		recover_left -= delta
 		velocity = Vector2.ZERO
 	elif leashed:
 		var to_home: Vector2 = home - global_position
 		velocity = to_home.normalized() * speed if to_home.length() > speed * delta * 2.0 else Vector2.ZERO
+	elif guard_left > 0.0:
+		# The stance: stand behind the shield, turning slowly to face the angel, then slam.
+		guard_left -= delta
+		velocity = Vector2.ZERO
+		var toward: Vector2 = target.global_position - global_position
+		if not toward.is_zero_approx():
+			guard_facing = guard_facing.rotated(clampf(guard_facing.angle_to(toward), -Shielder.TURN_RATE * delta, Shielder.TURN_RATE * delta))
+		if guard_left <= 0.0:
+			guard_left = 0.0
+			start_attack(Pattern.SLAM)
+		queue_redraw()
 	elif windup_left > 0.0:
 		windup_left -= delta
 		velocity = Vector2.ZERO
@@ -116,14 +164,19 @@ func _physics_process(delta: float) -> void:
 			pending = -1
 			remove_from_group(&"light")
 			_attack(released)
-			if charge_left <= 0.0:
+			if charge_left <= 0.0 and guard_left <= 0.0:
 				recover_left = RECOVERIES[released]
 		queue_redraw()
 	elif charge_left > 0.0:
 		charge_left -= delta
 		velocity = charge_direction * charge_speed()
 		if charge_left <= 0.0:
-			recover_left = RECOVERIES[Pattern.CHARGE]
+			if charges_left > 0:
+				# A smarter boss chains another charge, re-aimed, behind a fresh lane.
+				charges_left -= 1
+				start_attack(Pattern.CHARGE, true)
+			else:
+				recover_left = RECOVERIES[Pattern.CHARGE]
 	else:
 		velocity = (target.global_position - global_position).normalized() * speed
 		if can_attack():
@@ -140,16 +193,22 @@ func _physics_process(delta: float) -> void:
 	_touch_player()
 
 
-## Begins a wind-up: the attack's telegraph shows (aim locked now) until it lands.
-func start_attack(pattern: int) -> void:
+## Begins a wind-up: the attack's telegraph shows (aim locked now) until it lands. A chained
+## charge keeps the chain's count.
+func start_attack(pattern: int, chained: bool = false) -> void:
 	pending = pattern
 	windup_left = WINDUPS[pattern]
 	charge_direction = _aim(pattern)
+	if pattern == Pattern.CHARGE and not chained:
+		charges_left = chain_charges
+	fan_from_air = pattern == Pattern.AIMED and air_fans and randf() < 0.5
 	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
 	attack_pose_left = ATTACK_POSE_TIME + windup_left
-	# Only ground attacks cast the ember light; a summon's marks keep their own color.
-	if pattern != Pattern.SUMMON:
+	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks
+	# and a raised guard do not.
+	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air else TELEGRAPH_LIGHT)
+	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD:
 		add_to_group(&"light")
 	attacked.emit(self)
 	queue_redraw()
@@ -158,6 +217,8 @@ func start_attack(pattern: int) -> void:
 func _cancel() -> void:
 	windup_left = 0.0
 	charge_left = 0.0
+	guard_left = 0.0
+	charges_left = 0
 	pending = -1
 	remove_from_group(&"light")
 	queue_redraw()
@@ -200,6 +261,37 @@ func _attack(pattern: int) -> void:
 				_fire(charge_direction.rotated(index * AIMED_SPREAD))
 		Pattern.SUMMON:
 			summon_requested.emit(self, SUMMON_COUNT)
+		Pattern.GUARD:
+			guard_left = GUARD_TIME
+			guard_facing = charge_direction
+		Pattern.SLAM:
+			slam_flash_left = SLAM_FLASH
+			if global_position.distance_to(target.global_position) <= SLAM_RADIUS + MountedPlayer.HURT_RADIUS:
+				target.take_damage(contact_damage)
+
+
+## A raised guard blocks blows from inside the shield's front cone (sparks, no damage, no push);
+## a heavy blow breaks it, lands, and leaves the boss open for a long moment.
+func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> void:
+	if health <= 0:
+		return
+	if guard_left > 0.0:
+		if heavy:
+			# A heavy blow from any side breaks the stance: no slam, a long opening.
+			guard_left = 0.0
+			recover_left = GUARD_BROKEN_RECOVERY
+		else:
+			var source: Vector2 = from
+			if source == Vector2.INF and is_instance_valid(target):
+				source = target.global_position
+			var toward: Vector2 = source - global_position if source != Vector2.INF else Vector2.ZERO
+			if not toward.is_zero_approx() and guard_facing.dot(toward.normalized()) > cos(Shielder.GUARD_HALF_ANGLE):
+				blocked_last = true
+				block_flash_left = Shielder.BLOCK_FLASH
+				damaged.emit(self, 0, false)
+				queue_redraw()
+				return
+	super(damage, heavy, from)
 
 
 func _check_phase() -> void:
@@ -207,6 +299,12 @@ func _check_phase() -> void:
 		phase += 1
 		attack_interval *= PHASE_PACE
 		attack_left = minf(attack_left, attack_interval)
+		if phase - 1 < phase_patterns.size():
+			patterns.assign(phase_patterns[phase - 1])
+		# The pose: whatever it was doing stops, and it stands (still hittable) to announce it.
+		_cancel()
+		recover_left = 0.0
+		pose_left = PHASE_POSE
 		phase_changed.emit(self)
 
 
@@ -215,8 +313,11 @@ func _fire(direction: Vector2) -> void:
 	projectile.velocity = direction * PROJECTILE_SPEED
 	projectile.damage = shot_damage
 	projectile.target = target
+	projectile.from_air = fan_from_air
 	get_parent().add_child(projectile)
 	projectile.global_position = global_position + direction * radius
+	if projectile.from_air:
+		projectile.modulate = VIOLET
 
 
 ## Stepped fill (quarters), so the telegraph grows in pixel-sized beats.
@@ -259,6 +360,18 @@ static func draw_circle_tell(item: CanvasItem, radius: float, fill: float) -> vo
 
 func _draw() -> void:
 	# PLACEHOLDER telegraphs. The name tag is HUD UI.
+	if pose_left > 0.0:
+		# The phase pose: a pale ring swelling out in steps.
+		var grow: float = floorf((1.0 - pose_left / PHASE_POSE) * 4.0) / 4.0
+		draw_arc(Vector2.ZERO, radius + 8.0 + 40.0 * grow, 0.0, TAU, 48, BACKING, 6.0)
+		draw_arc(Vector2.ZERO, radius + 8.0 + 40.0 * grow, 0.0, TAU, 48, POSE_COLOR, 2.0)
+	if guard_left > 0.0:
+		var at: float = guard_facing.angle()
+		var half: float = Shielder.GUARD_HALF_ANGLE
+		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, BACKING, 6.0)
+		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, Shielder.BLOCK_COLOR if block_flash_left > 0.0 else Shielder.SHIELD_COLOR, 2.0)
+	if slam_flash_left > 0.0:
+		draw_circle(Vector2.ZERO, SLAM_RADIUS, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
 	if windup_left <= 0.0 or pending < 0:
 		return
 	var fill: float = windup_progress()
@@ -273,9 +386,23 @@ func _draw() -> void:
 			draw_arc(Vector2.ZERO, radius + 8.0, 0.0, TAU, 32, BACKING, 6.0)
 			draw_arc(Vector2.ZERO, radius + 8.0, 0.0, TAU, 32, Color(EMBER, 0.5 + 0.5 * fill), 2.0)
 		Pattern.AIMED:
+			# Ember for a ground fan (fly over it), violet for an air fan (dash or step out).
 			for index: int in range(-2, 3):
 				var ray: Vector2 = charge_direction.rotated(index * AIMED_SPREAD)
-				draw_tell(self, ray * radius, ray * (radius + 60.0 + 200.0 * fill), Color(EMBER, 0.7))
+				draw_tell(self, ray * radius, ray * (radius + 60.0 + 200.0 * fill), Color(VIOLET if fan_from_air else EMBER, 0.9 if fan_from_air else 0.7))
+			if fan_from_air:
+				# A shape cue as well as the color: an arc across the fan's mouth.
+				var mouth: float = charge_direction.angle()
+				draw_arc(Vector2.ZERO, radius + 12.0, mouth - AIMED_SPREAD * 2.0, mouth + AIMED_SPREAD * 2.0, 16, BACKING, 6.0)
+				draw_arc(Vector2.ZERO, radius + 12.0, mouth - AIMED_SPREAD * 2.0, mouth + AIMED_SPREAD * 2.0, 16, VIOLET, 2.0)
+		Pattern.GUARD:
+			# The shield rising.
+			var at: float = charge_direction.angle()
+			var span: float = Shielder.GUARD_HALF_ANGLE * fill
+			draw_arc(Vector2.ZERO, radius + 10.0, at - span, at + span, 24, BACKING, 6.0)
+			draw_arc(Vector2.ZERO, radius + 10.0, at - span, at + span, 24, Shielder.SHIELD_COLOR, 2.0)
+		Pattern.SLAM:
+			draw_circle_tell(self, SLAM_RADIUS, fill)
 		Pattern.SUMMON:
 			for spot: Vector2 in summon_offsets():
 				draw_arc(spot, 6.0 + 8.0 * fill, 0.0, TAU, 12, BACKING, 6.0)

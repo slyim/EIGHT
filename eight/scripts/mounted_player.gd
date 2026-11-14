@@ -638,7 +638,7 @@ func _resolve_spear_hits() -> void:
 		collider.call(&"take_hit", dealt(spear_damage))
 		_push(collider, spear_knockback_scale)
 		_on_attack_connected(false)
-		if collider is Shielder and (collider as Shielder).blocked_last:
+		if collider is Enemy and (collider as Enemy).blocked_last:
 			thrust_hits_left = 0 # A raised shield stops the thrust.
 			return
 		thrust_hits_left -= 1

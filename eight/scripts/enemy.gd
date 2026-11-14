@@ -26,6 +26,8 @@ var target: MountedPlayer
 var health: int = 0
 var hit_flash: float = 0.0
 var knockback: Vector2 = Vector2.ZERO
+## The last blow met a raised guard (a shielder's or a guarding boss's): piercing weapons stop.
+var blocked_last: bool = false
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var sprite: AnimatedSprite2D = $Sprite
@@ -85,6 +87,7 @@ func _touch_player() -> void:
 func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> void:
 	if health <= 0:
 		return
+	blocked_last = false
 	health = maxi(0, health - maxi(0, damage))
 	hit_flash = 0.08
 	sprite.modulate = FLASH_COLOR

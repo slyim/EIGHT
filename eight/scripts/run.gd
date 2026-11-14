@@ -168,8 +168,16 @@ const BOSSES: Array[Dictionary] = [
 		"phase_combos": [{}, {Boss.Pattern.BLINK: [Boss.Pattern.CHARGE]}],
 		"chained_charge_windup": 0.5,
 		"smart": {"reaim": 0, "double_blink": 1, "summon": [2, FLYER]}},
-	{"name": "ENVY", "health": 140, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.SUMMON]},
+	# Envy: mirrors the angel's weapon (a thrust against the spear; keeps away and shoots three in
+	# the bow's rhythm against the bow) and fires aimed fans; at 60% it raises a darker decoy
+	# that copies its fans (only the real Envy has the name tag). Smarter tiers mirror quicker
+	# (smarts 1+), and raise two decoys and some air fans (smarts 2+).
+	{"name": "ENVY", "health": 165, "speed": 105.0, "radius": 36.0, "interval": 2.2, "damage": 20,
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_envy.aseprite"), "patterns": [Boss.Pattern.MIRROR, Boss.Pattern.AIMED],
+		"phase_thresholds": [0.6],
+		"phase_patterns": [[Boss.Pattern.MIRROR, Boss.Pattern.AIMED], [Boss.Pattern.MIRROR, Boss.Pattern.AIMED, Boss.Pattern.DECOY]],
+		"phase_combos": [{Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT]}, {Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT]}],
+		"mirrors": true, "smart": {"quick_mirror": 1, "two_decoys": 2, "air_fans": 2}},
 	# Gluttony: leaps onto the angel's spot and leaves bile, and vomits a wide fan; at half health
 	# it devours (pulls the angel and the horde into its mouth, eats horde enemies, bites; it never
 	# heals); at a fifth it summons splitters. Smarter tiers leap twice (smarts 1+) and leave bile
@@ -977,6 +985,11 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 		boss.bile_time = 6.0
 	if smart.has("long_sludge") and tier >= int(smart["long_sludge"]):
 		boss.sludge_time = 7.0
+	boss.mirrors = bool(data.get("mirrors", false))
+	if smart.has("quick_mirror") and tier >= int(smart["quick_mirror"]):
+		boss.quick_mirror = true
+	if smart.has("two_decoys") and tier >= int(smart["two_decoys"]):
+		boss.decoy_count = 2
 	boss.slam_radius = float(data.get("slam_radius", Boss.SLAM_RADIUS))
 	boss.slam_windup = float(data.get("slam_windup", Boss.WINDUPS[Boss.Pattern.SLAM]))
 	boss.chained_charge_windup = float(data.get("chained_charge_windup", Boss.WINDUPS[Boss.Pattern.CHARGE]))
@@ -1009,6 +1022,7 @@ func spawn_sin_boss() -> Boss:
 	# Only the sin summons; guards stay local to their shrines and off the horde cap.
 	boss.summon_requested.connect(_on_boss_summon)
 	boss.attacked.connect(_plan_summon)
+	boss.decoys_requested.connect(_on_decoys)
 	actors.add_child(boss)
 	current_boss = boss
 	play_sfx(&"boss_spawn", 0.0)
@@ -1099,7 +1113,31 @@ func _on_enemy_died(enemy: Enemy) -> void:
 
 ## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
 ## then the horde keeps scaling and the angel keeps growing.
+## PLACEHOLDER decoys (Envy): weak, darker copies that only fire its aimed fans. They are not
+## part of the horde (no count, no loot), only the real boss has the name tag and health bar,
+## and they vanish with it. At most the call's count stand at once.
+const DECOY_HEALTH_SCALE: float = 0.08
+
+
+## Raises a decoy on each spot the boss marked (planned when its tell started, on open ground).
+func _on_decoys(boss: Boss, _count: int) -> void:
+	for spot: Vector2 in boss.decoy_plan:
+		var decoy: Boss = _make_boss(DECOY_HEALTH_SCALE, true)
+		decoy.boss_name = "DECOY"
+		decoy.patterns.assign([Boss.Pattern.AIMED])
+		decoy.air_fans = boss.air_fans
+		decoy.mirrors = true
+		decoy.xp_value = 0
+		decoy.add_to_group(&"decoys")
+		decoy.position = spot
+		decoy.died.connect(func(gone: Enemy) -> void: _spawn_poof(gone.global_position))
+		actors.add_child(decoy)
+		decoy.sprite.self_modulate = Boss.DECOY_TINT
+
+
 func _on_boss_died(enemy: Enemy) -> void:
+	for decoy: Node in get_tree().get_nodes_in_group(&"decoys"):
+		decoy.queue_free()
 	kills += 1
 	feathers_earned += FEATHERS_PER_SATAN if sin_index == SATAN else FEATHERS_PER_SIN
 	var at: Vector2 = enemy.global_position

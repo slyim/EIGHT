@@ -196,6 +196,10 @@ func _run() -> void:
 	second.current_boss = null
 	wader.take_hit(9999)
 	await _wait_ticks(2)
+	# Its loot could heal the angel mid-check, and hit-stop slows ticks: keep this part exact.
+	for pickup: Node in second.pickups.get_children():
+		pickup.free()
+	player_two.hit_stop_enabled = false
 
 	# An enemy hit lands while standing in lava, its blink delays the burn, burn resumes.
 	player_two.invulnerable_left = 0.0

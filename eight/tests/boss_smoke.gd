@@ -14,7 +14,10 @@ extends SceneTree
 ## in, eats horde enemies without healing, bites); at a fifth summons splitters. Smarter Gluttony
 ## leaps twice and leaves bile longer. Sloth: snores slow rings and spreads slowing sludge; at
 ## half health yawns (a huge slam) and naps; at a fifth wakes (tint, triple speed, charges).
-## Smarter Sloth's sludge lasts longer and it rains after a yawn. Native Godot only.
+## Smarter Sloth's sludge lasts longer and it rains after a yawn. Envy: mirrors the angel's weapon
+## (a thrust against the spear; distance and a three-shot volley against the bow); at half health
+## raises a darker decoy (no tag, no reward) that copies its fans and vanishes with it. Smarter
+## Envy mirrors quicker and raises two decoys. Native Godot only.
 
 var failures: int = 0
 
@@ -91,6 +94,14 @@ func _take_shots() -> Array[Node]:
 		shot.remove_from_group(&"enemy_projectiles")
 		shot.queue_free()
 	return copy
+
+
+## Starts a decoy call and waits until its copies have risen.
+func _raise_decoys(envy: Boss) -> void:
+	envy.start_attack(Boss.Pattern.DECOY)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.DECOY] * 60.0) + 2)
+	envy._cancel()
+	envy.recover_left = 0.0
 
 
 func _take_off(player: MountedPlayer) -> void:
@@ -845,6 +856,159 @@ func _run() -> void:
 	var rain_done: float = Boss.RAIN_DELAY + Boss.RAIN_STAGGER * (Boss.RAIN_SPOTS.size() - 1)
 	_check(boss.pending == Boss.Pattern.NAP and is_equal_approx(boss.windup_total, rain_done) and not boss.napping, "The nap must wait for the rain to land (%f)." % boss.windup_total)
 	boss._cancel()
+
+	run.queue_free()
+	await _ticks(2)
+
+	# 9. Envy mirrors the angel's weapon: a thrust against the spear.
+	run = _new_run(0, 3)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	player.weapon = MountedPlayer.Weapon.SPEAR
+	boss = _pride(run)
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(120.0, 0.0)
+	_check(boss.patterns == [Boss.Pattern.MIRROR, Boss.Pattern.AIMED] and boss.mirrors, "Envy must open with its mirror and fan (%s)." % [boss.patterns])
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.MIRROR)
+	_check(boss.pending == Boss.Pattern.THRUST, "Against the spear the mirror must thrust.")
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.THRUST] * 60.0) + 2)
+	_check(player.health < health, "The thrust must hit an angel in its lane.")
+	player.invulnerable_left = 100000.0
+	await _settle()
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.THRUST] * 60.0) + 2)
+	boss.start_attack(Boss.Pattern.MIRROR)
+	player.global_position = Vector2(0.0, 120.0)
+	player.invulnerable_left = 0.0
+	health = player.health
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.THRUST] * 60.0) + 2)
+	_check(player.health == health, "Stepping out of the lane must dodge the thrust.")
+	player.invulnerable_left = 100000.0
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.THRUST] * 60.0) + 2)
+	# Against the bow: three shots in the bow's rhythm, and it keeps its distance.
+	player.weapon = MountedPlayer.Weapon.BOW
+	player.global_position = Vector2(200.0, 0.0)
+	_take_shots()
+	var volley_steps: Array[int] = []
+	var volley_watch: Callable = func(attacker: Boss) -> void: volley_steps.append(attacker.pending)
+	boss.attacked.connect(volley_watch)
+	boss.start_attack(Boss.Pattern.MIRROR)
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.SHOT] * 60.0) + 2)
+	_check(boss.pending == Boss.Pattern.SHOT and is_equal_approx(boss.windup_total, Boss.CHAINED_SHOT_WINDUP), "Volley shots must follow in the bow's rhythm.")
+	await _ticks(int(Boss.CHAINED_SHOT_WINDUP * 2.0 * 60.0) + 4)
+	boss.attacked.disconnect(volley_watch)
+	_check(volley_steps == [Boss.Pattern.SHOT, Boss.Pattern.SHOT, Boss.Pattern.SHOT] and _take_shots().size() == 3, "Against the bow the mirror must fire three shots (%s)." % [volley_steps])
+	await _ticks(int(Boss.RECOVERIES[Boss.Pattern.SHOT] * 60.0) + 2)
+	boss.attack_left = 999.0
+	boss.speed = 105.0
+	player.global_position = Vector2(100.0, 0.0)
+	var close_gap: float = 100.0
+	await _ticks(30)
+	_check(boss.global_position.distance_to(player.global_position) > close_gap + 30.0, "Against the bow Envy must back away to its distance.")
+	boss.speed = 0.0
+	player.weapon = MountedPlayer.Weapon.SPEAR
+	run.queue_free()
+	await _ticks(2)
+
+	# 60%: a darker decoy that copies its fans, with no tag, no reward, and no horde count.
+	run = _new_run(0, 3)
+	await _ticks(3)
+	player = run.player
+	player.hit_stop_enabled = false
+	player.invulnerable_left = 100000.0
+	for guard: Boss in run.guards.duplicate():
+		guard.queue_free()
+	run.spawn_sin_boss()
+	await _ticks(2)
+	var envy: Boss = run.current_boss
+	envy.attack_left = 999.0
+	envy.take_hit(envy.max_health - roundi(envy.max_health * 0.6) + 1)
+	_check(envy.phase == 2 and envy.patterns.has(Boss.Pattern.DECOY), "At 60%% Envy must raise decoys (%s)." % [envy.patterns])
+	await _ticks(int(Boss.PHASE_POSE * 60.0) + 2)
+	envy.attack_left = 999.0
+	envy.speed = 0.0
+	envy.global_position = Vector2.ZERO
+	player.global_position = Vector2(300.0, 0.0)
+	await _ticks(2)
+	horde = run.enemy_count
+	kills = run.kills
+	await _raise_decoys(envy)
+	var decoys: Array[Node] = get_nodes_in_group(&"decoys")
+	_check(decoys.size() == 1 and (decoys[0] as Boss).patterns == [Boss.Pattern.AIMED] and (decoys[0] as Boss).sprite.self_modulate == Boss.DECOY_TINT and run.enemy_count == horde and run.current_boss == envy, "Envy must raise one darker decoy that only fans (%d)." % decoys.size())
+	await _raise_decoys(envy)
+	_check(get_nodes_in_group(&"decoys").size() == 1 and not envy._ready_for(Boss.Pattern.DECOY), "No more than the call's count of decoys may stand, and a full house refuses the call.")
+	(decoys[0] as Boss).take_hit(100000)
+	await _ticks(2)
+	_check(run.kills == kills and run.enemy_count == horde and get_nodes_in_group(&"decoys").is_empty(), "A slain decoy must pay nothing.")
+	await _raise_decoys(envy)
+	envy.take_hit(100000)
+	await _ticks(2)
+	_check(get_nodes_in_group(&"decoys").is_empty(), "Decoys must vanish with Envy.")
+	run.queue_free()
+	await _ticks(2)
+
+	# Smarter Envy: Purgatory mirrors quicker; Damnation raises two decoys.
+	run = _new_run(1, 3)
+	await _ticks(3)
+	boss = _pride(run)
+	await _ticks(2)
+	boss.start_attack(Boss.Pattern.MIRROR)
+	_check(boss.quick_mirror and is_equal_approx(boss.windup_total, Boss.QUICK_MIRROR_WINDUP) and boss.decoy_count == 1, "Purgatory Envy must mirror quicker.")
+	boss._cancel()
+	run.queue_free()
+	await _ticks(2)
+	run = _new_run(2, 3)
+	await _ticks(3)
+	boss = _pride(run)
+	_check(boss.decoy_count == 2 and boss.air_fans, "Damnation Envy must raise two decoys and air fans.")
+	# Two decoys on distinct marks; a replacement never stacks on a survivor or lands on the angel.
+	player = run.player
+	player.invulnerable_left = 100000.0
+	boss.global_position = Vector2.ZERO
+	player.global_position = Vector2(300.0, 0.0)
+	boss.speed = 0.0
+	await _ticks(2)
+	boss.decoys_requested.connect(run._on_decoys)
+	boss.start_attack(Boss.Pattern.DECOY)
+	var decoy_marks: Array[Vector2] = boss.decoy_plan.duplicate()
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.DECOY] * 60.0) + 2)
+	var pair: Array[Node] = get_nodes_in_group(&"decoys")
+	_check(pair.size() == 2 and decoy_marks.size() == 2 and pair.all(func(decoy: Node) -> bool: return decoy_marks.any(func(spot: Vector2) -> bool: return (decoy as Boss).global_position.distance_to(spot) < 12.0)), "Two decoys must rise on their two marks.")
+	for decoy: Node in pair:
+		(decoy as Boss).speed = 0.0
+	# Keep the decoy standing on the first spot (the one a new call tries first) and slay the other.
+	var first_mark: Vector2 = boss.decoy_spots()[0]
+	var keeper: Boss = pair[0] if (pair[0] as Boss).global_position.distance_to(first_mark) < (pair[1] as Boss).global_position.distance_to(first_mark) else pair[1]
+	(pair[1] if keeper == pair[0] else pair[0]).take_hit(100000)
+	await _ticks(2)
+	boss._cancel()
+	boss.recover_left = 0.0
+	boss.start_attack(Boss.Pattern.DECOY)
+	_check(boss.decoy_plan.size() == 1 and boss.decoy_plan[0].distance_to(keeper.global_position) > keeper.radius, "A replacement decoy must not stack on the survivor (%s)." % [boss.decoy_plan])
+	boss._cancel()
+	# Stand the angel where the next call's first spot will be (across the line to it).
+	for decoy: Node in get_nodes_in_group(&"decoys"):
+		decoy.queue_free()
+	await _ticks(2)
+	player.global_position = Vector2(300.0, 0.0)
+	await _ticks(1)
+	var first_spot: Vector2 = boss.decoy_spots()[0]
+	player.global_position = first_spot
+	boss.charge_direction = (first_spot - boss.global_position).orthogonal().normalized()
+	await _ticks(1)
+	boss.start_attack(Boss.Pattern.DECOY)
+	_check(boss.decoy_plan.all(func(spot: Vector2) -> bool: return spot.distance_to(player.global_position) > boss.radius + MountedPlayer.HURT_RADIUS), "A decoy must never be marked on the angel (%s)." % [boss.decoy_plan])
+	boss._cancel()
+	# A mirrored thrust waits until the spear-holding angel is within reach.
+	player.weapon = MountedPlayer.Weapon.SPEAR
+	player.global_position = Vector2(400.0, 0.0)
+	_check(not boss._ready_for(Boss.Pattern.MIRROR), "Envy must not thrust at a spear out of reach.")
+	player.global_position = Vector2(120.0, 0.0)
+	_check(boss._ready_for(Boss.Pattern.MIRROR), "Envy must thrust at a spear within reach.")
 
 	await _settle()
 	run.queue_free()

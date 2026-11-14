@@ -21,17 +21,19 @@ signal attacked(boss: Boss)
 signal phase_changed(boss: Boss)
 ## A devour swallowed a horde enemy (it is gone; nothing is earned and the boss does not heal).
 signal ate(boss: Boss, enemy: Enemy)
+## A decoy call (Envy): the run raises that many dark copies at decoy_spots().
+signal decoys_requested(boss: Boss, count: int)
 
-enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR, SNORE, SLUDGE, YAWN, NAP }
+enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR, SNORE, SLUDGE, YAWN, NAP, MIRROR, THRUST, SHOT, DECOY }
 
 const CHARGE_TIME: float = 0.55
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
-const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5, 0.7, 0.6, 1.4, 0.05]
+const WINDUPS: Array[float] = [0.6, 0.55, 0.5, 0.4, 0.35, 0.7, 0.6, 0.55, 0.35, 0.6, 0.6, 1.0, 0.6, 0.5, 0.7, 0.6, 1.4, 0.05, 0.55, 0.55, 0.55, 0.6]
 ## PLACEHOLDER seconds the boss stands still after each pattern. A charge ends far from the
 ## angel, so it rests longer: long enough to walk back into spear reach.
-const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8, 0.6, 0.5, 2.0, 2.0]
+const RECOVERIES: Array[float] = [0.8, 0.5, 0.5, 0.5, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6, 0.4, 0.8, 0.5, 0.8, 0.6, 0.5, 2.0, 2.0, 0.5, 0.8, 0.5, 0.5]
 ## PLACEHOLDER kisses: a fan of slow air shots.
 const KISS_COUNT: int = 3
 const KISS_SPREAD: float = 0.22
@@ -72,6 +74,20 @@ const SLUDGE_SLOW: float = 0.6
 ## the punish window) follows it in Sloth's combo.
 const YAWN_RADIUS: float = 320.0
 const SLEEP_COLOR: Color = Color(1.4, 1.35, 1.2, 1.0)
+## PLACEHOLDER mirror (Envy): it becomes the angel's weapon. Against the spear, a thrust along a
+## lane in front of it; against the bow, it keeps its distance and shoots in the bow's rhythm.
+const THRUST_LENGTH: float = 120.0
+const THRUST_HALF: float = 18.0
+const SHOT_SPEED: float = 440.0
+## A shot following another in a volley waits only the bow's rhythm.
+const CHAINED_SHOT_WINDUP: float = 0.26
+## A smarter mirror's tells are shorter (never under this).
+const QUICK_MIRROR_WINDUP: float = 0.45
+const MIRROR_RANGE: float = 340.0
+## PLACEHOLDER decoys: dark copies raised beside the boss; darker and cooler than the real one.
+const DECOY_TINT: Color = Color(0.48, 0.42, 0.58, 1.0)
+const DECOY_SPREAD: float = 90.0
+const DECOY_MARK: Color = Color(0.85, 0.8, 0.9, 1.0)
 ## PLACEHOLDER coin ring: shots in COIN_SLOTS directions, leaving gaps COIN_GAP slots either
 ## side of the angel (right beside the shot at it, so a step either way reaches one at any
 ## range); each chained ring keeps the volley's aim and turns half a slot, so it spirals.
@@ -188,6 +204,14 @@ var sludge_time: float = 5.0
 var napping: bool = false
 ## Sprite tint per phase (index 0 is phase 1), such as Sloth waking; empty keeps the tint.
 var phase_tints: Array[Color] = []
+## Mirrors the angel's weapon in its movement (Envy keeps its distance against a bow).
+var mirrors: bool = false
+## Smarter mirroring: shorter thrust and shot tells.
+var quick_mirror: bool = false
+## Decoys raised per call (more on smarter tiers), and where the pending call raises them: open
+## ground (no wall, angel, or standing body), chosen when its tell starts so the marks are exact.
+var decoy_count: int = 1
+var decoy_plan: Array[Vector2] = []
 ## This aimed fan's shots come from the air (decided when its tell starts).
 var fan_from_air: bool = false
 ## Damage of each BURST/AIMED shot; scaled by the run with the tier and the clock.
@@ -293,12 +317,24 @@ func _physics_process(delta: float) -> void:
 		if charge_left <= 0.0:
 			_finish(Pattern.CHARGE)
 	else:
-		velocity = (target.global_position - global_position).normalized() * speed
+		var toward_angel: Vector2 = target.global_position - global_position
+		velocity = toward_angel.normalized() * speed
+		if mirrors and target.weapon == MountedPlayer.Weapon.BOW:
+			# Against a bow, keep the bow's distance instead of closing in.
+			var gap: float = toward_angel.length()
+			if gap < MIRROR_RANGE - 20.0:
+				velocity = -velocity
+			elif gap <= MIRROR_RANGE + 20.0:
+				velocity = Vector2.ZERO
 		if can_attack():
 			attack_left -= delta
 			if attack_left <= 0.0 and not patterns.is_empty():
-				attack_left = attack_interval
-				start_attack(patterns.pick_random())
+				var choice: int = patterns.pick_random()
+				if _ready_for(choice):
+					attack_left = attack_interval
+					start_attack(choice)
+				else:
+					attack_left = 0.25 # That attack would land on nothing now; roll again shortly.
 	move_and_slide()
 	_face(target.global_position.x - global_position.x)
 	var attacking: bool = windup_left > 0.0 or charge_left > 0.0 or attack_pose_left > 0.0
@@ -311,8 +347,15 @@ func _physics_process(delta: float) -> void:
 ## Begins a wind-up: the attack's telegraph shows (aim locked now) until it lands. A fresh attack
 ## opens its combo; a chained one is a step of the running combo.
 func start_attack(pattern: int, chained: bool = false, after: int = -1) -> void:
+	if pattern == Pattern.MIRROR:
+		# The mirror becomes whatever the angel holds right now.
+		pattern = Pattern.THRUST if target.weapon == MountedPlayer.Weapon.SPEAR else Pattern.SHOT
 	pending = pattern
 	windup_left = slam_windup if pattern == Pattern.SLAM else WINDUPS[pattern]
+	if quick_mirror and (pattern == Pattern.THRUST or pattern == Pattern.SHOT):
+		windup_left = QUICK_MIRROR_WINDUP
+	if chained and pattern == Pattern.SHOT:
+		windup_left = CHAINED_SHOT_WINDUP
 	if pattern == Pattern.NAP and after == Pattern.RAIN:
 		# A nap after rain waits until the last drop has landed, so the nap stays a clean opening.
 		windup_left = RAIN_DELAY + RAIN_STAGGER * (RAIN_SPOTS.size() - 1)
@@ -341,6 +384,8 @@ func start_attack(pattern: int, chained: bool = false, after: int = -1) -> void:
 		leap_spot = _leap_spot()
 	if pattern == Pattern.SLUDGE:
 		_plan_sludge()
+	if pattern == Pattern.DECOY:
+		_plan_decoys()
 	charge_length = clear_distance(self, charge_direction * charge_speed() * CHARGE_TIME) if pattern == Pattern.CHARGE else 0.0
 	summon_spots.clear()
 	if pattern == Pattern.NAP:
@@ -351,10 +396,30 @@ func start_attack(pattern: int, chained: bool = false, after: int = -1) -> void:
 	# Attacks cast their tell's light (violet for an air fan, ember otherwise); a summon's marks,
 	# a raised guard, a blink, and sludge do not.
 	set_meta(&"light", AIR_TELEGRAPH_LIGHT if fan_from_air or pattern == Pattern.RAIN or pattern == Pattern.DEVOUR else TELEGRAPH_LIGHT)
-	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD and pattern != Pattern.BLINK and pattern != Pattern.SLUDGE:
+	if pattern != Pattern.SUMMON and pattern != Pattern.GUARD and pattern != Pattern.BLINK and pattern != Pattern.SLUDGE and pattern != Pattern.DECOY:
 		add_to_group(&"light")
 	attacked.emit(self)
 	queue_redraw()
+
+
+## False for an attack that could not land right now: a mirrored thrust while the angel holds
+## the spear out of its reach, or a decoy call while its decoys already stand.
+func _ready_for(pattern: int) -> bool:
+	if pattern == Pattern.MIRROR and target.weapon == MountedPlayer.Weapon.SPEAR:
+		return global_position.distance_to(target.global_position) <= radius + THRUST_LENGTH + MountedPlayer.HURT_RADIUS
+	if pattern == Pattern.DECOY:
+		return get_tree().get_nodes_in_group(&"decoys").size() < decoy_count
+	return true
+
+
+## Decoy spots either side of the boss on open ground, up to the copies still missing.
+func _plan_decoys() -> void:
+	decoy_plan.clear()
+	var missing: int = decoy_count - get_tree().get_nodes_in_group(&"decoys").size()
+	var room: Rect2 = Run.ARENA_RECT.grow(-radius)
+	for spot: Vector2 in decoy_spots():
+		if decoy_plan.size() < missing and room.has_point(spot) and _spot_clear(spot):
+			decoy_plan.append(spot)
 
 
 ## Sludge spots across the line from the boss, kept inside the arena; a spot inside a wall or
@@ -436,6 +501,19 @@ func _bite() -> void:
 		target.take_damage(roundi(contact_damage * BITE_SCALE), true)
 
 
+## True when a point (the angel) is inside the mirror's thrust lane in front of the boss.
+func in_thrust_lane(point: Vector2) -> bool:
+	var offset: Vector2 = point - global_position
+	var along: float = offset.dot(charge_direction)
+	return along >= 0.0 and along <= radius + THRUST_LENGTH + MountedPlayer.HURT_RADIUS and absf(offset.dot(charge_direction.orthogonal())) <= THRUST_HALF + MountedPlayer.HURT_RADIUS
+
+
+## Where decoys appear: either side of the boss, across the line to the angel.
+func decoy_spots() -> Array[Vector2]:
+	var across: Vector2 = charge_direction.orthogonal() * (radius + DECOY_SPREAD)
+	return [global_position + across, global_position - across]
+
+
 ## No wall, obstacle, angel, or ground enemy where the boss's body would stand.
 func _spot_clear(spot: Vector2) -> bool:
 	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
@@ -470,8 +548,8 @@ func _cancel() -> void:
 ## angel will be when the shots arrive.
 func _aim(pattern: int) -> Vector2:
 	var at: Vector2 = target.global_position
-	if smarts >= LEAD_SMARTS and pattern == Pattern.AIMED:
-		var arrival: float = WINDUPS[pattern] + global_position.distance_to(at) / PROJECTILE_SPEED
+	if smarts >= LEAD_SMARTS and (pattern == Pattern.AIMED or pattern == Pattern.SHOT):
+		var arrival: float = WINDUPS[pattern] + global_position.distance_to(at) / (SHOT_SPEED if pattern == Pattern.SHOT else PROJECTILE_SPEED)
 		at += target.velocity * minf(arrival, 1.5) * LEAD_FACTOR
 	var direction: Vector2 = at - global_position
 	return direction.normalized() if direction.length() > 0.01 else Vector2.RIGHT
@@ -548,6 +626,13 @@ func _attack(pattern: int) -> void:
 		Pattern.NAP:
 			napping = true
 			queue_redraw()
+		Pattern.THRUST:
+			if in_thrust_lane(target.global_position):
+				target.take_damage(contact_damage)
+		Pattern.SHOT:
+			_fire(charge_direction, SHOT_SPEED)
+		Pattern.DECOY:
+			decoys_requested.emit(self, decoy_plan.size())
 		Pattern.BLINK:
 			# If the marked spot is taken now (the angel walked onto it), the blink is called off:
 			# never land somewhere else, never land on the angel.
@@ -791,6 +876,18 @@ func _draw() -> void:
 				draw_arc(at, SLUDGE_RADIUS, 0.0, TAU, 48, SLUDGE_COLOR, 2.0)
 		Pattern.YAWN:
 			draw_circle_tell(self, YAWN_RADIUS, fill)
+		Pattern.THRUST:
+			# The spear's lane in front of it (a ground attack: fly over it or step aside).
+			draw_lane(self, charge_direction, radius + THRUST_LENGTH, THRUST_HALF, fill)
+		Pattern.SHOT:
+			draw_tell(self, charge_direction * radius, charge_direction * (radius + 60.0 + 60.0 * fill), Color(EMBER, 0.85))
+		Pattern.DECOY:
+			# Pale circles as wide as the copies, exactly where they will rise.
+			for spot: Vector2 in decoy_plan:
+				var at: Vector2 = spot - global_position
+				draw_circle(at, radius * fill, BLINK_FILL)
+				draw_arc(at, radius, 0.0, TAU, 32, BACKING, 6.0)
+				draw_arc(at, radius, 0.0, TAU, 32, DECOY_MARK, 2.0)
 		Pattern.BLINK:
 			# On the boss: a pale ring drawing in, and a tick pointing where it will appear.
 			var gather: float = roundf((radius + 16.0 * (1.0 - fill)) / 2.0) * 2.0

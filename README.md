@@ -2,6 +2,12 @@
 
 Game development project for YTU, built with Godot. Most programming will be AI-assisted; game direction and asset creation remain human-led.
 
+## Play in your browser
+
+[Play EIGHT on GitHub Pages](https://slyim.github.io/EIGHT/). Use a desktop browser with WebGL 2 and a keyboard and mouse.
+
+GitHub Actions exports the Web preset and publishes it to Pages on each push to `main`. The browser build uses Godot's Compatibility renderer, so lighting and bloom can look different from the desktop build.
+
 ## Open the project
 
 1. Install **Godot 4.7.2 Standard** (not .NET) and [Git LFS](https://git-lfs.com/).

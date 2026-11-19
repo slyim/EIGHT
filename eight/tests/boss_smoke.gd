@@ -17,8 +17,8 @@ extends SceneTree
 ## Smarter Sloth's sludge lasts longer and it rains after a yawn. Envy: mirrors the angel's weapon
 ## (a thrust against the spear; distance and a three-shot volley against the bow); at half health
 ## raises a darker decoy (no tag, no reward) that copies its fans and vanishes with it. Smarter
-## Envy mirrors quicker and raises two decoys. Satan: violet hellfire, a charge and air rain;
-## at two thirds the seven sins' signatures in pentagram order; at a third the pentagram's five
+## Envy mirrors quicker and raises two decoys. Satan's stationary head: violet hellfire and air
+## rain; at two thirds the seven sins' signatures in pentagram order; at a third the pentagram's five
 ## beams (ember and violet, safe in the middle) and the sins' creatures. Smarter Satan turns its
 ## beams and pairs the sins. Native Godot only.
 
@@ -1024,7 +1024,7 @@ func _run() -> void:
 	run.queue_free()
 	await _ticks(2)
 
-	# 10. Satan: hellfire fans always come from the air.
+	# 10. Satan's head: hellfire fans always come from the air, with no opening charge.
 	run = _new_run(0, 7)
 	await _ticks(3)
 	run.ritual_left = 100000.0 # The ritual would summon a second Satan mid-check.
@@ -1035,7 +1035,7 @@ func _run() -> void:
 	boss = _pride(run)
 	boss.global_position = Vector2.ZERO
 	player.global_position = Vector2(220.0, 0.0)
-	_check(boss.patterns == [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN] and boss.phase_thresholds == [0.66, 0.33] and not boss.cycles, "Satan must open with hellfire, a charge and rain (%s)." % [boss.patterns])
+	_check(boss.patterns == [Boss.Pattern.AIMED, Boss.Pattern.RAIN] and boss.phase_thresholds == [0.66, 0.33] and not boss.cycles, "Satan's head must open with hellfire and rain, without a charge (%s)." % [boss.patterns])
 	await _ticks(2)
 	boss.start_attack(Boss.Pattern.AIMED)
 	_check(boss.fan_from_air, "Satan's fans must always come from the air.")
@@ -1085,6 +1085,30 @@ func _run() -> void:
 	run.spawn_sin_boss()
 	await _ticks(2)
 	var satan: Boss = run.current_boss
+	var satan_hands: Array[Boss] = []
+	for part: Boss in run.satan_parts:
+		if part.satan_part == Boss.SatanPart.HAND:
+			satan_hands.append(part)
+	var staggered: bool = satan_hands.size() == 2 and satan_hands[0].attack_left != satan_hands[1].attack_left
+	for part: Boss in run.satan_parts:
+		part.attack_left = 999.0
+	_check(staggered, "Satan's two hands must spawn on staggered attack clocks.")
+	var hand: Boss = satan_hands[0]
+	hand.speed = 0.0
+	hand.global_position = Vector2.ZERO
+	player.global_position = Vector2(220.0, 0.0)
+	hand.start_attack(Boss.Pattern.SLAM)
+	_check(hand.slam_spot.distance_to(player.global_position) < 0.01, "A hand's slam must mark the angel's locked position.")
+	var hand_stayed: Vector2 = hand.global_position
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.SLAM] * 60.0) + 2)
+	_check(hand.global_position.distance_to(hand_stayed) < 0.01 and hand.slam_flash_left > 0.0, "A hand's slam must land on its mark without moving the hand.")
+	hand._cancel()
+	hand.recover_left = 0.0
+	hand.start_attack(Boss.Pattern.CHARGE)
+	_check(hand.charge_length > 0.0, "A hand's sweep must show its charge lane.")
+	await _ticks(int(Boss.WINDUPS[Boss.Pattern.CHARGE] * 60.0) + 2)
+	_check(hand.charge_left > 0.0 and hand.global_position.distance_to(hand_stayed) > 0.0, "A hand's sweep must dash along its lane.")
+	hand._cancel()
 	satan.attack_left = 999.0
 	horde = run.enemy_count
 	satan._attack(Boss.Pattern.SUMMON)

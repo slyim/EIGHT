@@ -10,349 +10,471 @@ layout: center
 class: cover
 ---
 
-<img class="logo" src="./images/eight_logo_pixel.png" alt="EIGHT" />
+<img class="logo" src="./images/eight_logo.png" alt="EIGHT" />
 
 <img class="hero" src="./images/sprites/player.png" alt="Kara öküzüne binmiş, mor pelerinli melek" />
 
 <p class="tagline">Bir melek. Yedi günah. Tek bir yol.</p>
 
-<div class="caption">Yıldız Teknik Üniversitesi · Oyun Tasarımı · Alfa 0.1</div>
+<p class="byline">Yıldız Teknik Üniversitesi · Oyun Tasarımı · Alfa 0.1</p>
 
-<!-- EIGHT tepeden görünümlü bir hayatta kalma oyunu. Tanrı’nın gönderdiği melek, kara öküzünün sırtında cehennemin yedi katını arındırmaya iner. -->
+<!-- EIGHT tepeden görünümlü bir hayatta kalma oyunu. Önce evreni, sonra oynanışı, sonra sekiz diyarı anlatacağım. -->
 
 ---
-class: cast-slide
+section: Evren
 ---
 
-# Yedi kat, yedi günah
+# Sekiz kat
 
-<div class="cast">
-  <figure style="--h:#e7a6b5"><img src="./images/sprites/boss_pride.png" alt="" /><b>Odin</b><span>Kibir</span></figure>
-  <figure style="--h:#f0d483"><img src="./images/sprites/boss_greed.png" alt="" /><b>Midas</b><span>Açgözlülük</span></figure>
-  <figure style="--h:#eea4cd"><img src="./images/sprites/boss_lust.png" alt="" /><b>Lilith</b><span>Şehvet</span></figure>
-  <figure style="--h:#9cd6ac"><img src="./images/sprites/boss_envy.png" alt="" /><b>Loki</b><span>Kıskançlık</span></figure>
-  <figure style="--h:#efae72"><img src="./images/sprites/boss_gluttony.png" alt="" /><b>Wendigo</b><span>Oburluk</span></figure>
-  <figure style="--h:#ee8672"><img src="./images/sprites/boss_wrath.png" alt="" /><b>Kerberos</b><span>Gazap</span></figure>
-  <figure style="--h:#99bde7"><img src="./images/sprites/boss_sloth.png" alt="" /><b>Edward</b><span>Tembellik</span></figure>
+<div class="premise">
+<div class="premise-text">
+<p>Cehennem yedi kattır; her katta bir günah hüküm sürer. Sekizinci kat merkezdedir ve orada Şeytan bekler.</p>
+<p>Şeytan her kata beş sunak dikmiştir. Sunaklar ayakta kaldıkça diyar çürür.</p>
+<p>Tanrı, ışıktan bir mızrakla bir meleği gönderir: mor pelerinli melek, kara öküzünün sırtında aşağı iner.</p>
+</div>
+<div class="rings">
+  <div class="orbit">
+    <img style="--a:0" src="./images/sprites/boss_pride.png" alt="" />
+    <img style="--a:1" src="./images/sprites/boss_greed.png" alt="" />
+    <img style="--a:2" src="./images/sprites/boss_lust.png" alt="" />
+    <img style="--a:3" src="./images/sprites/boss_envy.png" alt="" />
+    <img style="--a:4" src="./images/sprites/boss_gluttony.png" alt="" />
+    <img style="--a:5" src="./images/sprites/boss_wrath.png" alt="" />
+    <img style="--a:6" src="./images/sprites/boss_sloth.png" alt="" />
+    <img class="core" src="./images/sprites/boss_satan_head.png" alt="" />
+  </div>
+</div>
 </div>
 
-<p class="satan"><img src="./images/sprites/boss_satan.png" alt="" /> Yedisi düşünce merkezde <b>Şeytan</b> bekler.</p>
-
-<!-- Her günahın kendi diyarı, kendi sürüsü ve kendi saldırı dili var. Her diyara girerken o diyarın sahibi meleğe seslenir. -->
+<!-- Adın kaynağı: yedi günahın katı ve merkezdeki sekizinci kat. EIGHT, bu sekiz katlık yolculuğun adı. -->
 
 ---
-
-# Yolu sen seçersin
-
-<div class="spread"><div><p>Ana menü bir haritadır: yedi günah pentagramın çevresinde, Şeytan merkezde.</p><p>İlk günahı oyuncu seçer. Kazanılan her diyar bir mührü kapatır ve o diyarın bir üst zorluğunu açar.</p><p>Yedi mühür tamamlanınca merkezin yolu açılır.</p></div><img src="./images/hub.png" alt="Yedi diyarın pentagram etrafında dizildiği ana menü" /></div>
-
-<!-- İlerleme kaydedilir. Her düğüm kendi zorluk kademesini gösterir; kazanılan en yüksek kademe "EN İYİ" olarak yazılır. -->
-
+section: Evren
 ---
 
-# Bir koşunun döngüsü
+# Yedi günah, yedi ses
 
-<div class="loop">
-  <div><img src="./images/sprites/player.png" alt="" /><b>İniş</b><p>Melek ışıkla diyara iner.</p></div>
-  <i>→</i>
-  <div><img src="./images/sprites/enemy_imp.png" alt="" /><b>Sürüyü biç</b><p>Düşen ruhlar deneyim olur.</p></div>
-  <i>→</i>
-  <div><img src="./images/sprites/pickup_item.png" alt="" /><b>Beş sunak</b><p>Sekiz dakikada hepsini yık.</p></div>
-  <i>→</i>
-  <div><img src="./images/sprites/boss_pride.png" alt="" /><b>Günahı yen</b><p>Son sunakla günah gelir.</p></div>
-  <i>→</i>
-  <div><img src="./images/sprites/pickup_feather.png" alt="" /><b>Geçit</b><p>Tüylerle merkeze dön.</p></div>
+<div class="voices">
+  <figure style="--h:#b7836b"><img src="./images/sprites/boss_pride.png" alt="" /><div><b>Odin</b><small>Kibir</small><q>Burada ışık bile eğilir.</q></div></figure>
+  <figure style="--h:#e6e29e"><img src="./images/sprites/boss_greed.png" alt="" /><div><b>Midas</b><small>Açgözlülük</small><q>Geçmek için ne vereceksin?</q></div></figure>
+  <figure style="--h:#97576c"><img src="./images/sprites/boss_lust.png" alt="" /><div><b>Lilith</b><small>Şehvet</small><q>Kal. Işık bekleyebilir.</q></div></figure>
+  <figure style="--h:#91b95b"><img src="./images/sprites/boss_envy.png" alt="" /><div><b>Loki</b><small>Kıskançlık</small><q>O ışık kimin elinde olduğunu biliyor mu?</q></div></figure>
+  <figure style="--h:#dccd93"><img src="./images/sprites/boss_gluttony.png" alt="" /><div><b>Wendigo</b><small>Oburluk</small><q>Yutulacak bir ışık daha.</q></div></figure>
+  <figure style="--h:#995154"><img src="./images/sprites/boss_wrath.png" alt="" /><div><b>Kerberos</b><small>Gazap</small><q>Üç ağız. Tek kapı.</q></div></figure>
+  <figure style="--h:#729aa1"><img src="./images/sprites/boss_sloth.png" alt="" /><div><b>Edward</b><small>Tembellik</small><q>Mızrağını bırak. Dinlen.</q></div></figure>
+  <figure style="--h:#97576c"><img src="./images/sprites/boss_satan_head.png" alt="" /><div><b>Şeytan</b><small>Merkez</small><q>Yedi mühür seni bana getirdi.</q></div></figure>
 </div>
 
-<p class="note-line">Her sunağı, o diyarın günahının zayıf bir kopyası korur. Sunaklar ayaktayken sayaç işler; süre biterse melek düşer.</p>
+<!-- Her diyara girerken o diyarın sahibi meleğe seslenir. Her günahın sözü, dövüşünün de özetidir. -->
 
-<!-- Koşu 10-15 dakika sürer. Günah düştükten sonra geçit açılır; melek istediği an çıkabilir, sürü ise güçlenmeye devam eder. -->
+---
+section: Evren
+---
 
+# Arınma
+
+<div class="chain">
+  <div><span class="tile"><ph-bank-fill /></span><b>Sunak yıkılır</b><p>Çevresindeki toprak iyileşir, gökten ışık iner.</p></div>
+  <div><span class="tile"><ph-crown-fill /></span><b>Günah düşer</b><p>Son sunak yıkılınca diyarın sahibi gelir.</p></div>
+  <div><span class="tile"><ph-stamp-fill /></span><b>Mühür kapanır</b><p>Günahın yadigârı pentagramdaki yerine oturur.</p></div>
+  <div><span class="tile"><ph-sun-fill /></span><b>Melek yükselir</b><p>Işık sütununda göğe çıkar; diyar ardında iyileşir.</p></div>
+  <div><span class="tile"><ph-door-open-fill /></span><b>Sekizinci kapı</b><p>Yedi mühür tamamlanınca Şeytan çağrılabilir.</p></div>
+</div>
+
+<!-- Oyunun ilerleme sistemi hikâyenin kendisi: her zafer haritada görünür bir mühür bırakır. -->
+
+---
+section: Oynanış
+---
+
+# Simge dili
+
+<div class="legend">
+  <div><span class="tile"><ph-heart-fill /></span><b>Can</b><p>Sıvı bir kalp; hasar alınca solgun bir iz bırakarak boşalır.</p></div>
+  <div><span class="tile"><ph-diamond-fill /></span><b>Ruh</b><p>Düşen ruhlar deneyimdir; dolunca seviye atlanır.</p></div>
+  <div><span class="tile"><ph-feather-fill /></span><b>Tüy</b><p>Kalıcı güçlerin para birimi.</p></div>
+  <div><span class="tile"><ph-bank-fill /></span><b>Sunak</b><p>Her diyarda beş tane; hedef bunlar.</p></div>
+  <div><span class="tile"><ph-hourglass-fill /></span><b>Süre</b><p>Sekiz dakika; sunaklar yıkılınca durur.</p></div>
+  <div><span class="tile"><ph-crown-fill /></span><b>Günah</b><p>Diyarın patronu ve sunak muhafızları.</p></div>
+  <div><span class="tile ember"><ph-fire-fill /></span><b>Yer saldırısı</b><p>Köz rengi. Üstünden uç ya da içinden atıl.</p></div>
+  <div><span class="tile violet"><ph-cloud-lightning-fill /></span><b>Hava saldırısı</b><p>Mor. Uçmak kurtarmaz; alandan çık ya da atıl.</p></div>
+  <div><span class="tile"><ph-caret-double-right-fill /></span><b>Atılma</b><p>Dokunulmaz geçiş; içinden geçtiğini vurur.</p></div>
+  <div><span class="tile"><ph-wind-fill /></span><b>Uçuş</b><p>Yerden yükselir; dayanıklılık harcar.</p></div>
+  <div><span class="tile"><ph-footprints-fill /></span><b>Yana çekil</b><p>Hattın ya da halkanın dışına adım.</p></div>
+  <div><span class="tile"><ph-lightning-fill /></span><b>Açık</b><p>Saldırıdan sonra patronun savunmasız anı.</p></div>
+</div>
+
+<!-- Bu simgeler sunumun geri kalanında hep aynı anlamda kullanılıyor. -->
+
+---
+section: Oynanış
+---
+
+# Pentagram
+
+<div class="split">
+<img class="ui" src="./images/ui/pentagram.png" alt="Ana menüdeki pentagram: yedi günah dış halkada, Şeytan merkezde" />
+<ul class="facts">
+  <li><span class="tile"><ph-map-trifold-fill /></span><div><b>Harita menünün kendisi</b><p>Yedi günah dış halkada, Şeytan merkezde.</p></div></li>
+  <li><span class="tile"><ph-crown-fill /></span><div><b>Sırayı oyuncu seçer</b><p>Her günah kendi diyarı ve kendi koşusudur.</p></div></li>
+  <li><span class="tile"><ph-stamp-fill /></span><div><b>Zafer mühürler</b><p>Kazanılan diyarın yadigârı merkeze ışık bağlar.</p></div></li>
+  <li><span class="tile"><ph-stack-fill /></span><div><b>Zafer zorluğu açar</b><p>O diyarın bir üst kademesi kilidini açar.</p></div></li>
+</ul>
+</div>
+
+---
+section: Oynanış
+---
+
+# Bir koşu
+
+<div class="run">
+  <div><span class="tile"><ph-arrow-line-down-fill /></span><b>İniş</b><p>Melek ışıkla diyara iner.</p></div>
+  <div><span class="tile"><ph-skull-fill /></span><b>Sürü</b><p>Düşmanlar her yönden gelir; ruhları toplanır.</p></div>
+  <div><span class="tile"><ph-bank-fill /></span><b>Beş sunak</b><p>Her birini günahın zayıf bir kopyası korur.</p></div>
+  <div><span class="tile"><ph-crown-fill /></span><b>Günah</b><p>Son sunak yıkılınca diyarın sahibi gelir.</p></div>
+  <div><span class="tile"><ph-door-open-fill /></span><b>Geçit</b><p>Zafer kaydedilir, tüyler merkeze taşınır.</p></div>
+</div>
+
+<div class="hud">
+  <img class="ui" src="./images/ui/status.png" alt="Can kalbi ve koşu sayaçları" />
+  <img class="ui" src="./images/ui/objective.png" alt="Şeytan'ın sunaklarını yok et, 5 kaldı, 7:57" />
+  <p>Sekiz dakika içinde beş sunak yıkılmazsa melek düşer. Sunaklar düşünce süre durur; sürü ise güçlenmeye devam eder.</p>
+</div>
+
+<!-- Bir koşu yaklaşık on-on beş dakika. Geçit açıldıktan sonra melek istediği an çıkabilir. -->
+
+---
+section: Oynanış
 ---
 
 # Meleğin elleri
 
 <div class="kit">
-  <div><img src="./images/icons/strike.svg" alt="" /><b>Işık mızrağı</b><p>Üç vuruşluk kombo. Üçüncü vuruş geniş bir yay çizer ve sürüyü yarar.</p></div>
-  <div><img src="./images/icons/strike.svg" alt="" class="flip" /><b>Yay</b><p>Üç atışlık kombo. Son ok 1,5 kat vurur ve bir düşmanı deler.</p></div>
-  <div><img src="./images/icons/dash.svg" alt="" /><b>Atılma</b><p>Kısa dokunulmazlık. İçinden geçtiğin her düşmana bir mızrak darbesi vurur ve onu iter.</p></div>
-  <div><img src="./images/icons/fly.svg" alt="" /><b>Uçuş</b><p>Space basılıyken yükselir. Yerdeki saldırıların üstünden geçer, dayanıklılık harcar.</p></div>
+  <div><span class="tile"><ph-sword-fill /></span><b>Işık mızrağı</b><p>Üç vuruşluk kombo. Üçüncüsü geniş bir yay çizer ve sürüyü yarar.</p></div>
+  <div><span class="tile"><ph-crosshair-fill /></span><b>Yay</b><p>Üç atışlık kombo. Son ok 1,5 kat vurur ve bir düşmanı deler.</p></div>
+  <div><span class="tile"><ph-caret-double-right-fill /></span><b>Atılma</b><p>Kısa dokunulmazlık. İçinden geçtiği her düşmana bir mızrak darbesi vurur.</p></div>
+  <div><span class="tile"><ph-wind-fill /></span><b>Uçuş</b><p>Yerdeki saldırıların üstünden geçer; dayanıklılık bitince iner.</p></div>
 </div>
 
-<p class="note-line"><b>Kusursuz kaçış:</b> bir darbe atılmanın ilk anına denk gelirse ıskalar, atılma hemen yenilenir ve saldırılar iki saniye hızlanır.</p>
+<img class="ui gauges" src="./images/ui/abilities.png" alt="Atılma hazır, uçuş hazır, mızrak göstergeleri" />
 
-<!-- Kontroller: WASD hareket, fare nişan, sol tık saldırı, Q silah değiştir, Space uç, Shift atıl. F1 kontrolleri gösterir; saldırı ve atılma tuşları Ayarlar'dan değiştirilebilir. -->
+<div class="callout"><span class="tile"><ph-timer-fill /></span><p><b>Kusursuz kaçış.</b> Bir darbe atılmanın ilk anına denk gelirse ıskalar; atılma hemen yenilenir ve saldırılar iki saniye hızlanır.</p></div>
 
+<!-- Kontroller: WASD, fare, sol tık, Q, Space, Shift. F1 kontrolleri gösterir; saldırı ve atılma tuşları Ayarlar'dan değiştirilebilir. -->
+
+---
+section: Oynanış
 ---
 
 # Uyarıların dili
 
 <div class="tells">
-  <div class="tell ground"><img src="./images/icons/ground.svg" alt="" /><b>Köz rengi: yerden</b><p>Hücum hatları, halkalar, yere vuruşlar. <strong>Üstünden uç</strong> ya da <strong>içinden atıl</strong>.</p></div>
-  <div class="tell air"><img src="./images/icons/air.svg" alt="" /><b>Mor: havadan</b><p>Yağmur, öpücükler, cehennem ateşi. Uçmak kurtarmaz: <strong>alandan çık</strong> ya da <strong>atıl</strong>.</p></div>
+  <div class="tell ember"><span class="tile ember"><ph-fire-fill /></span><b>Yerden gelen</b><p>Hücum hatları, halkalar, yere vuruşlar, şok dalgaları.</p><ul><li><ph-wind-fill /> Üstünden uç</li><li><ph-caret-double-right-fill /> İçinden atıl</li></ul></div>
+  <div class="tell violet"><span class="tile violet"><ph-cloud-lightning-fill /></span><b>Havadan gelen</b><p>Yağmur, öpücükler, cehennem ateşi.</p><ul><li><ph-footprints-fill /> Alandan çık</li><li><ph-caret-double-right-fill /> İçinden atıl</li></ul></div>
 </div>
 
-<p class="note-line">Her saldırı önce çizilir, sonra vurur, sonra bir açık bırakır. Çizilen ne ise vuran odur.</p>
+<div class="beat">
+  <div><span class="tile"><ph-eye-fill /></span><b>Çizer</b><p>Saldırı önce yere çizilir.</p></div>
+  <div><span class="tile"><ph-fire-fill /></span><b>Vurur</b><p>Çizilen ne ise vuran odur.</p></div>
+  <div><span class="tile"><ph-lightning-fill /></span><b>Açık verir</b><p>Patron kısa süre durur.</p></div>
+</div>
 
-<!-- Bu kural sekiz patronun hepsinde aynı. Oyuncu bir kez öğrendikten sonra her yeni patronu okuyabilir. -->
+<!-- Sekiz patronun hepsi bu dili konuşur; bir kez öğrenilen kural her yeni dövüşte işe yarar. -->
 
 ---
+section: Oynanış
+---
 
-# Işıkta kalmak mı, ilerlemek mi?
+# Gökten inen ışık
 
-<div class="spread"><div><p>Yıkılan sunağın çevresine gökten ışık iner.</p><p class="big">10 saniye</p><p>Halkanın içinde dayanırsan canının dörtte biri geri gelir. Dışarı çıkarsan sayaç başa döner. Her sunak bir kez şifa verir.</p></div><img src="./images/heal.png" alt="Melek, yıkılmış bir sunağın şifa halkasında; altta ŞİFA 7 sn yazıyor" /></div>
+<div class="split">
+<img class="ui" src="./images/ui/heal.png" alt="Melek, yıkılmış bir sunağın şifa halkasında" />
+<div>
+<p class="figure"><ph-sun-fill /> 10 saniye</p>
+<ul class="facts">
+  <li><span class="tile"><ph-heart-fill /></span><div><b>Canın dörtte biri</b><p>Halkanın içinde kesintisiz kalınca geri gelir.</p></div></li>
+  <li><span class="tile"><ph-footprints-fill /></span><div><b>Dışarı çıkmak sıfırlar</b><p>Sayaç baştan başlar.</p></div></li>
+  <li><span class="tile"><ph-bank-fill /></span><div><b>Sunak başına bir kez</b><p>İçerideyken diğer sunakların süresi işler.</p></div></li>
+</ul>
+</div>
+</div>
 
-<!-- Şifa bedava değil: oyuncu dar bir alanda saldırılara dayanmak zorunda, içerideyken diğer sunakların süresi işliyor. -->
+<!-- Şifa bedava değil: oyuncu dar bir alanda saldırılara dayanmayı mı, ilerlemeyi mi seçecek? -->
 
+---
+section: Oynanış
 ---
 
 # Güçlenmek
 
-<div class="spread img-left"><img src="./images/levelup.png" alt="Seviye atlama kartları" /><div class="grow">
-<p><b>Seviye</b> · Her seviyede oyun durur, üç karttan biri seçilir: hasar, hız, zırh, menzil…</p>
-<p><b>Evrim</b> · Muhafızlar evrim eşyası düşürür. Her silah bir kez evrilir:<br><span class="pill">Kasırga</span><span class="pill">Zincir Işık</span><span class="pill">Sekme</span><span class="pill">Işık Yağmuru</span></p>
-<p><b>Yan silahlar</b> · Sandıklardan ve muhafızlardan; aynısı gelirse III'e kadar güçlenir:<br><span class="pill">Yörünge Haleleri</span><span class="pill">Güdümlü Tüyler</span><span class="pill">Kutsal Nabız</span><span class="pill">Yargı Şimşeği</span></p>
-</div></div>
+<div class="growth">
+  <div><span class="tile"><ph-caret-double-up-fill /></span><b>Seviye</b><p>Ruhlar dolunca oyun durur; üç karttan biri seçilir: hasar, hız, zırh, menzil.</p><img class="ui" src="./images/ui/levelup.png" alt="Seviye atlama kartları" /></div>
+  <div><span class="tile"><ph-git-fork-fill /></span><b>Evrim</b><p>Muhafızlar evrim eşyası düşürür. Her silah bir kez, iki yoldan biriyle evrilir.</p>
+    <table class="paths"><tbody><tr><th><ph-sword-fill /></th><td>Kasırga</td><td>Zincir Işık</td></tr><tr><th><ph-crosshair-fill /></th><td>Sekme</td><td>Işık Yağmuru</td></tr></tbody></table></div>
+  <div><span class="tile"><ph-package-fill /></span><b>Yan silahlar</b><p>Sandıklardan ve muhafızlardan; aynısı gelirse III'e kadar güçlenir.</p>
+    <ul class="list"><li>Yörünge Haleleri</li><li>Güdümlü Tüyler</li><li>Kutsal Nabız</li><li>Yargı Şimşeği</li></ul></div>
+</div>
 
-<!-- Seviye kartları bu koşuyu değiştirir; evrim yolları silahın bitiricisini değiştirir. -->
-
+---
+section: Oynanış
 ---
 
 # Sunak antlaşmaları
 
-<div class="spread even"><div><p>Bir sunak yıkılınca iki antlaşma sunulur. Biri alınır ya da hiçbirine el sürülmez. Koşu başına en fazla üç.</p>
-<ul class="pacts">
-<li><b>Cam Işık</b><span>+%25 hasar, −%25 azami can</span></li>
-<li><b>Altın Öşür</b><span>+%50 tüy, kalpler yarı sıklıkta</span></li>
-<li><b>Çevik Kan</b><span>Saldırı ve atılma %15 hızlı, düşmanlar %20 sert</span></li>
-</ul></div><img src="./images/pact.png" alt="Sunak antlaşması seçimi" /></div>
+<div class="split">
+<img class="ui" src="./images/ui/pact.png" alt="Sunak antlaşması seçimi" />
+<div>
+<p class="lead"><ph-scroll-fill /> Yıkılan her sunak iki antlaşma sunar. Biri alınır ya da hiçbiri. Koşu başına en fazla üç.</p>
+<table class="trade"><tbody>
+<tr><th>Cam Işık</th><td class="gain">+%25 hasar</td><td class="cost">−%25 azami can</td></tr>
+<tr><th>Altın Öşür</th><td class="gain">+%50 tüy</td><td class="cost">Kalpler yarı sıklıkta</td></tr>
+<tr><th>Çevik Kan</th><td class="gain">Saldırı ve atılma %15 hızlı</td><td class="cost">Düşmanlar %20 sert</td></tr>
+</tbody></table>
+</div>
+</div>
 
-<!-- Her antlaşma bir güç verir, bir bedel ister. Risk oyuncunun elinde. -->
-
+---
+section: Oynanış
 ---
 
 # Tüy ve dükkân
 
-<div class="spread img-left"><img src="./images/shop.png" alt="Dükkân ekranı" /><div>
-<div class="earn"><img src="./images/sprites/pickup_feather.png" alt="" /><p>Öldürme <b>1</b> · Muhafız <b>10</b> · Sunak <b>15</b> · Günah <b>50</b> · Şeytan <b>100</b></p></div>
-<p>Zaferde tüylerin hepsi, yenilgide yarısı saklanır.</p>
-<p>Merkezdeki dükkânda sekiz kalıcı güç, her biri beş kademe: <span class="pill">Dirilik</span><span class="pill">Kudret</span><span class="pill">Zırh</span><span class="pill">Sürat</span><span class="pill">Şans</span><span class="pill">Çeviklik</span><span class="pill">Çekim</span><span class="pill">Kanatlar</span></p>
-</div></div>
+<div class="split">
+<img class="ui" src="./images/ui/shop.png" alt="Dükkân ekranı" />
+<div>
+<table class="earn"><tbody>
+<tr><th><ph-skull-fill /> Öldürme</th><td>1</td><th><ph-bank-fill /> Sunak</th><td>15</td></tr>
+<tr><th><ph-crown-fill /> Muhafız</th><td>10</td><th><ph-crown-fill /> Günah</th><td>50</td></tr>
+<tr><th><ph-feather-fill /> Yerdeki tüy</th><td>5</td><th><ph-crown-fill /> Şeytan</th><td>100</td></tr>
+</tbody></table>
+<p class="lead"><ph-feather-fill /> Zaferde tüylerin hepsi, yenilgide yarısı saklanır.</p>
+<p class="lead"><ph-storefront-fill /> Dükkânda sekiz kalıcı güç, her biri beş kademe: Dirilik, Kudret, Zırh, Sürat, Şans, Çeviklik, Çekim, Kanatlar.</p>
+</div>
+</div>
 
 <!-- Satın alınan güç sonraki her koşuya taşınır. Zorluk kademesi kazanılan tüyü katlar. -->
 
 ---
+section: Oynanış
+---
 
-# Zorluk ve her koşunun farkı
+# Zorluk ve çeşitlilik
 
-<div class="tiers">
-  <div><b>Kefaret</b><span>×1 tüy</span></div><i>→</i>
-  <div><b>Araf</b><span>×1,5 tüy</span></div><i>→</i>
-  <div><b>Lanet</b><span>×2 tüy</span></div><i>→</i>
-  <div><b>Uçurum</b><span>×3 tüy</span></div>
-</div>
-<p class="note-line">Bir günahı bir kademede yenmek o günahın bir sonraki kademesini açar. Kademe yükseldikçe sürü kalabalıklaşır, patronlar yeni hamleler öğrenir. Süre hiç kısalmaz.</p>
+<table class="tiers"><tbody>
+<tr><th></th><th>Kefaret</th><th>Araf</th><th>Lanet</th><th>Uçurum</th></tr>
+<tr><td><ph-feather-fill /> Tüy</td><td>×1</td><td>×1,5</td><td>×2</td><td>×3</td></tr>
+<tr><td><ph-crown-fill /> Patron</td><td>Kendi hamleleri</td><td>+1 hamle</td><td>+2 hamle</td><td>+2 hamle</td></tr>
+<tr><td><ph-hourglass-fill /> Süre</td><td colspan="4">Hiç kısalmaz; kademe sürüyü ve patronları güçlendirir.</td></tr>
+</tbody></table>
 
 <div class="variety">
-  <div><b>Seçkinler</b><p>Nadir, güçlü düşmanlar. Ayaklarında halka, kesin tüy ödülü.</p></div>
-  <div><b>Sürü Dalgası</b><p>Arada bir yirmi saniyelik akın; ekranda duyurulur.</p></div>
-  <div><b>Kavrulmuş Toprak</b><p>Üç koşuda bir: lav daha sık ve sert yakar, tüy ×1,25.</p></div>
+  <div><span class="tile"><ph-star-fill /></span><b>Seçkinler</b><p>Nadir, güçlü düşmanlar; kesin tüy ödülü.</p></div>
+  <div><span class="tile"><ph-waves-fill /></span><b>Sürü Dalgası</b><p>Arada bir yirmi saniyelik, duyurulan akın.</p></div>
+  <div><span class="tile ember"><ph-campfire-fill /></span><b>Kavrulmuş Toprak</b><p>Üç koşuda bir: lav sık ve sert yakar, tüy ×1,25.</p></div>
 </div>
 
+<!-- Bir günahı bir kademede yenmek o günahın bir sonraki kademesini açar. -->
+
+---
+section: Oynanış
 ---
 
 # Sürü
 
 <div class="horde">
-  <figure><img src="./images/sprites/enemy_husk.png" alt="" /><b>Kabuk</b><span>Yavaş, kalabalık</span></figure>
-  <figure><img src="./images/sprites/enemy_imp.png" alt="" /><b>İfrit</b><span>Hızlı, kanatlı</span></figure>
-  <figure><img src="./images/sprites/enemy_brute.png" alt="" /><b>İri</b><span>Ağır, dayanıklı</span></figure>
+  <figure><img src="./images/sprites/enemy_husk.png" alt="" /><b>Kabuk</b><p>Yavaş, kalabalık</p></figure>
+  <figure><img src="./images/sprites/enemy_imp.png" alt="" /><b>İfrit</b><p>Hızlı, kanatlı</p></figure>
+  <figure><img src="./images/sprites/enemy_brute.png" alt="" /><b>İri</b><p>Ağır, dayanıklı</p></figure>
 </div>
 
-<div class="archetypes">
-  <span><b>Hücumcu</b>Kibir · Gazap</span>
-  <span><b>Yer büyücüsü</b>Açgözlülük · Şehvet</span>
-  <span><b>Bombacı</b>Gazap</span>
-  <span><b>Bölünen</b>Oburluk · Kıskançlık</span>
-  <span><b>Kalkanlı</b>Kibir</span>
-  <span><b>Havan</b>Tembellik · Açgözlülük</span>
-  <span><b>Uyuyan</b>Tembellik</span>
-  <span><b>Ayna</b>Kıskançlık</span>
-</div>
+<table class="kinds"><tbody>
+<tr><th>Hücumcu</th><td>Kibir, Gazap</td><th>Kalkanlı</th><td>Kibir</td></tr>
+<tr><th>Yer büyücüsü</th><td>Açgözlülük, Şehvet</td><th>Havan</th><td>Tembellik, Açgözlülük</td></tr>
+<tr><th>Bombacı</th><td>Gazap</td><th>Uyuyan</th><td>Tembellik</td></tr>
+<tr><th>Bölünen</th><td>Oburluk, Kıskançlık</td><th>Ayna</th><td>Kıskançlık</td></tr>
+</tbody></table>
 
-<!-- Her diyarın sürüsü günahına göre karışır; yeni türler koşunun ilk dakikalarında sırayla katılır. Şeytan'ın diyarında hepsi bir arada. -->
+<!-- Her diyarın sürüsü günahına göre karışır; Şeytan'ın diyarında hepsi bir arada. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/pride.png" alt="" />
-<div class="realm-card" style="--h:#e7a6b5">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_pride.png" alt="" /><div><h1>Odin</h1><p class="sin">I · Kibir · 100 can</p></div></div>
+<div class="realm-card" style="--h:#b7836b">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_pride.png" alt="" /><div><h1>Odin</h1><p class="sin">Kibir · I. kat · <ph-heart-fill /> 100</p></div></div>
 <q>Burada ışık bile eğilir.</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Nişanlı yelpaze ve hücum</b><p>Yerdeki köz hattı hücumun ilk engele kadar yolunu gösterir.</p></div></li>
-<li><em>%50</em><div><b>Kalkan duruşu, ardından yere vuruş</b><p>1,5 saniye önünden gelen darbeyi keser, sonra 110 px'lik bir halka iner.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Nişanlı yelpaze ve hücum</b><p>Yerdeki köz hattı hücumun ilk engele kadar yolunu gösterir.</p></div></li>
+<li><em>%50</em><div><b><ph-shield-fill /> Kalkan, ardından yere vuruş</b><p>1,5 saniye önünden gelen darbeyi keser; sonra 110 px'lik halka iner.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/step.svg" alt="" />Hattan yana çekil</span><span><img src="./images/icons/break.svg" alt="" />Kalkanı bitiricin kırar</span><span><img src="./images/icons/fly.svg" alt="" />Halkanın üstünden uç</span></div>
-<p class="horde-line">Sürü: dengeli · Hücumcu · Kalkanlı</p>
+<ul class="answers"><li><ph-footprints-fill /> Hattan yana çekil</li><li><ph-shield-slash-fill /> Bitirici vuruş kalkanı kırar</li><li><ph-wind-fill /> Halkanın üstünden uç</li></ul>
+<p class="horde-line"><ph-skull-fill /> Dengeli sürü, Hücumcu, Kalkanlı</p>
 </div>
 
-<!-- Kibir'in derdi gurur: önünden geçilmez. Bitirici ya da arkadan gelen darbe kalkanı kırar ve Odin 1,2 saniye açık kalır. -->
+<!-- Kibir önünden geçilmeyen bir duvar gibi dövüşür. Kalkanı kırılan Odin 1,2 saniye açık kalır. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/greed.png" alt="" />
-<div class="realm-card" style="--h:#f0d483">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_greed.png" alt="" /><div><h1>Midas</h1><p class="sin">II · Açgözlülük · 130 can</p></div></div>
+<div class="realm-card" style="--h:#e6e29e">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_greed.png" alt="" /><div><h1>Midas</h1><p class="sin">Açgözlülük · II. kat · <ph-heart-fill /> 130</p></div></div>
 <q>Geçmek için ne vereceksin?</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Altın halkaları</b><p>On iki yöne sikke saçar; nişan aldığı atışın iki yanında boşluk bırakır. Yer büyücüleri çağırır.</p></div></li>
-<li><em>%60</em><div><b>Altın yağmuru</b><p>Meleğin çevresine sırayla beş mor daire düşer.</p></div></li>
-<li><em>%25</em><div><b>Sarmal</b><p>Halkalar dönerek gelir; sarmalla birlikte adım at.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Altın halkaları</b><p>On iki yöne sikke; nişan aldığı atışın iki yanında boşluk. Yer büyücüleri çağırır.</p></div></li>
+<li><em>%60</em><div><b><ph-cloud-lightning-fill /> Altın yağmuru</b><p>Meleğin çevresine sırayla beş mor daire düşer.</p></div></li>
+<li><em>%25</em><div><b><ph-fire-fill /> Sarmal</b><p>Halkalar dönerek gelir.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/step.svg" alt="" />Boşluğa adım at</span><span><img src="./images/icons/dash.svg" alt="" />Yağmurdan atıl</span><span><img src="./images/icons/fly.svg" alt="" />Sikkelerin üstünden uç</span></div>
-<p class="horde-line">Sürü: ifritler · Yer büyücüsü · Havan</p>
+<ul class="answers"><li><ph-footprints-fill /> Boşluğa, sarmalla birlikte adım at</li><li><ph-caret-double-right-fill /> Yağmurdan atıl</li><li><ph-wind-fill /> Sikkelerin üstünden uç</li></ul>
+<p class="horde-line"><ph-skull-fill /> İfritler, Yer büyücüsü, Havan</p>
 </div>
 
-<!-- Açgözlülük her şeyi ister: ekranı sikkeyle doldurur ama her halkada bir kapı bırakır. -->
+<!-- Açgözlülük ekranı sikkeyle doldurur ama her halkada bir kapı bırakır. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/lust.png" alt="" />
-<div class="realm-card" style="--h:#eea4cd">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_lust.png" alt="" /><div><h1>Lilith</h1><p class="sin">III · Şehvet · 110 can · en hızlı</p></div></div>
+<div class="realm-card" style="--h:#97576c">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_lust.png" alt="" /><div><h1>Lilith</h1><p class="sin">Şehvet · III. kat · <ph-heart-fill /> 110 · en hızlı</p></div></div>
 <q>Kal. Işık bekleyebilir.</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Hücum ve öpücükler</b><p>Üç yavaş, mor öpücük havadan gelir; uçmak kurtarmaz.</p></div></li>
-<li><em>%50</em><div><b>Göz kırpma</b><p>Meleğin 120 px arkasında bir daire belirir; Lilith oraya ışınlanıp hemen hücum eder.</p></div></li>
+<li><em>%100</em><div><b><ph-cloud-lightning-fill /> Hücum ve öpücükler</b><p>Üç yavaş, mor öpücük havadan gelir.</p></div></li>
+<li><em>%50</em><div><b><ph-eye-fill /> Göz kırpma</b><p>Meleğin 120 px arkasında bir daire belirir; Lilith oraya ışınlanıp hücum eder.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/dash.svg" alt="" />Öpücüklerin içinden atıl</span><span><img src="./images/icons/step.svg" alt="" />İşaretli noktaya bas, ışınlanma bozulur</span></div>
-<p class="horde-line">Sürü: ifritler · uçanlar · Yer büyücüsü</p>
+<ul class="answers"><li><ph-caret-double-right-fill /> Öpücüklerin içinden atıl</li><li><ph-footprints-fill /> İşaretli noktaya bas, ışınlanma bozulur</li></ul>
+<p class="horde-line"><ph-skull-fill /> İfritler, uçanlar, Yer büyücüsü</p>
 </div>
 
-<!-- Şehvet meleği oyalamak ister: arkasında belirir. Oyuncu işaretli noktaya basarsa ışınlanma iptal olur. -->
+<!-- Şehvet meleği oyalamak ister ve arkasında belirir. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/envy.png" alt="" />
-<div class="realm-card" style="--h:#9cd6ac">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_envy.png" alt="" /><div><h1>Loki</h1><p class="sin">IV · Kıskançlık · 165 can</p></div></div>
+<div class="realm-card" style="--h:#91b95b">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_envy.png" alt="" /><div><h1>Loki</h1><p class="sin">Kıskançlık · IV. kat · <ph-heart-fill /> 165</p></div></div>
 <q>O ışık kimin elinde olduğunu biliyor mu?</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Ayna</b><p>Meleğin silahını kopyalar. Mızrağa karşı 120 px'lik saplama, yaya karşı 340 px'ten üç hızlı atış.</p></div></li>
-<li><em>%60</em><div><b>Sahte kopya</b><p>Yanında karanlık bir ikizi belirir. İsim etiketi ve can barı yalnızca gerçeğinde var.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Ayna</b><p>Meleğin silahını kopyalar: mızrağa karşı 120 px'lik saplama, yaya karşı 340 px'ten üç hızlı atış.</p></div></li>
+<li><em>%60</em><div><b><ph-eye-fill /> Sahte kopya</b><p>Yanında karanlık bir ikiz belirir; isim ve can barı yalnızca gerçeğinde.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/step.svg" alt="" />Saplama hattından çekil</span><span><img src="./images/icons/strike.svg" alt="" />Etiketli olanı vur</span><span><img src="./images/icons/fly.svg" alt="" />Hattın üstünden uç</span></div>
-<p class="horde-line">Sürü: uçanlar · Bölünen · Ayna</p>
+<ul class="answers"><li><ph-footprints-fill /> Saplama hattından çekil</li><li><ph-lightning-fill /> Etiketli olanı vur</li><li><ph-wind-fill /> Hattın üstünden uç</li></ul>
+<p class="horde-line"><ph-skull-fill /> Uçanlar, Bölünen, Ayna</p>
 </div>
 
-<!-- Kıskançlık sahip olmadığını ister: meleğin silahını taklit eder. Silah değiştirmek Loki'nin taktiğini de değiştirir. -->
+<!-- Kıskançlık sahip olmadığını ister: silah değiştirmek Loki'nin taktiğini de değiştirir. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/gluttony.png" alt="" />
-<div class="realm-card" style="--h:#efae72">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_gluttony.png" alt="" /><div><h1>Wendigo</h1><p class="sin">V · Oburluk · 220 can</p></div></div>
+<div class="realm-card" style="--h:#dccd93">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_gluttony.png" alt="" /><div><h1>Wendigo</h1><p class="sin">Oburluk · V. kat · <ph-heart-fill /> 220</p></div></div>
 <q>Yutulacak bir ışık daha.</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Sıçrama ve kusma</b><p>Meleğin üstüne 120 px'lik bir daireyle iner, ardında 4 saniyelik safra bırakır.</p></div></li>
-<li><em>%50</em><div><b>Yutma</b><p>Ağzı meleği ve sürüyü çeker. Ağza ulaşan düşman yok olur; ağızda kalan melek ısırılır.</p></div></li>
-<li><em>%20</em><div><b>Bölünenler</b><p>Ölünce ikiye ayrılan yaratıklar çağırır.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Sıçrama ve kusma</b><p>Meleğin üstüne 120 px'lik daireyle iner, ardında 4 saniyelik safra bırakır.</p></div></li>
+<li><em>%50</em><div><b><ph-wind-fill /> Yutma</b><p>Ağzı meleği ve sürüyü çeker; ağza ulaşan düşman yok olur, kalan melek ısırılır.</p></div></li>
+<li><em>%20</em><div><b><ph-skull-fill /> Bölünenler</b><p>Ölünce ikiye ayrılan yaratıklar çağırır.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/fly.svg" alt="" />Safranın üstünden uç</span><span><img src="./images/icons/dash.svg" alt="" />Atılma çekimi yok sayar</span></div>
-<p class="horde-line">Sürü: iriler · Bölünen</p>
+<ul class="answers"><li><ph-wind-fill /> Safranın üstünden uç</li><li><ph-caret-double-right-fill /> Atılma çekimi yok sayar</li></ul>
+<p class="horde-line"><ph-skull-fill /> İriler, Bölünen</p>
 </div>
 
-<!-- Oburluk doymaz: kendi sürüsünü bile yer ama asla iyileşmez. Yutma sırasında atılmak çekimden kurtarır. -->
+<!-- Oburluk kendi sürüsünü bile yer ama asla iyileşmez. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/wrath.png" alt="" />
-<div class="realm-card" style="--h:#ee8672">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_wrath.png" alt="" /><div><h1>Kerberos</h1><p class="sin">VI · Gazap · 200 can</p></div></div>
+<div class="realm-card" style="--h:#995154">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_wrath.png" alt="" /><div><h1>Kerberos</h1><p class="sin">Gazap · VI. kat · <ph-heart-fill /> 200</p></div></div>
 <q>Üç ağız. Tek kapı.</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Çift hücum, yere vuruş</b><p>İki hücum arka arkaya, durduğu yerde 90 px'lik bir vuruş.</p></div></li>
-<li><em>%50</em><div><b>Öfke</b><p>%20 hızlanır; her hücumdan sonra bir mermi halkası.</p></div></li>
-<li><em>%20</em><div><b>Şok dalgası</b><p>Üç köz halkası 0,45 saniye arayla dışa yayılır.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Çift hücum, yere vuruş</b><p>İki hücum arka arkaya; durduğu yerde 90 px'lik vuruş.</p></div></li>
+<li><em>%50</em><div><b><ph-fire-fill /> Öfke</b><p>%20 hızlanır; her hücumdan sonra bir mermi halkası.</p></div></li>
+<li><em>%20</em><div><b><ph-fire-fill /> Şok dalgası</b><p>Üç köz halkası 0,45 saniye arayla dışa yayılır.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/step.svg" alt="" />Hücum hattından çekil</span><span><img src="./images/icons/fly.svg" alt="" />Halkaların üstünden uç</span><span><img src="./images/icons/dash.svg" alt="" />Aralarından atıl</span></div>
-<p class="horde-line">Sürü: ifritler · iriler · Hücumcu · Bombacı</p>
+<ul class="answers"><li><ph-footprints-fill /> Hücum hattından çekil</li><li><ph-wind-fill /> Halkaların üstünden uç</li><li><ph-caret-double-right-fill /> Aralarından atıl</li></ul>
+<p class="horde-line"><ph-skull-fill /> İfritler, iriler, Hücumcu, Bombacı</p>
 </div>
 
-<!-- Gazap hiç durmaz: canı azaldıkça hızlanır. Bombacıları ona doğru çekmek, patlamalarını ona karşı kullanmaktır. -->
+<!-- Gazap canı azaldıkça hızlanır. Bombacıları ona doğru çekmek, patlamalarını ona karşı kullanmaktır. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/sloth.png" alt="" />
-<div class="realm-card" style="--h:#99bde7">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_sloth.png" alt="" /><div><h1>Edward</h1><p class="sin">VII · Tembellik · 240 can</p></div></div>
+<div class="realm-card" style="--h:#729aa1">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_sloth.png" alt="" /><div><h1>Edward</h1><p class="sin">Tembellik · VII. kat · <ph-heart-fill /> 240</p></div></div>
 <q>Mızrağını bırak. Dinlen.</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Horlama ve çamur</b><p>Yavaş bir mermi halkası; çamur birikintileri yürüyüşü %60'a düşürür.</p></div></li>
-<li><em>%65</em><div><b>Esneme</b><p>1,4 saniyelik uyarıyla 320 px'lik dev vuruş; ardından iki saniye uyur.</p></div></li>
-<li><em>%25</em><div><b>Uyanış</b><p>Kızarır, iki buçuk kat hızlanır ve hücum etmeye başlar.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Horlama ve çamur</b><p>Yavaş mermi halkası; çamur yürüyüşü %60'a düşürür.</p></div></li>
+<li><em>%65</em><div><b><ph-fire-fill /> Esneme</b><p>1,4 saniyelik uyarıyla 320 px'lik dev vuruş; ardından iki saniye uyur.</p></div></li>
+<li><em>%25</em><div><b><ph-lightning-fill /> Uyanış</b><p>Kızarır, iki buçuk kat hızlanır ve hücum etmeye başlar.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/fly.svg" alt="" />Esnemenin üstünden uç</span><span><img src="./images/icons/strike.svg" alt="" />Uykusunda vur</span></div>
-<p class="horde-line">Sürü: yavaş kabuklar · Uyuyan · Havan</p>
+<ul class="answers"><li><ph-wind-fill /> Esnemenin ve çamurun üstünden uç</li><li><ph-lightning-fill /> Uykusunda vur</li></ul>
+<p class="horde-line"><ph-skull-fill /> Yavaş kabuklar, Uyuyan, Havan</p>
 </div>
 
-<!-- Tembellik meleği yavaşlatır ve uyutmaya çalışır. Esnemeden sonraki uyku, en büyük hasar fırsatıdır. -->
+<!-- Tembellik meleği yavaşlatıp uyutmaya çalışır; esnemeden sonraki uyku en büyük fırsattır. -->
 
 ---
+section: Diyarlar
 class: realm
 ---
 
 <img class="realm-bg" src="./images/realms/satan.png" alt="" />
-<div class="realm-card" style="--h:#ee8672">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_satan.png" alt="" /><div><h1>Şeytan</h1><p class="sin">Merkez · 520 can · 40 sn ritüel</p></div></div>
+<div class="realm-card satan" style="--h:#97576c">
+<div class="realm-head"><span class="parts"><img class="hand flip" src="./images/sprites/boss_satan_hand.png" alt="" /><img class="realm-sprite head" src="./images/sprites/boss_satan_head.png" alt="" /><img class="hand" src="./images/sprites/boss_satan_hand.png" alt="" /></span><div><h1>Şeytan</h1><p class="sin">Sekizinci kat · <ph-heart-fill /> 520 · <ph-hourglass-fill /> 40 sn</p></div></div>
 <q>Yedi mühür seni bana getirdi.</q>
 <ol class="rail">
-<li><em>%100</em><div><b>Cehennem ateşi</b><p>Havadan mor yelpazeler, hücum ve yağmur.</p></div></li>
-<li><em>%66</em><div><b>Yedi imza</b><p>Yedi günahın hamlesi pentagram sırasıyla.</p></div></li>
-<li><em>%33</em><div><b>Pentagram</b><p>Beş ışın 500 px uzanır, köz ve mor sırayla. Ortadaki beşgen güvenlidir.</p></div></li>
+<li><em>Üç parça</em><div><b><ph-skull-fill /> Kafa 280, iki el 120'şer</b><p>Üçü de düşmeden Şeytan ölmez. Kırk saniyelik ritüelin ardından gelir.</p></div></li>
+<li><em>Eller</em><div><b><ph-fire-fill /> Yere vuruş ve süpürme</b><p>Sırayla saldırır; düşen her el kafayı bir sonraki evreye iter.</p></div></li>
+<li><em>Kafa</em><div><b><ph-cloud-lightning-fill /> Ateş, yedi imza, pentagram</b><p>Havadan mor yelpaze ve yağmur; %66'da yedi günahın hamleleri, %33'te beş ışınlı pentagram.</p></div></li>
 </ol>
-<div class="answers"><span><img src="./images/icons/fly.svg" alt="" />Köz ışından uç</span><span><img src="./images/icons/dash.svg" alt="" />Mordan çık ya da atıl</span></div>
-<p class="horde-line">Sürü: yedi diyarın hepsi</p>
+<ul class="answers"><li><ph-wind-fill /> Köz vuruşlardan uç</li><li><ph-caret-double-right-fill /> Mordan çık ya da atıl</li><li><ph-star-fill /> Pentagramın ortasında kal</li></ul>
 </div>
 
-<!-- Final, tüm oyunun özeti: her günahın imzası tek dövüşte. Zafer meleği yükseltir ve dünyayı iyileştirir. -->
+<!-- Final, oyunun özeti: her günahın imzası tek dövüşte. Ritüel boyunca diyar sakin, sadece sürü gelir; melek güçlenir. -->
 
+---
+section: Yol haritası
 ---
 
 # Sıradaki adım
 
-<p class="sub">Tasarımı hazır, henüz oyunda değil</p>
+<p class="lead">Tasarımı hazır, henüz oyunda değil.</p>
 
 <div class="planned">
-  <div><b>Tarot</b><p>Her beş seviyede üç karttan biri. Biri bedel ister, biri sürüyü akıllandırır: bir tür hariç tüm yaratıkların saldırı deseni değişir.</p></div>
-  <div><b>Parkur</b><p>Üzerine çıkılabilen engeller ve ağaçlar. Sürüden yukarıda nefes alıp yeniden saldırı açısı bulmak için.</p></div>
+  <div><span class="tile"><ph-stack-fill /></span><b>Tarot</b><p>Her beş seviyede üç karttan biri. Biri bedel ister, biri sürüyü akıllandırır: bir tür hariç tüm yaratıkların saldırı deseni değişir.</p></div>
+  <div><span class="tile"><ph-castle-turret-fill /></span><b>Parkur</b><p>Üzerine çıkılabilen engeller ve ağaçlar: sürüden yukarıda nefes alıp yeni bir saldırı açısı bulmak için.</p></div>
 </div>
 
-<!-- Bu ikisi Oyun Dinamikleri ve Akış dokümanlarından geliyor. Amaç aynı: her beş seviyede kuralları esnetmek ve haritayı taktik bir alana çevirmek. -->
+<!-- Bu ikisi Oyun Dinamikleri ve Akış dokümanlarından geliyor. -->
 
 ---
 layout: center
 class: closing
 ---
 
-<img class="logo small" src="./images/eight_logo_pixel.png" alt="EIGHT" />
+<img class="logo small" src="./images/eight_logo.png" alt="EIGHT" />
 
-<p class="question">Sizce melek ışıkta kalmalı mı, yoksa ilerlemeli mi?</p>
+<p class="question">Melek ışıkta mı kalmalı, yoksa ilerlemeli mi?</p>
 
-<div class="caption">Canlı gösterim · Kibir diyarı</div>
-
-<!-- Canlı gösterimde Kibir'e girip ilk muhafızın saldırı hazırlığını göster. Tartışmayı jüriye bu soruyla aç. -->
+<!-- Canlı gösterimde Kibir'e girip ilk muhafızın saldırı hazırlığını göster; tartışmayı jüriye bu soruyla aç. -->

@@ -355,10 +355,12 @@ func _process(_delta: float) -> void:
 	boss_panel.visible = is_instance_valid(boss)
 	boss_status_label.visible = not boss_panel.visible
 	if boss_panel.visible:
-		boss_name_label.text = "%s  %d%%" % [boss.display_name(), ceili(100.0 * boss.health / boss.max_health)]
-		boss_bar.max_value = boss.max_health
-		boss_bar.value = boss.health
-		var boss_target: float = clampf(float(boss.health) / boss.max_health, 0.0, 1.0)
+		var health: int = run.satan_health() if run.sin_index == Run.SATAN else boss.health
+		var maximum: int = run.satan_max_health if run.sin_index == Run.SATAN else boss.max_health
+		boss_name_label.text = "%s  %d%%" % [boss.display_name(), ceili(100.0 * health / maximum)]
+		boss_bar.max_value = maximum
+		boss_bar.value = health
+		var boss_target: float = clampf(float(health) / maximum, 0.0, 1.0)
 		if absf(boss_target - boss_shown) > 0.001:
 			boss_slosh = 1.0
 		boss_shown = Liquid.approach(boss_shown, boss_target, _delta, 10.0)

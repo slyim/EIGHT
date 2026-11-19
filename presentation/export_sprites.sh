@@ -3,7 +3,7 @@
 set -euo pipefail
 ase="$1"; here="$(cd "$(dirname "$0")" && pwd)"; src="$here/../eight/assets/art/placeholder"; out="$here/images/sprites"
 mkdir -p "$out"
-for n in player boss_pride boss_greed boss_lust boss_envy boss_gluttony boss_wrath boss_sloth boss_satan pickup_xp pickup_life pickup_item pickup_feather; do
+for n in player boss_pride boss_greed boss_lust boss_envy boss_gluttony boss_wrath boss_sloth boss_satan boss_satan_head boss_satan_hand pickup_xp pickup_life pickup_item pickup_feather; do
 	"$ase" -b --frame-tag idle --frame-range 0,0 "$src/placeholder_$n.aseprite" --save-as "$out/$n.png"
 done
 for n in husk imp brute; do

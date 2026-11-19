@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scripts/run.gd" id="1_run"]
 [ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
@@ -14,6 +14,12 @@
 [ext_resource type="Shader" path="res://shaders/lava.gdshader" id="11_lava"]
 [ext_resource type="Theme" path="res://resources/ui_theme.tres" id="10_theme"]
 [ext_resource type="Script" path="res://scripts/ornate_box.gd" id="12_ornate"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/arrow-counter-clockwise-fill.svg" id="icon_arrow_counter_clockwise_fill"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/floppy-disk-fill.svg" id="icon_floppy_disk_fill"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/gear-six-fill.svg" id="icon_gear_six_fill"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/map-trifold-fill.svg" id="icon_map_trifold_fill"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/play-fill.svg" id="icon_play_fill"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/sign-out-fill.svg" id="icon_sign_out_fill"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 resource_local_to_scene = true
@@ -649,6 +655,7 @@ text = "Esc to resume"
 horizontal_alignment = 1
 
 [node name="Resume" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+icon = ExtResource("icon_play_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -656,6 +663,7 @@ theme_override_font_sizes/font_size = 22
 text = "RESUME"
 
 [node name="Restart" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+icon = ExtResource("icon_arrow_counter_clockwise_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -663,6 +671,7 @@ theme_override_font_sizes/font_size = 22
 text = "RESTART RUN  [R]"
 
 [node name="Settings" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+icon = ExtResource("icon_gear_six_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -670,6 +679,7 @@ theme_override_font_sizes/font_size = 22
 text = "SETTINGS"
 
 [node name="Hub" type="Button" parent="HUD/Hud/PauseMenu/Box"]
+icon = ExtResource("icon_map_trifold_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -693,6 +703,7 @@ grow_vertical = 2
 theme_override_constants/separation = 12
 
 [node name="Retry" type="Button" parent="HUD/Hud/EndButtons"]
+icon = ExtResource("icon_arrow_counter_clockwise_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -700,6 +711,7 @@ theme_override_font_sizes/font_size = 22
 text = "RETRY  [R]"
 
 [node name="Hub" type="Button" parent="HUD/Hud/EndButtons"]
+icon = ExtResource("icon_map_trifold_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -723,6 +735,7 @@ grow_vertical = 2
 theme_override_constants/separation = 12
 
 [node name="Retry" type="Button" parent="HUD/Hud/SaveFailed"]
+icon = ExtResource("icon_floppy_disk_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0
@@ -730,6 +743,7 @@ theme_override_font_sizes/font_size = 22
 text = "TRY SAVING AGAIN"
 
 [node name="Leave" type="Button" parent="HUD/Hud/SaveFailed"]
+icon = ExtResource("icon_sign_out_fill")
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 focus_mode = 0

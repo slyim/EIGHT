@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/shop.gd" id="1_shop"]
 [ext_resource type="Theme" path="res://resources/ui_theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/map-trifold-fill.svg" id="icon_map_trifold_fill"]
 
 [node name="Shop" type="Control"]
 layout_mode = 3
@@ -74,6 +75,7 @@ theme_override_font_sizes/font_size = 14
 horizontal_alignment = 1
 
 [node name="Back" type="Button" parent="Panel/Box"]
+icon = ExtResource("icon_map_trifold_fill")
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 focus_mode = 0

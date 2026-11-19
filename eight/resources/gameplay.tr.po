@@ -256,8 +256,8 @@ msgstr "+%50 tüy, ama kalpler yarı sıklıkta düşer"
 msgid "Swift Blood"
 msgstr "Çevik Kan"
 
-msgid "Attacks, side weapons and dash 15% quicker, but enemies hit 20% harder on contact"
-msgstr "Saldırılar, yan silahlar ve atılma %15 daha hızlı, ama düşmanlar temasta %20 daha sert vurur"
+msgid "Attacks, side weapons and dash 15% quicker; contact hits 20% harder"
+msgstr "Saldırı, yan silah ve atılma %15 hızlı; temas %20 daha sert"
 
 msgid "Leave"
 msgstr "Ayrıl"

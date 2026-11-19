@@ -130,7 +130,7 @@ func _run() -> void:
 	_check(Run.SIN_SPAWN_PACE[6] > 1.0 and Run.SIN_SPAWN_PACE[0] == 1.0, "Sloth's horde must come slower.")
 	mix.free()
 
-	# 4. Satan's map: no shrines or countdown, the horde through the ritual, then Satan; his fall wins.
+	# 4. Satan's map: the ritual, then one head and two hands; only all three falling wins once.
 	var satan_map: Run = (load(Game.map_path(Run.SATAN)) as PackedScene).instantiate() as Run
 	satan_map.intro_enabled = false
 	root.add_child(satan_map)
@@ -145,12 +145,45 @@ func _run() -> void:
 	_check(satan_map.shrine_time_left == satan_map.shrine_time, "Satan's map must have no countdown.")
 	await _ticks(60)
 	var satan: Boss = satan_map.current_boss
-	_check(satan != null and satan.boss_name.begins_with("SATAN"), "Satan must arrive after the ritual.")
+	_check(satan != null and satan.boss_name == "SATAN" and satan.satan_part == Boss.SatanPart.HEAD, "Satan's head must arrive after the ritual.")
+	_check(satan_map.satan_parts.size() == 3 and satan_map.satan_parts[0] == satan, "Satan must spawn as three parts.")
+	var hands: Array[Boss] = []
+	for part: Boss in satan_map.satan_parts:
+		if part.satan_part == Boss.SatanPart.HAND:
+			hands.append(part)
+	var total_health: int = satan_map.satan_max_health
+	var scaled_hand_health: int = roundi(total_health * float(Run.SATAN_HAND_HEALTH) / 520.0)
+	_check(Run.SATAN_HEAD_HEALTH + 2 * Run.SATAN_HAND_HEALTH == 520 and hands.size() == 2 and satan.max_health == total_health - 2 * scaled_hand_health and hands.all(func(hand: Boss) -> bool: return hand.max_health == scaled_hand_health), "Satan's 280 / 120 / 120 base split must keep the old total and its clock scaling.")
+	_check(is_zero_approx(satan.speed) and satan.radius > 50.0 and not satan.patterns.has(Boss.Pattern.CHARGE), "Satan's head must be large and stationary, without its opening charge.")
+	_check(hands.all(func(hand: Boss) -> bool: return hand.patterns == [Boss.Pattern.SLAM, Boss.Pattern.CHARGE]), "Each hand must use only slam and sweep (%s)." % [hands.map(func(hand: Boss) -> Array: return hand.patterns)])
 	await _ticks(90)
 	_check(satan_map.enemy_count > 0, "The horde must stay once Satan arrives.")
+	_check(satan_map.hud.boss_bar.max_value == float(total_health) and satan_map.hud.boss_bar.value == float(total_health) and satan_map.hud.boss_name_label.text == "SATAN  100%", "Satan's HUD bar must sum all three parts (got %s, %.0f / %.0f)." % [satan_map.hud.boss_name_label.text, satan_map.hud.boss_bar.value, satan_map.hud.boss_bar.max_value])
+	hands[0].take_hit(20)
+	await _ticks(1)
+	_check(satan_map.hud.boss_bar.value == float(total_health - 20) and satan_map.hud.boss_name_label.text.ends_with("%d%%" % ceili(100.0 * (total_health - 20) / total_health)), "Damaging one hand must lower the summed Satan bar (got %.0f)." % satan_map.hud.boss_bar.value)
+	# Keep the part-death checks isolated from the living horde.
+	satan_map.spawning_enabled = false
+	for actor: Node in satan_map.actors.get_children():
+		if actor is Enemy and not actor is Boss:
+			actor.queue_free()
+	await _ticks(2)
+	var kills_before: int = satan_map.kills
+	var feathers_before: int = satan_map.feathers_earned
+	var loot_before: int = satan_map.pickups.get_child_count()
+	hands[0].take_hit(hands[0].health)
+	await _ticks(2)
+	_check(not satan_map.ended and satan.phase == 2 and satan_map.current_boss == satan, "Losing one hand must advance the head one phase without winning.")
+	_check(satan_map.kills == kills_before and satan_map.feathers_earned == feathers_before and satan_map.pickups.get_child_count() == loot_before, "A hand must not pay a separate kill, feathers, or loot.")
+	hands[1].take_hit(hands[1].health)
+	await _ticks(2)
+	_check(not satan_map.ended and satan.phase == 3 and satan_map.current_boss == satan, "Killing both hands must not win; the second must advance the head one more phase.")
+	_check(satan_map.hud.boss_bar.value == float(satan.health) and satan_map.hud.boss_bar.max_value == float(total_health), "With both hands gone the bar must show only the head against the same total maximum.")
+	_check(satan_map.kills == kills_before and satan_map.feathers_earned == feathers_before and satan_map.pickups.get_child_count() == loot_before, "Both hands together must still pay nothing separately.")
 	satan.take_hit(satan.max_health)
 	await _ticks(2)
-	_check(satan_map.ended and satan_map.victory and satan_map.exit_portal == null, "Satan's fall must win at once, with no portal.")
+	_check(satan_map.ended and satan_map.victory and satan_map.exit_portal == null, "The third part's fall must win at once, with no portal.")
+	_check(satan_map.kills == kills_before + 1 and satan_map.feathers_earned == feathers_before + Run.FEATHERS_PER_SATAN, "All three parts must grant one kill and Satan's feathers exactly once.")
 	satan_map.free()
 	await _ticks(2)
 

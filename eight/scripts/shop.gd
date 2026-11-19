@@ -41,6 +41,7 @@ func _ready() -> void:
 		pips.custom_minimum_size = Vector2(130.0, 0.0)
 		pips.add_theme_font_size_override(&"font_size", 24)
 		var buy: Button = Button.new()
+		buy.icon = preload("res://assets/ui/icons/feather-fill.svg") # Prices are in feathers.
 		buy.name = &"Buy"
 		buy.focus_mode = Control.FOCUS_NONE
 		buy.custom_minimum_size = Vector2(130.0, 34.0)

@@ -28,6 +28,14 @@ const DESCENT_HEIGHT: float = 420.0
 const DESCENT_TIME: float = 1.6
 ## BOSSES index of Satan's map: no shrines; the horde comes through the ritual, then Satan.
 const SATAN: int = 7
+## Satan's three targetable parts share the old boss's total health and scaling.
+const SATAN_HEAD_HEALTH: int = 280
+const SATAN_HAND_HEALTH: int = 120
+const SATAN_HEAD_RADIUS: float = 72.0
+const SATAN_HAND_RADIUS: float = 30.0
+const SATAN_HAND_OFFSET: float = 170.0
+const SATAN_HEAD_ART: String = "res://assets/art/placeholder/placeholder_boss_satan_head.aseprite"
+const SATAN_HAND_ART: String = "res://assets/art/placeholder/placeholder_boss_satan_hand.aseprite"
 ## PLACEHOLDER seconds after landing on Satan's map before Satan arrives; the horde comes
 ## meanwhile, so the angel levels before the final fight.
 const RITUAL_TIME: float = 40.0
@@ -80,7 +88,7 @@ const LAVA_SEED: int = 5501
 const LAVA_SEED_STEP: int = 104729
 const LAVA_ATTEMPTS: int = 600
 
-## PLACEHOLDER AUDIO, synthesized by tools/placeholder_audio.py.
+## Generated audio, synthesized by tools/placeholder_audio.py.
 const SFX: Dictionary[StringName, AudioStream] = {
 	&"spear_thrust": preload("res://assets/audio/placeholder/placeholder_spear_thrust.wav"),
 	&"spear_sweep": preload("res://assets/audio/placeholder/placeholder_spear_sweep.wav"),
@@ -219,14 +227,14 @@ const BOSSES: Array[Dictionary] = [
 		"phase_speeds": [1.0, 1.0, 2.5], "phase_paces": [1.0, 0.85, 0.7],
 		"phase_tints": [Color.WHITE, Color.WHITE, Color(1.35, 0.8, 0.75, 1.0)],
 		"smart": {"long_sludge": 1, "rain_after_yawn": 2}},
-	# Satan: violet hellfire fans, a charge, and air rain; at two thirds it cycles the seven sins'
+	# Satan's head: violet hellfire fans and air rain; at two thirds it cycles the seven sins'
 	# signatures in pentagram order; at a third it strikes with the pentagram's five beams (ember
 	# and violet in turn) and summons the sins' creatures. Smarter tiers turn the beams between
 	# volleys (smarts 1+) and pair the sins' signatures back to back (smarts 2+).
 	{"name": "SATAN", "health": 520, "speed": 110.0, "radius": 50.0, "interval": 1.5, "damage": 20,
-		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN],
+		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.RAIN],
 		"phase_thresholds": [0.66, 0.33],
-		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.CHARGE, Boss.Pattern.RAIN],
+		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.RAIN],
 			[Boss.Pattern.GUARD, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.MIRROR, Boss.Pattern.LEAP, Boss.Pattern.CHARGE, Boss.Pattern.YAWN],
 			[Boss.Pattern.BEAMS, Boss.Pattern.AIMED, Boss.Pattern.SUMMON]],
 		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM], Boss.Pattern.BLINK: [Boss.Pattern.CHARGE],
@@ -242,7 +250,7 @@ const BOSSES: Array[Dictionary] = [
 const PACTS: Array[Dictionary] = [
 	{"id": "glass_light", "name": "Glass Light", "text": "+25% damage from every weapon, but -25% max health"},
 	{"id": "golden_tithe", "name": "Golden Tithe", "text": "+50% feathers, but hearts drop half as often"},
-	{"id": "swift_blood", "name": "Swift Blood", "text": "Attacks, side weapons and dash 15% quicker, but enemies hit 20% harder on contact"},
+	{"id": "swift_blood", "name": "Swift Blood", "text": "Attacks, side weapons and dash 15% quicker; contact hits 20% harder"},
 ]
 const PACT_LEAVE: Dictionary = {"id": "", "name": "Leave", "text": "Walk away without a pact"}
 const PACT_MAX: int = 3
@@ -453,6 +461,10 @@ var heal_world: float = 0.0:
 		queue_redraw()
 var exit_portal: ExitPortal
 var current_boss: Boss
+## All three Satan parts (dead ones become invalid); the HUD sums the survivors' health.
+var satan_parts: Array[Boss] = []
+var satan_max_health: int = 0
+var satan_hand_max_health: int = 0
 var enemy_count: int = 0
 var level: int = 1
 var xp: int = 0
@@ -512,12 +524,12 @@ func _ready() -> void:
 	player.jumped.connect(play_sfx.bind(&"jump"))
 	player.landed.connect(_on_player_landed)
 	player.dashed.connect(play_sfx.bind(&"dash"))
-	# PLACEHOLDER AUDIO: a perfect dodge reuses the item chime.
+	# Reused sound: a perfect dodge reuses the item chime.
 	player.perfect_dodged.connect(play_sfx.bind(&"pickup_item", 0.0))
 	sparks = ImpactSparks.new()
 	sparks.name = &"Sparks"
 	effects.add_child(sparks)
-	# PLACEHOLDER AUDIO: the bow reuses the spear thrust sound.
+	# Reused sound: the bow reuses the spear thrust sound.
 	player.arrow_fired.connect(play_sfx.bind(&"spear_thrust", 0.12).unbind(1))
 	hud.run = self
 	for index: int in range(SFX_VOICES):
@@ -767,7 +779,7 @@ func _add_obstacle(kind: Breakable.Kind, at: Vector2, vertical: bool) -> Breakab
 
 
 func _on_obstacle_broken(obstacle: Breakable) -> void:
-	# PLACEHOLDER AUDIO: the landing thud doubles as the break sound.
+	# Reused sound: the landing thud doubles as the break sound.
 	play_sfx(&"land")
 	_spawn_poof(obstacle.position)
 	if obstacle.kind == Breakable.Kind.SHRINE:
@@ -1209,6 +1221,16 @@ func spawn_sin_boss() -> Boss:
 	if ended or current_boss != null or sin_boss_defeated:
 		return null
 	var boss: Boss = _make_boss()
+	if sin_index == SATAN:
+		satan_parts.assign([boss])
+		satan_max_health = boss.max_health
+		satan_hand_max_health = maxi(1, roundi(satan_max_health * float(SATAN_HAND_HEALTH) / float(BOSSES[SATAN]["health"])))
+		boss.max_health = satan_max_health - 2 * satan_hand_max_health
+		boss.speed = 0.0
+		boss.radius = SATAN_HEAD_RADIUS
+		boss.satan_part = Boss.SatanPart.HEAD
+		if ResourceLoader.exists(SATAN_HEAD_ART):
+			boss.frames = load(SATAN_HEAD_ART) as SpriteFrames
 	boss.position = _open_spot((player.global_position + Vector2.RIGHT.rotated(randf() * TAU) * 520.0).clamp(
 		ARENA_RECT.position + Vector2(120.0, 120.0), ARENA_RECT.end - Vector2(120.0, 120.0)
 	), boss.radius + 8.0)
@@ -1219,8 +1241,48 @@ func spawn_sin_boss() -> Boss:
 	boss.decoys_requested.connect(_on_decoys)
 	actors.add_child(boss)
 	current_boss = boss
+	if sin_index == SATAN:
+		_spawn_satan_hands(boss)
 	play_sfx(&"boss_spawn", 0.0)
 	return boss
+
+
+## Satan's hands fight on their own staggered clocks, leashed to the stationary head.
+func _spawn_satan_hands(head: Boss) -> void:
+	var hands: Array[Boss] = []
+	for side: int in [-1, 1]:
+		var hand: Boss = _make_boss()
+		hand.max_health = satan_hand_max_health
+		hand.radius = SATAN_HAND_RADIUS
+		hand.satan_part = Boss.SatanPart.HAND
+		hand.satan_head = head
+		hand.satan_hand_side = side
+		hand.home = head.global_position
+		hand.patterns.assign([Boss.Pattern.SLAM, Boss.Pattern.CHARGE])
+		hand.phase_thresholds.clear()
+		hand.phase_patterns.clear()
+		hand.phase_combos.clear()
+		hand.combos.clear()
+		hand.phase_cycles.clear()
+		hand.cycle_pairs = false
+		if ResourceLoader.exists(SATAN_HAND_ART):
+			hand.frames = load(SATAN_HAND_ART) as SpriteFrames
+		hand.position = _open_spot(head.global_position + Vector2(side * SATAN_HAND_OFFSET, 40.0), hand.radius + 8.0)
+		hand.died.connect(_on_boss_died)
+		actors.add_child(hand)
+		hand.attack_left = hand.attack_interval * (0.5 + hands.size())
+		hands.append(hand)
+		satan_parts.append(hand)
+	hands[0].satan_partner = hands[1]
+	hands[1].satan_partner = hands[0]
+
+
+func satan_health() -> int:
+	var total: int = 0
+	for part: Boss in satan_parts:
+		if is_instance_valid(part):
+			total += maxi(0, part.health)
+	return total
 
 
 ## A summon's spots are chosen when its wind-up starts, so its marks show exactly where the
@@ -1270,7 +1332,7 @@ func _split(rule: Dictionary, at: Vector2) -> void:
 ## damage number.
 func _on_enemy_damaged(enemy: Enemy, amount: int, heavy: bool) -> void:
 	if amount == 0 and enemy.blocked_last:
-		# PLACEHOLDER AUDIO: a blocked blow reuses the landing thud.
+		# Reused sound: a blocked blow reuses the landing thud.
 		play_sfx(&"land", 0.0)
 	var direction: Vector2 = enemy.knockback.normalized()
 	if direction.is_zero_approx():
@@ -1329,9 +1391,22 @@ func _on_decoys(boss: Boss, _count: int) -> void:
 		decoy.sprite.self_modulate = Boss.DECOY_TINT
 
 
-## The sin falls: the map is won. A portal opens to leave whenever the angel chooses; until
-## then the horde keeps scaling and the angel keeps growing.
+## The sin falls: the map is won. Satan instead pays and wins only with his third part;
+## each lost hand pushes the living head one phase forward, without a part-level reward.
 func _on_boss_died(enemy: Enemy) -> void:
+	if sin_index == SATAN:
+		var gone: Boss = enemy as Boss
+		if gone.satan_part == Boss.SatanPart.HAND:
+			for part: Boss in satan_parts:
+				if is_instance_valid(part) and part.satan_part == Boss.SatanPart.HEAD and part.health > 0:
+					part.advance_phase()
+					break
+		for part: Boss in satan_parts:
+			if is_instance_valid(part) and part.health > 0:
+				current_boss = part
+				play_sfx(&"boss_death", 0.0)
+				_spawn_poof(enemy.global_position)
+				return
 	for decoy: Node in get_tree().get_nodes_in_group(&"decoys"):
 		decoy.queue_free()
 	kills += 1

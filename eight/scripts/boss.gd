@@ -25,8 +25,10 @@ signal ate(boss: Boss, enemy: Enemy)
 signal decoys_requested(boss: Boss, count: int)
 
 enum Pattern { CHARGE, BURST, AIMED, SUMMON, GUARD, SLAM, SHOCKWAVE, COINS, RAIN, KISSES, BLINK, LEAP, VOMIT, DEVOUR, SNORE, SLUDGE, YAWN, NAP, MIRROR, THRUST, SHOT, DECOY, BEAMS }
+enum SatanPart { NONE, HEAD, HAND }
 
 const CHARGE_TIME: float = 0.55
+const SATAN_HAND_LEASH: float = 420.0
 const PROJECTILE_SPEED: float = 260.0
 const ATTACK_POSE_TIME: float = 0.5
 ## PLACEHOLDER wind-up per pattern (seconds the telegraph shows before the attack lands).
@@ -249,6 +251,13 @@ var smarts: int = 0
 ## 0 means no leash.
 var home: Vector2 = Vector2.ZERO
 var leash: float = 0.0
+## Satan's parts share the run's health bar and victory, but fight as separate bodies.
+var satan_part: SatanPart = SatanPart.NONE
+var satan_head: Boss
+var satan_partner: Boss
+var satan_hand_side: int = 0
+## A hand's slam lands on this locked angel position rather than moving the hand.
+var slam_spot: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -342,6 +351,12 @@ func _physics_process(delta: float) -> void:
 	else:
 		var toward_angel: Vector2 = target.global_position - global_position
 		velocity = toward_angel.normalized() * speed
+		if satan_part == SatanPart.HAND:
+			if is_instance_valid(satan_head):
+				home = satan_head.global_position
+			var from_home: Vector2 = global_position - home
+			if from_home.length() > SATAN_HAND_LEASH:
+				velocity = -from_home.normalized() * speed
 		if mirrors and target.weapon == MountedPlayer.Weapon.BOW:
 			# Against a bow, keep the bow's distance instead of closing in.
 			var gap: float = toward_angel.length()
@@ -349,9 +364,12 @@ func _physics_process(delta: float) -> void:
 				velocity = -velocity
 			elif gap <= MIRROR_RANGE + 20.0:
 				velocity = Vector2.ZERO
+		var partner_attacking: bool = satan_part == SatanPart.HAND and is_instance_valid(satan_partner) and (
+			satan_partner.windup_left > 0.0 or satan_partner.charge_left > 0.0 or satan_partner.attack_pose_left > 0.0
+		)
 		if can_attack():
 			attack_left -= delta
-			if attack_left <= 0.0 and not patterns.is_empty():
+			if attack_left <= 0.0 and not patterns.is_empty() and not partner_attacking:
 				var choice: int = patterns[cycle_index % patterns.size()] if cycles else patterns.pick_random()
 				if _ready_for(choice):
 					attack_left = attack_interval
@@ -364,7 +382,10 @@ func _physics_process(delta: float) -> void:
 				else:
 					attack_left = 0.25 # That attack would land on nothing now; roll again shortly.
 	move_and_slide()
-	_face(target.global_position.x - global_position.x)
+	if satan_hand_side == 0:
+		_face(target.global_position.x - global_position.x)
+	else:
+		sprite.flip_h = satan_hand_side < 0
 	var attacking: bool = windup_left > 0.0 or charge_left > 0.0 or attack_pose_left > 0.0
 	var animation: StringName = &"attack" if attacking else &"idle"
 	if sprite.sprite_frames != null and sprite.animation != animation:
@@ -410,6 +431,8 @@ func start_attack(pattern: int, chained: bool = false, after: int = -1) -> void:
 		blink_spot = _blink_spot()
 	if pattern == Pattern.LEAP:
 		leap_spot = _leap_spot()
+	if pattern == Pattern.SLAM and satan_part == SatanPart.HAND:
+		slam_spot = target.global_position
 	if pattern == Pattern.SLUDGE:
 		_plan_sludge()
 	if pattern == Pattern.DECOY:
@@ -714,7 +737,8 @@ func _attack(pattern: int) -> void:
 		Pattern.SLAM:
 			slam_flash_left = SLAM_FLASH
 			flash_radius = slam_radius
-			if global_position.distance_to(target.global_position) <= slam_radius + MountedPlayer.HURT_RADIUS:
+			var center: Vector2 = slam_spot if satan_part == SatanPart.HAND else global_position
+			if center.distance_to(target.global_position) <= slam_radius + MountedPlayer.HURT_RADIUS:
 				target.take_damage(contact_damage)
 		Pattern.SHOCKWAVE:
 			var wave: Shockwave = Shockwave.new()
@@ -762,28 +786,35 @@ func take_hit(damage: int, heavy: bool = false, from: Vector2 = Vector2.INF) -> 
 
 func _check_phase() -> void:
 	while phase - 1 < phase_thresholds.size() and health > 0 and health <= max_health * phase_thresholds[phase - 1]:
-		phase += 1
-		if phase - 1 < phase_paces.size():
-			attack_interval = base_interval * phase_paces[phase - 1]
-		else:
-			attack_interval *= PHASE_PACE
-		attack_left = minf(attack_left, attack_interval)
-		if phase - 1 < phase_patterns.size():
-			patterns.assign(phase_patterns[phase - 1])
-		if phase - 1 < phase_cycles.size():
-			cycles = phase_cycles[phase - 1]
-			cycle_index = 0
-		if phase - 1 < phase_combos.size():
-			combos = phase_combos[phase - 1]
-		if phase - 1 < phase_speeds.size():
-			speed = base_speed * phase_speeds[phase - 1]
-		if phase - 1 < phase_tints.size():
-			sprite.self_modulate = phase_tints[phase - 1]
-		# The pose: whatever it was doing stops, and it stands (still hittable) to announce it.
-		_cancel()
-		recover_left = 0.0
-		pose_left = PHASE_POSE
-		phase_changed.emit(self)
+		advance_phase()
+
+
+## Cross one phase, from a health threshold or from losing one of Satan's hands.
+func advance_phase() -> void:
+	if health <= 0 or phase - 1 >= phase_thresholds.size():
+		return
+	phase += 1
+	if phase - 1 < phase_paces.size():
+		attack_interval = base_interval * phase_paces[phase - 1]
+	else:
+		attack_interval *= PHASE_PACE
+	attack_left = minf(attack_left, attack_interval)
+	if phase - 1 < phase_patterns.size():
+		patterns.assign(phase_patterns[phase - 1])
+	if phase - 1 < phase_cycles.size():
+		cycles = phase_cycles[phase - 1]
+		cycle_index = 0
+	if phase - 1 < phase_combos.size():
+		combos = phase_combos[phase - 1]
+	if phase - 1 < phase_speeds.size():
+		speed = base_speed * phase_speeds[phase - 1]
+	if phase - 1 < phase_tints.size():
+		sprite.self_modulate = phase_tints[phase - 1]
+	# The pose: whatever it was doing stops, and it stands (still hittable) to announce it.
+	_cancel()
+	recover_left = 0.0
+	pose_left = PHASE_POSE
+	phase_changed.emit(self)
 
 
 func _spawn_hazard(hazard: Node2D) -> void:
@@ -862,7 +893,8 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, BACKING, 6.0)
 		draw_arc(Vector2.ZERO, radius + 10.0, at - half, at + half, 24, Shielder.BLOCK_COLOR if block_flash_left > 0.0 else Shielder.SHIELD_COLOR, 2.0)
 	if slam_flash_left > 0.0:
-		draw_circle(Vector2.ZERO, flash_radius, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
+		var flash_at: Vector2 = slam_spot - global_position if satan_part == SatanPart.HAND else Vector2.ZERO
+		draw_circle(flash_at, flash_radius, Color(1.9, 0.9, 0.3, slam_flash_left / SLAM_FLASH))
 	if devour_left > 0.0:
 		_draw_cone(1.0)
 	if napping:
@@ -903,7 +935,8 @@ func _draw() -> void:
 			draw_arc(Vector2.ZERO, radius + 10.0, at - span, at + span, 24, BACKING, 6.0)
 			draw_arc(Vector2.ZERO, radius + 10.0, at - span, at + span, 24, Shielder.SHIELD_COLOR, 2.0)
 		Pattern.SLAM:
-			draw_circle_tell(self, slam_radius, fill)
+			var at: Vector2 = slam_spot - global_position if satan_part == SatanPart.HAND else Vector2.ZERO
+			draw_circle_tell(self, slam_radius, fill, false, at)
 		Pattern.SHOCKWAVE:
 			# Rings gathering at the boss's feet, about to roll out.
 			for ring: int in range(Shockwave.RINGS):

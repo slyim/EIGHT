@@ -6,6 +6,7 @@
 [ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_spear_light.aseprite" id="spear_light"]
 [ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_pickup_xp.aseprite" id="pickup_xp"]
 [ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_boss_pride.aseprite" id="boss_pride"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/map-trifold-fill.svg" id="icon_map_trifold_fill"]
 
 [node name="HowToPlay" type="CenterContainer"]
 anchor_right = 1.0
@@ -109,4 +110,5 @@ autowrap_mode = 3
 text = "Break five shrines. Stay in a broken shrine’s ring for 10 seconds to heal once. Defeat the sin and hold E at the exit. Esc pauses."
 
 [node name="Back" type="Button" parent="Rows"]
+icon = ExtResource("icon_map_trifold_fill")
 text = "BACK TO HUB"

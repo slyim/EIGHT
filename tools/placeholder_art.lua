@@ -1475,6 +1475,537 @@ local function satan(anim, f)
 	return compose(64, 64, ground_shadow(64, 64, 32, 59, 21, 3.5), g, after)
 end
 
+-- Satan Head = giant floating final boss head (96x96, facing viewer / slightly right).
+-- PLACEHOLDER sprite: idle (slow breathing/brooding, flickering crown) & attack (wind-up -> roar -> recoil).
+local function satan_head(anim, f)
+	local atk = anim == "attack"
+	local bob = atk and pick({ -2, -4, 2, 1 }, f) or pick({ 0, -1, -2, -1 }, f)
+	local shift = atk and pick({ -1, -2, 2, 1 }, f) or 0
+	local jaw = atk and pick({ 6, 8, 15, 7 }, f) or pick({ 4, 5, 6, 5 }, f)
+	local flare = atk and pick({ 2, 4, 6, 2 }, f) or pick({ 0, 1, 2, 1 }, f)
+	local SKIN = { "blood", "wine", "rust", "clay" }
+	local SKIN_DARK = { "abyss", "blood", "wine", "rust" }
+	local HORN_L = { "abyss", "blood", "rust", "clay" }
+	local HORN_R = { "blood", "rust", "clay", "sand" }
+	local IRON = { "black", "abyss", "night", "navy", "steel" }
+	local g = canvas(96, 96)
+	local after = canvas(96, 96)
+	local cx = 46 + shift
+	local cy = 49 + bob
+	local fx = cx + 3 -- slight 3/4 turn facing viewer / slightly right
+
+	-- Swept curved horn helper using cubic Bezier + dithered spheres + carved ridges.
+	local function draw_horn(p0, p1, p2, p3, r0, r1, ramp, bias, ridge_col, hi_col)
+		local steps = 30
+		for i = 0, steps do
+			local t = i / steps
+			local u = 1 - t
+			local x = u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1]
+			local y = u*u*u*p0[2] + 3*u*u*t*p1[2] + 3*u*t*t*p2[2] + t*t*t*p3[2]
+			local r = r0 * ((1 - t) ^ 0.72) + r1 * t
+			g:ball(x, y, r, r, ramp, bias + t * 0.14)
+		end
+		for i = 4, steps - 5, 4 do
+			local t = i / steps
+			local u = 1 - t
+			local x = u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1]
+			local y = u*u*u*p0[2] + 3*u*u*t*p1[2] + 3*u*t*t*p2[2] + t*t*t*p3[2]
+			local tx = 3*u*u*(p1[1]-p0[1]) + 6*u*t*(p2[1]-p1[1]) + 3*t*t*(p3[1]-p2[1])
+			local ty = 3*u*u*(p1[2]-p0[2]) + 6*u*t*(p2[2]-p1[2]) + 3*t*t*(p3[2]-p2[2])
+			local tl = math.max(1, math.sqrt(tx*tx + ty*ty))
+			local nx, ny = -ty / tl, tx / tl
+			local r = (r0 * ((1 - t) ^ 0.72) + r1 * t) * 0.85
+			g:line(x - nx * r, y - ny * r, x + nx * r, y + ny * r, ridge_col)
+			g:line(x - nx * r * 0.6, y - ny * r * 0.6 - 1, x + nx * r * 0.6, y + ny * r * 0.6 - 1, hi_col)
+		end
+	end
+
+	-- Massive sweeping twin demon horns arching wide and curling sharply upward (asymmetric 3/4).
+	draw_horn(
+		{ cx - 14, cy - 12 }, { cx - 35, cy - 12 }, { cx - 42, cy - 28 }, { cx - 26, cy - 41 },
+		6.2, 1.1, HORN_L, 0.0, "abyss", "clay"
+	)
+	draw_horn(
+		{ cx + 16, cy - 12 }, { cx + 35, cy - 12 }, { cx + 42, cy - 28 }, { cx + 29, cy - 41 },
+		6.4, 1.1, HORN_R, 0.08, "blood", "sand"
+	)
+	-- Lower curving cheek-horns separated cleanly below the main sweep for gothic silhouette.
+	draw_horn(
+		{ cx - 17, cy + 1 }, { cx - 26, cy + 4 }, { cx - 31, cy + 9 }, { cx - 28, cy + 15 },
+		3.0, 0.9, HORN_L, -0.05, "abyss", "rust"
+	)
+	draw_horn(
+		{ cx + 18, cy + 1 }, { cx + 27, cy + 4 }, { cx + 32, cy + 9 }, { cx + 29, cy + 15 },
+		3.0, 0.9, HORN_R, 0.05, "blood", "clay"
+	)
+
+	-- Swept pointed demon ears tucked cleanly between upper and lower horns.
+	g:poly({
+		{ cx - 17, cy - 4 }, { cx - 29, cy - 8 }, { cx - 26, cy - 1 }, { cx - 18, cy + 3 },
+	}, SKIN_DARK, 0.0)
+	g:line(cx - 19, cy - 2, cx - 27, cy - 6, "abyss")
+	g:poly({
+		{ cx + 18, cy - 4 }, { cx + 30, cy - 8 }, { cx + 27, cy - 1 }, { cx + 19, cy + 3 },
+	}, SKIN, 0.05)
+	g:line(cx + 20, cy - 2, cx + 28, cy - 6, "blood")
+
+	-- Dark severed under-jaw void (floating head, no body).
+	g:poly({
+		{ cx - 13, cy + 11 }, { cx + 15, cy + 11 },
+		{ fx + 8, cy + 19 + jaw * 0.7 }, { fx, cy + 23 + jaw * 0.75 }, { fx - 9, cy + 19 + jaw * 0.7 },
+	}, { "black", "abyss" })
+
+	-- Broad cranium, temples and sculpted demonic cheekbones.
+	g:ball(cx, cy - 5, 20.0, 16.5, SKIN, 0.02)
+	g:poly({
+		{ cx - 19, cy - 6 }, { cx + 20, cy - 6 },
+		{ cx + 18, cy + 7 }, { fx + 14, cy + 13 }, { fx - 14, cy + 13 }, { cx - 18, cy + 7 },
+	}, SKIN, -0.02)
+	-- Sculpted high cheekbones & gaunt hollow cheeks.
+	g:ball(fx - 13, cy + 2, 6.4, 4.4, SKIN, 0.08)
+	g:ball(fx + 12, cy + 2, 6.6, 4.4, SKIN, 0.14)
+	g:oval(fx - 12, cy + 7, 3.8, 3.0, "blood")
+	g:oval(fx + 11, cy + 7, 3.5, 2.8, "blood")
+
+	-- Heavy gothic furrowed brow plates overhanging deep eye sockets.
+	g:poly({
+		{ cx - 18, cy - 12 }, { fx - 2, cy - 6 }, { fx - 3, cy - 2 }, { cx - 17, cy - 6 },
+	}, SKIN, 0.12)
+	g:poly({
+		{ cx + 19, cy - 12 }, { fx + 2, cy - 6 }, { fx + 3, cy - 2 }, { cx + 18, cy - 6 },
+	}, SKIN, 0.18)
+	-- Nasal bridge ridge & flared nostrils.
+	g:poly({
+		{ fx - 3, cy - 6 }, { fx + 3, cy - 6 }, { fx + 4, cy + 4 }, { fx - 4, cy + 4 },
+	}, SKIN, 0.14)
+	g:line(fx, cy - 6, fx, cy + 3, "clay")
+	g:oval(fx - 3, cy + 4, 1.8, 1.4, "black")
+	g:oval(fx + 3, cy + 4, 1.8, 1.4, "black")
+	g:line(fx - 5, cy + 3, fx - 2, cy + 2, "clay")
+	g:line(fx + 2, cy + 2, fx + 5, cy + 3, "clay")
+
+	-- Wide gaping fanged maw: deep abyssal cavern + molten roaring throat.
+	local mouth_top = cy + 7
+	local mouth_bot = cy + 10 + jaw
+	g:poly({
+		{ fx - 15, mouth_top }, { fx + 15, mouth_top },
+		{ fx + 12, mouth_bot }, { fx, mouth_bot + 3 }, { fx - 12, mouth_bot },
+	}, { "black", "abyss" })
+	local throat_y = (mouth_top + mouth_bot) * 0.5 + 1
+	local throat_ry = math.max(2.0, jaw * 0.44)
+	g:oval(fx, throat_y, 8.5, throat_ry, "blood")
+	g:oval(fx, throat_y, 5.8, throat_ry * 0.72, "wine")
+	if atk and (f == 1 or f == 2) then
+		g:oval(fx, throat_y, 4.8, throat_ry * 0.65, "rust")
+		after:oval(fx, throat_y, f == 2 and 5.2 or 2.8, math.max(1.8, throat_ry * 0.52), "sand")
+		after:oval(fx, throat_y, f == 2 and 3.0 or 1.4, math.max(1.1, throat_ry * 0.34), "cream")
+	else
+		g:oval(fx, throat_y, 3.2, throat_ry * 0.45, "rust")
+	end
+
+	-- Arched snarling upper lip & muzzle creases.
+	g:poly({
+		{ fx - 16, mouth_top + 1 }, { fx - 9, mouth_top - 2 }, { fx, mouth_top - 1 },
+		{ fx + 9, mouth_top - 2 }, { fx + 16, mouth_top + 1 }, { fx + 13, mouth_top + 2 },
+		{ fx, mouth_top + 1 }, { fx - 13, mouth_top + 2 },
+	}, SKIN, 0.1)
+	g:line(fx - 15, mouth_top + 1, fx - 11, cy + 4, "abyss")
+	g:line(fx + 15, mouth_top + 1, fx + 11, cy + 4, "abyss")
+
+	-- Hinged brutal lower jaw & sharp pointed gothic demon chin.
+	local jy = cy + 9 + jaw
+	g:poly({
+		{ fx - 15, cy + 8 }, { fx - 12, jy + 3 }, { fx, jy + 7 },
+		{ fx + 12, jy + 3 }, { fx + 15, cy + 8 }, { fx + 12, jy },
+		{ fx, jy + 2 }, { fx - 12, jy },
+	}, SKIN, -0.05)
+	g:ball(fx, jy + 4, 7.0, 3.2, SKIN, 0.06)
+	-- Pointed obsidian-crimson chin spike tapering into floating air.
+	g:poly({
+		{ fx - 6, jy + 5 }, { fx + 6, jy + 5 }, { fx + 2.5, jy + 8 }, { fx, jy + 10 }, { fx - 2.5, jy + 8 },
+	}, SKIN_DARK, -0.1)
+	g:line(fx, jy + 6, fx, jy + 9, "rust")
+
+	-- Dark wrought-iron horned diadem seated across the forehead.
+	local dy = cy - 17
+	g:poly({
+		{ cx - 15, dy + 2 }, { cx - 13, dy - 4 }, { cx - 7, dy - 1 },
+		{ fx, dy - 6 }, { cx + 9, dy - 1 }, { cx + 15, dy - 4 }, { cx + 17, dy + 2 },
+		{ cx + 14, dy + 4 }, { fx, dy + 3 }, { cx - 14, dy + 4 },
+	}, IRON, 0.1)
+	g:line(cx - 14, dy + 2, cx + 16, dy + 2, "steel")
+	g:line(cx - 13, dy + 3, cx + 15, dy + 3, "black")
+	g:oval(fx, dy + 1, 2.2, 2.0, "wine")
+
+	-- Blazing CROWN OF FIRE: 7 distinct undulating flame spires with crisp vertical cream cores.
+	after:line(cx - 13, dy - 1, cx + 14, dy - 1, "wine")
+	after:line(cx - 11, dy - 2, cx + 12, dy - 2, "rust")
+	math.randomseed(410 + f * 17 + (atk and 100 or 0))
+	local spire_h = { 8, 12, 16, 20, 16, 12, 8 }
+	local sway = atk and pick({ -1.2, -0.4, 2.2, 0.8 }, f) or pick({ -0.6, 0.4, 0.8, -0.2 }, f)
+	for i = 1, 7 do
+		local sx = fx - 13.5 + (i - 1) * 4.5
+		local hgt = spire_h[i] + math.random(0, 3) + flare
+		for y = 0, hgt do
+			local py = math.floor(dy - 2 - y)
+			if py >= 3 then
+				local t = y / math.max(1, hgt)
+				local drift = math.sin(t * 3.2 + i * 1.1 + f * 1.4) * 1.3 + sway * t * 1.4
+				local w = math.max(0, math.floor((2.1 - math.abs(i - 4) * 0.18) * (1 - t * 0.9) + 0.5))
+				for dx = -w, w do
+					local edge = math.abs(dx) == w and w > 0
+					local col
+					if t < 0.28 and math.abs(dx) == 0 then
+						col = "cream"
+					elseif t < 0.48 and not edge then
+						col = "sand"
+					elseif t < 0.72 and not edge then
+						col = "clay"
+					elseif t < 0.88 then
+						col = "rust"
+					else
+						col = "wine"
+					end
+					if edge and t < 0.55 then col = "rust" end
+					if edge and t >= 0.55 and bayer(math.floor(sx + dx), py) > 0.55 then col = "wine" end
+					after:set(sx + drift + dx, py, col)
+				end
+			end
+		end
+		after:set(sx, dy - 2, "sand")
+	end
+	after:set(fx, dy + 1, "sand")
+	after:set(fx, dy, "cream")
+
+	-- Deep scowling black eye sockets & searing burning demon eyes.
+	local ey = cy - 3
+	after:poly({
+		{ fx - 13, ey - 3 }, { fx - 3, ey }, { fx - 4, ey + 4 }, { fx - 12, ey + 2 },
+	}, { "black" })
+	after:poly({
+		{ fx + 13, ey - 3 }, { fx + 3, ey }, { fx + 4, ey + 4 }, { fx + 12, ey + 2 },
+	}, { "black" })
+	local eye_rim = (atk and (f == 1 or f == 2)) and "sand" or "rust"
+	-- Left blazing eye
+	after:line(fx - 11, ey - 1, fx - 5, ey + 1, eye_rim)
+	after:line(fx - 10, ey, fx - 5, ey + 2, "sand")
+	after:line(fx - 9, ey, fx - 6, ey + 1, "cream")
+	after:set(fx - 7, ey + 2, "cream")
+	-- Right blazing eye
+	after:line(fx + 11, ey - 1, fx + 5, ey + 1, eye_rim)
+	after:line(fx + 10, ey, fx + 5, ey + 2, "sand")
+	after:line(fx + 9, ey, fx + 6, ey + 1, "cream")
+	after:set(fx + 7, ey + 2, "cream")
+	if atk and (f == 1 or f == 2) then
+		after:set(fx - 8, ey, "mint"); after:set(fx + 8, ey, "mint")
+		after:line(fx - 12, ey - 2, fx - 17, ey - 5, "rust")
+		after:line(fx - 11, ey - 1, fx - 15, ey - 4, "sand")
+		after:set(fx - 16, ey - 5, "cream")
+		after:line(fx + 12, ey - 2, fx + 17, ey - 5, "rust")
+		after:line(fx + 11, ey - 1, fx + 15, ey - 4, "sand")
+		after:set(fx + 16, ey - 5, "cream")
+	end
+
+	-- Glowing brow rune / forehead fissure.
+	local sig_col = (atk and (f == 1 or f == 2)) and "cream" or "sand"
+	after:line(fx, cy - 12, fx, cy - 7, "rust")
+	after:set(fx, cy - 10, sig_col)
+	after:set(fx - 1, cy - 11, "clay"); after:set(fx + 1, cy - 11, "clay")
+
+	-- Curved upper canine fangs, jagged inner teeth & hinged lower tusks.
+	local function draw_fang(x, y, dir, len)
+		for k = 0, len do
+			local col = k == len and "cream" or (k >= len - 1 and "sand" or "clay")
+			after:set(x, y + k * dir, col)
+			if k <= 1 then after:set(x + (x < fx and 1 or -1), y + k * dir, "clay") end
+		end
+	end
+	draw_fang(fx - 10, mouth_top + 1, 1, 4)
+	draw_fang(fx + 10, mouth_top + 1, 1, 4)
+	for _, tx in ipairs({ fx - 6, fx - 2, fx + 2, fx + 6 }) do
+		after:set(tx, mouth_top + 1, "clay")
+		after:set(tx, mouth_top + 2, "sand")
+	end
+	draw_fang(fx - 8, jy, -1, 3)
+	draw_fang(fx + 8, jy, -1, 3)
+	for _, tx in ipairs({ fx - 4, fx, fx + 4 }) do
+		after:set(tx, jy, "clay")
+		after:set(tx, jy - 1, "sand")
+	end
+
+	-- Rising crown embers, floating ash motes & roaring hellfire wave during attack.
+	local e1y = clamp(dy - 17 - (f % 4) * 2, 3, 25)
+	local e2y = clamp(dy - 13 - ((f + 2) % 4) * 2, 3, 25)
+	after:set(fx - 8 + (f % 2), e1y, "sand")
+	after:set(fx + 9 - (f % 2), e2y, "cream")
+	after:set(fx - 15, clamp(jy + 8 - f, 66, 84), "rust")
+	after:set(fx + 15, clamp(jy + 5 + (f % 3), 66, 84), "rust")
+	if atk and f == 1 then
+		for _, off in ipairs({ { -18, 6 }, { 19, 4 }, { -14, 15 }, { 16, 14 } }) do
+			after:line(fx + off[1], throat_y + off[2], fx + off[1] * 0.65, throat_y + off[2] * 0.65, "rust")
+			after:set(fx + off[1] * 0.65, throat_y + off[2] * 0.65, "cream")
+		end
+	elseif atk and f == 2 then
+		for i = -4, 4 do
+			local a = i * 0.22
+			local r1 = 16 + (math.abs(i) % 2) * 3
+			local sx = clamp(fx + 3 + math.cos(a) * r1, 4, 91)
+			local sy = clamp(throat_y + 2 + math.sin(a) * 11, 10, 84)
+			after:oval(sx, sy, 1.8, 1.4, math.abs(i) <= 2 and "sand" or "rust")
+			after:set(sx, sy, math.abs(i) <= 1 and "cream" or "sand")
+		end
+		for i = -2, 2 do
+			local a = i * 0.30
+			local sx0 = clamp(fx + 5 + math.cos(a) * 10, 4, 91)
+			local sy0 = clamp(throat_y + 2 + math.sin(a) * 6, 10, 84)
+			local sx1 = clamp(fx + 5 + math.cos(a) * 25, 4, 91)
+			local sy1 = clamp(throat_y + 2 + math.sin(a) * 14, 10, 84)
+			after:line(sx0, sy0, sx1, sy1, i == 0 and "cream" or "clay")
+		end
+	elseif atk and f == 3 then
+		after:line(fx - 13, mouth_top + 4, fx - 18, mouth_top - 1, "rust")
+		after:set(fx - 18, mouth_top - 2, "sand")
+		after:line(fx + 13, mouth_top + 4, fx + 19, mouth_top - 1, "rust")
+		after:set(fx + 19, mouth_top - 2, "cream")
+	end
+
+	local sh_rx = 26 - bob * 0.8
+	return compose(96, 96, ground_shadow(96, 96, 48 + shift * 0.5, 91, sh_rx, 4.2), g, after)
+end
+
+-- Satan Hand = giant clawed demonic hand (48x48, facing RIGHT; game mirrors for left hand).
+-- PLACEHOLDER sprite: idle (fingers flexing, ember glow) & attack (raise -> clench -> SLAM -> recoil).
+local function satan_hand(anim, f)
+	local atk = anim == "attack"
+	-- Rich dark crimson demon skin so glowing ember veins & obsidian black talons contrast sharply.
+	local SKIN = { "black", "abyss", "blood", "wine", "rust" }
+	local SKIN_HI = { "abyss", "blood", "wine", "rust", "clay" }
+	local SKIN_DARK = { "black", "abyss", "blood", "wine" }
+	local IRON = { "black", "abyss", "night", "navy" }
+	local g = canvas(48, 48)
+	local after = canvas(48, 48)
+
+	local ox, oy = 0, 0
+	local pose = "idle"
+	local curl = 0.0
+	local sh_rx, sh_ry = 15.5, 3.0
+	if not atk then
+		oy = pick({ 0, -1, -2, -1 }, f)
+		curl = pick({ 0.0, 0.24, 0.48, 0.20 }, f)
+		sh_rx = 15.5 - oy * 0.5
+	elseif f == 0 then
+		pose = "raise"; ox = -2; oy = -7; sh_rx = 12.0; sh_ry = 2.3
+	elseif f == 1 then
+		pose = "clench"; ox = -1; oy = -8; sh_rx = 11.5; sh_ry = 2.2
+	elseif f == 2 then
+		pose = "slam"; ox = 2; oy = 6; sh_rx = 20.0; sh_ry = 3.8
+	else
+		pose = "recoil"; ox = 1; oy = 1; sh_rx = 16.5; sh_ry = 3.2
+	end
+
+	local cx = 20 + ox
+	local cy = 24 + oy
+
+	-- Draw a thick shaded limb segment between two points.
+	local function seg(x0, y0, x1, y1, r0, r1, ramp, bias)
+		local steps = math.max(3, math.ceil(math.sqrt((x1 - x0)^2 + (y1 - y0)^2) * 1.4))
+		for i = 0, steps do
+			local t = i / steps
+			local x = x0 + (x1 - x0) * t
+			local y = y0 + (y1 - y0) * t
+			local r = r0 + (r1 - r0) * t
+			g:ball(x, y, r, r, ramp, bias)
+		end
+	end
+
+	-- Draw an articulated demon finger + long razor-curved BLACK talon (drawn on g so outline stays crisp).
+	local function finger(kx, ky, mx, my, ex, ey, tx, ty, w, bias)
+		seg(kx, ky, mx, my, w, w * 0.88, SKIN, bias)
+		seg(mx, my, ex, ey, w * 0.86, w * 0.68, SKIN, bias + 0.04)
+		g:ball(mx, my, w * 0.95, w * 0.9, SKIN_HI, bias)
+		-- Long curved jet-black talon with subtle cold obsidian edge glint inside the silhouette.
+		local dx, dy = tx - ex, ty - ey
+		local len = math.max(1, math.sqrt(dx * dx + dy * dy))
+		local nx, ny = -dy / len, dx / len
+		local bw = math.max(1.5, w * 0.82)
+		local midx = (ex + tx) * 0.5 + nx * 1.4
+		local midy = (ey + ty) * 0.5 + ny * 1.4
+		g:poly({
+			{ ex + nx * bw, ey + ny * bw },
+			{ midx + nx * (bw * 0.55), midy + ny * (bw * 0.55) },
+			{ tx, ty },
+			{ midx - nx * (bw * 0.22), midy - ny * (bw * 0.22) },
+			{ ex - nx * bw * 0.75, ey - ny * bw * 0.75 },
+		}, { "black", "abyss" }, -0.2)
+		-- Thin obsidian-steel glint along upper talon ridge so black claws stay razor sharp.
+		g:line(ex + nx * (bw * 0.45), ey + ny * (bw * 0.45), midx, midy, "steel")
+		g:line(midx, midy, (midx + tx) * 0.5, (midy + ty) * 0.5, "night")
+		g:set(ex + nx * (bw * 0.3), ey + ny * (bw * 0.3), "navy")
+	end
+
+	-- Compact floating severed wrist stump & dark narrow iron cuff band on the left.
+	local wx, wy = cx - 10, cy - 1
+	g:poly({
+		{ wx - 5, wy - 3 }, { wx, wy - 5 }, { wx + 3, wy + 4 }, { wx - 4, wy + 5 }, { wx - 6, wy + 1 },
+	}, SKIN_DARK, -0.05)
+	g:poly({
+		{ wx - 2, wy - 5 }, { wx + 2, wy - 6 }, { wx + 3, wy + 6 }, { wx - 1, wy + 5 },
+	}, IRON, 0.12)
+	g:line(wx, wy - 5, wx + 1, wy + 5, "steel")
+	g:set(wx - 1, wy - 6, "night"); g:set(wx, wy + 6, "night")
+
+	-- Muscular clawed palm / back-of-hand mass (dark crimson demon skin).
+	if pose == "clench" then
+		-- Tightly balled brutal fist facing right-down.
+		g:ball(cx + 1, cy, 9.2, 7.8, SKIN, 0.04)
+		g:poly({
+			{ cx - 6, cy - 6 }, { cx + 8, cy - 7 }, { cx + 11, cy + 1 },
+			{ cx + 7, cy + 8 }, { cx - 5, cy + 7 },
+		}, SKIN, 0.05)
+		-- Four prominent clenched knuckle domes + curled black talons locked under the fist.
+		local kn = { { 7, -6 }, { 10, -2 }, { 10, 2 }, { 7, 6 } }
+		for i, k in ipairs(kn) do
+			local kx, ky = cx + k[1], cy + k[2]
+			g:ball(kx, ky, 3.1, 2.7, SKIN_HI, 0.02)
+			g:poly({
+				{ kx + 1, ky - 1 }, { kx + 6, ky + 1 }, { kx + 3, ky + 4 }, { kx, ky + 2 },
+			}, { "black", "abyss" })
+			g:line(kx + 1, ky, kx + 4, ky + 1, "steel")
+			g:set(kx + 3, ky + 2, "night")
+			if i == 2 or i == 3 then after:set(kx, ky, "cream") end
+		end
+		-- Clenched thumb locked across bottom of fist.
+		seg(cx - 2, cy + 5, cx + 4, cy + 9, 3.2, 2.5, SKIN, 0.04)
+		g:poly({ { cx + 4, cy + 8 }, { cx + 10, cy + 8 }, { cx + 7, cy + 11 } }, { "black", "abyss" })
+		g:line(cx + 5, cy + 8, cx + 8, cy + 8, "steel")
+	elseif pose == "slam" then
+		-- Heavy flattened impact pose smashing down onto the ground shadow!
+		g:ball(cx + 1, cy + 2, 9.8, 6.4, SKIN, 0.06)
+		-- Splayed crushing clawed fingers digging right & downward into earth.
+		finger(cx + 6, cy - 3, cx + 12, cy - 4, cx + 17, cy, cx + 23, cy + 6, 2.3, 0.06)
+		finger(cx + 7, cy, cx + 14, cy, cx + 19, cy + 4, cx + 24, cy + 9, 2.4, 0.08)
+		finger(cx + 6, cy + 3, cx + 12, cy + 4, cx + 16, cy + 7, cx + 20, cy + 11, 2.1, 0.02)
+		finger(cx + 3, cy + 5, cx + 8, cy + 7, cx + 11, cy + 10, cx + 14, cy + 13, 1.9, -0.02)
+		-- Heavy thumb planted forward-down.
+		finger(cx - 3, cy + 5, cx + 1, cy + 9, cx + 5, cy + 11, cx + 10, cy + 13, 2.4, 0.0)
+		for _, ky in ipairs({ cy - 3, cy, cy + 3 }) do
+			g:ball(cx + 6, ky, 2.5, 2.2, SKIN_HI, 0.04)
+		end
+	else
+		-- Open / flexing / raised / recoiling giant clawed demonic hand facing RIGHT.
+		g:ball(cx, cy, 8.6, 7.4, SKIN, 0.04)
+		g:poly({
+			{ cx - 6, cy - 5 }, { cx + 6, cy - 6 }, { cx + 8, cy + 5 }, { cx - 5, cy + 6 },
+		}, SKIN, 0.05)
+
+		local splay = pose == "raise" and -0.38 or (pose == "recoil" and 0.14 or curl)
+		-- 1. Top / index finger
+		finger(
+			cx + 5, cy - 5,
+			cx + 11, cy - 8 + splay * 3,
+			cx + 17 - splay * 2, cy - 7 + splay * 5,
+			cx + 23 - splay * 3, cy - 2 + splay * 7,
+			2.2, 0.06
+		)
+		-- 2. Long middle finger (dominant reach right)
+		finger(
+			cx + 7, cy - 1,
+			cx + 14, cy - 3 + splay * 3,
+			cx + 20 - splay * 2, cy - 1 + splay * 6,
+			cx + 26 - splay * 4, cy + 5 + splay * 7,
+			2.4, 0.08
+		)
+		-- 3. Ring finger
+		finger(
+			cx + 6, cy + 3,
+			cx + 12, cy + 3 + splay * 3,
+			cx + 18 - splay * 3, cy + 5 + splay * 5,
+			cx + 22 - splay * 4, cy + 11 + splay * 5,
+			2.1, 0.02
+		)
+		-- 4. Pinky finger
+		finger(
+			cx + 4, cy + 6,
+			cx + 9, cy + 7 + splay * 2,
+			cx + 13 - splay * 2, cy + 9 + splay * 4,
+			cx + 17 - splay * 3, cy + 14 + splay * 4,
+			1.8, -0.02
+		)
+		-- 5. Heavy opposable clawed thumb below palm
+		finger(
+			cx - 2, cy + 5,
+			cx + 1, cy + 10,
+			cx + 5, cy + 12 - splay * 2,
+			cx + 11, cy + 13 - splay * 3,
+			2.3, 0.0
+		)
+		-- Raised knuckle domes along the metacarpal ridge.
+		g:ball(cx + 5, cy - 5, 2.3, 2.0, SKIN_HI, 0.04)
+		g:ball(cx + 7, cy - 1, 2.5, 2.2, SKIN_HI, 0.06)
+		g:ball(cx + 6, cy + 3, 2.2, 2.0, SKIN_HI, 0.0)
+	end
+
+	-- Glowing EMBER VEINS branching from wrist across the dark red hand into the knuckles.
+	local hot = atk and (f == 1 or f == 2)
+	local v_outer = hot and "clay" or "rust"
+	local v_mid = hot and "sand" or "clay"
+	local v_core = "cream"
+	-- Main central ember artery from wrist into center of hand
+	after:line(cx - 7, cy - 1, cx - 1, cy - 1, v_outer)
+	after:line(cx - 1, cy - 1, cx + 5, cy - 1, v_mid)
+	-- Upper vein fork toward index knuckle
+	after:line(cx - 2, cy - 1, cx + 3, cy - 4, v_outer)
+	after:line(cx + 3, cy - 4, cx + 5, cy - 5, v_mid)
+	-- Lower vein fork toward ring/thumb
+	after:line(cx - 2, cy, cx + 2, cy + 3, v_outer)
+	after:line(cx + 2, cy + 3, cx + 5, cy + 3, v_mid)
+	after:line(cx - 5, cy + 1, cx - 2, cy + 4, v_outer)
+	-- Pulsing bright "cream" ember nodes along the vein junctions (guaranteed every frame).
+	local pulse = pick({ 0, 1, 2, 1 }, f)
+	after:set(cx - 2 + pulse, cy - 1, v_core)
+	after:set(cx - 1 + pulse, cy - 1, v_core)
+	after:set(cx + 4, cy - 1, v_core)
+	after:set(cx - 5, cy - 1, (f % 2 == 0 or hot) and v_core or "sand")
+	after:set(cx + 3, cy - 4, (f % 2 == 1 or hot) and v_core or "sand")
+	after:set(cx + 2, cy + 3, (f == 2 or hot) and v_core or "sand")
+	if hot then
+		after:line(cx - 4, cy - 1, cx + 4, cy - 1, v_core)
+		after:set(cx + 4, cy - 4, v_core)
+		after:set(cx + 3, cy + 3, v_core)
+	end
+
+	-- Floating embers & attack-specific VFX (charge sparks on clench, fiery ground shockwave on SLAM!).
+	if not atk then
+		local my = clamp(cy - 9 - (f % 3) * 2, 3, 40)
+		after:set(cx + 2 + (f % 2), my, "sand")
+		after:set(cx - 6, clamp(cy + 7 - f, 4, 42), "rust")
+	elseif pose == "raise" then
+		after:set(cx - 2, cy + 12, "rust")
+		after:set(cx + 5, cy + 14, "sand")
+		after:set(cx + 1, cy + 10, "cream")
+	elseif pose == "clench" then
+		for _, off in ipairs({ { -6, -9 }, { 8, -10 }, { 15, -2 }, { 13, 8 }, { -4, 10 } }) do
+			after:set(clamp(cx + off[1], 2, 45), clamp(cy + off[2], 2, 45), "cream")
+			after:set(clamp(cx + off[1] - 1, 2, 45), clamp(cy + off[2], 2, 45), "sand")
+		end
+	elseif pose == "slam" then
+		after:line(3, 42, 12, 40, "rust"); after:line(5, 43, 13, 42, "sand"); after:set(4, 42, "cream")
+		after:line(36, 40, 45, 42, "rust"); after:line(35, 42, 44, 43, "sand"); after:set(44, 42, "cream")
+		after:line(14, 44, 34, 44, "rust")
+		after:line(18, 43, 30, 43, "sand")
+		after:set(22, 43, "cream"); after:set(28, 43, "cream")
+		for _, sp in ipairs({ { 11, 24 }, { 26, 20 }, { 36, 25 }, { 42, 33 } }) do
+			after:set(sp[1], sp[2], "cream")
+			after:set(sp[1], sp[2] + 1, "rust")
+		end
+	elseif pose == "recoil" then
+		after:line(8, 39, 6, 34, "rust"); after:set(6, 33, "sand")
+		after:line(39, 38, 41, 33, "rust"); after:set(41, 32, "cream")
+	end
+
+	return compose(48, 48, ground_shadow(48, 48, 24 + ox * 0.5, 44, sh_rx, sh_ry), g, after)
+end
+
 ---------------------------------------------------------------------------
 -- Pickups, projectile, effect (16x16 / 32x32).
 ---------------------------------------------------------------------------
@@ -1854,6 +2385,14 @@ for name, fn in pairs(bosses) do
 		{ "attack", 4, 0.1, function(f) return fn("attack", f) end },
 	})
 end
+build("boss_satan_head", 96, 96, {
+	{ "idle", 4, 0.18, function(f) return satan_head("idle", f) end },
+	{ "attack", 4, 0.1, function(f) return satan_head("attack", f) end },
+})
+build("boss_satan_hand", 48, 48, {
+	{ "idle", 4, 0.16, function(f) return satan_hand("idle", f) end },
+	{ "attack", 4, 0.1, function(f) return satan_hand("attack", f) end },
+})
 
 build("pickup_xp", 16, 16, { { "idle", 4, 0.14, gem } })
 build("pickup_life", 16, 16, { { "idle", 4, 0.16, heart } })

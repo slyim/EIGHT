@@ -10,6 +10,7 @@ const PIP_OFF: String = "◇"
 
 var progress: Progress
 var rows: Dictionary = {}
+var last_save_error: Error = OK
 
 @onready var list: VBoxContainer = $Panel/Box/List
 @onready var balance: Label = $Panel/Box/Balance
@@ -17,7 +18,10 @@ var rows: Dictionary = {}
 
 
 func _ready() -> void:
+	Settings.load_saved().apply_language()
 	progress = Progress.load_saved()
+	balance.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	notice.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	($Panel/Box/Back as Button).pressed.connect(close)
 	for entry: Dictionary in Progress.UPGRADES:
 		var row: HBoxContainer = HBoxContainer.new()
@@ -28,12 +32,10 @@ func _ready() -> void:
 		title.custom_minimum_size = Vector2(150.0, 0.0)
 		title.theme_type_variation = &"HeadingLabel"
 		title.add_theme_font_size_override(&"font_size", 18)
-		title.text = String(entry["name"]).to_upper()
 		var detail: Label = Label.new()
 		detail.name = &"Detail"
 		detail.custom_minimum_size = Vector2(250.0, 0.0)
 		detail.add_theme_font_size_override(&"font_size", 15)
-		detail.text = entry["text"]
 		var pips: Label = Label.new()
 		pips.name = &"Pips"
 		pips.custom_minimum_size = Vector2(130.0, 0.0)
@@ -45,6 +47,7 @@ func _ready() -> void:
 		buy.add_theme_font_size_override(&"font_size", 15)
 		buy.pressed.connect(purchase.bind(entry["id"]))
 		for child: Control in [title, detail, pips, buy]:
+			child.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 			child.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			row.add_child(child)
 		list.add_child(row)
@@ -57,6 +60,11 @@ func _ready() -> void:
 		_pop_in(list.get_child(index) as Control, 0.05 + index * 0.05)
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and progress != null and not rows.is_empty():
+		_refresh()
+
+
 func _on_size_changed() -> void:
 	var ui: float = Game.ui_scale_for(Vector2(get_window().size))
 	if not is_equal_approx(get_window().content_scale_factor, ui):
@@ -64,26 +72,29 @@ func _on_size_changed() -> void:
 
 
 func _refresh() -> void:
-	balance.text = "FEATHERS  %d" % progress.feathers
+	balance.text = tr("FEATHERS  %d") % progress.feathers
+	notice.text = "" if last_save_error == OK else tr("THE PURCHASE COULD NOT BE SAVED (ERROR %d)") % last_save_error
 	for entry: Dictionary in Progress.UPGRADES:
 		var id: String = entry["id"]
 		var row: Control = rows[id]
 		var rank: int = progress.rank(id)
 		var ranks: int = (entry["costs"] as Array).size()
+		(row.get_node(^"Title") as Label).text = tr(String(entry["name"]).to_upper())
+		(row.get_node(^"Detail") as Label).text = tr(entry["text"])
 		(row.get_node(^"Pips") as Label).text = PIP_ON.repeat(rank) + PIP_OFF.repeat(ranks - rank)
 		var buy: Button = row.get_node(^"Buy") as Button
 		var cost: int = progress.next_cost(id)
-		buy.text = "MAX" if cost < 0 else "BUY  %d" % cost
+		buy.text = tr("MAX") if cost < 0 else tr("BUY  %d") % cost
 		buy.disabled = cost < 0 or progress.feathers < cost
 
 
 func purchase(id: String) -> void:
 	var error: Error = progress.buy(id)
 	if error == OK:
-		notice.text = ""
+		last_save_error = OK
 		_flash(rows[id])
 	elif error != ERR_UNAVAILABLE:
-		notice.text = "THE PURCHASE COULD NOT BE SAVED (ERROR %d)" % error
+		last_save_error = error
 	_refresh()
 
 

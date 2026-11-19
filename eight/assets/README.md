@@ -1,5 +1,7 @@
 # Assets
 
+Start with the [artist handoff and drawing checklist](art/DRAW_LIST.md) for existing files, replacement sizes, and visuals currently drawn in code.
+
 ## Human-created production assets
 
 All production art, animation, textures, VFX assets, music, sound effects, voices, and other creative assets must be human-created. AI-assisted game code is allowed; this does not permit AI-generated production assets.
@@ -23,7 +25,7 @@ The survival run uses code-generated placeholder sprites (`art/placeholder/`) an
 
 Place game assets here. Create subfolders such as `art/`, `models/`, or `audio/` only when there are actual files to put in them. Use descriptive snake_case filenames.
 
-Keep editable source files alongside their exported game assets where practical. Do not store duplicate exports, preview videos, or intermediate renders in the repository.
+Keep editable source files alongside their exported game assets where practical. Do not store duplicate exports, preview videos, or intermediate renders in the repository. The owner-requested illustrated handoff in `art/handoff/` is the deliberate exception: its `.gdignore` keeps documentary frame exports, runtime stills and original-image copies out of the game import; they are not new production art.
 
 For each asset or coherent asset pack, record the following in a nearby `CREDITS.md` when adding it:
 

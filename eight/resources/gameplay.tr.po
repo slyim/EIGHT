@@ -1,0 +1,543 @@
+# EIGHT gameplay text, Turkish. Keys are the English source strings shown by the run
+# (HUD, level-ups, pacts, items, evolutions, side weapons, shop item data, bosses, endings).
+# Format specifiers (%s, %d, %02d, %%) must stay in the same order as in the key.
+msgid ""
+msgstr ""
+"Project-Id-Version: EIGHT\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# HUD status
+
+msgid "KILLS %s    FEATHERS %s"
+msgstr "ÖLDÜRME %s    TÜY %s"
+
+msgid "SHRINES %d / %d"
+msgstr "SUNAK %d / %d"
+
+msgid "TIME %02d:%02d   %s   THREAT %d"
+msgstr "SÜRE %02d:%02d   %s   TEHDİT %d"
+
+msgid "REALM OF %s"
+msgstr "%s DİYARI"
+
+msgid "SCORCHED EARTH"
+msgstr "KAVRULMUŞ TOPRAK"
+
+msgid "HORDE SURGE %d"
+msgstr "SÜRÜ DALGASI %d"
+
+msgid "LEVEL %d    XP %d / %d"
+msgstr "SEVİYE %d    DP %d / %d"
+
+msgid "LIFE %d / %d"
+msgstr "CAN %d / %d"
+
+msgid "DASH"
+msgstr "ATILMA"
+
+msgid "%s READY"
+msgstr "%s HAZIR"
+
+msgid "FLIGHT READY"
+msgstr "UÇUŞ HAZIR"
+
+msgid "FLIGHT --"
+msgstr "UÇUŞ --"
+
+msgid "FLIGHT %d%%"
+msgstr "UÇUŞ %d%%"
+
+msgid "SPEAR"
+msgstr "MIZRAK"
+
+msgid "BOW"
+msgstr "YAY"
+
+msgid "BURNING"
+msgstr "YANIYOR"
+
+msgid "SLOWED"
+msgstr "YAVAŞLADI"
+
+msgid "PERFECT"
+msgstr "KUSURSUZ"
+
+msgid "EXIT  [HOLD E]"
+msgstr "ÇIKIŞ  [E BASILI TUT]"
+
+msgid "ITEMS (%d)"
+msgstr "EŞYALAR (%d)"
+
+msgid "SIDE WEAPONS"
+msgstr "YAN SİLAHLAR"
+
+msgid "NEW: %s"
+msgstr "YENİ: %s"
+
+msgid "UPGRADED: %s"
+msgstr "GELİŞTİ: %s"
+
+# Boss status
+
+msgid "%s DEFEATED - HOLD E IN PORTAL TO LEAVE\nStay to grow stronger; the horde keeps rising"
+msgstr "%s YENİLDİ - AYRILMAK İÇİN PORTALDA E'YE BASILI TUT\nGüçlenmek için kal; sürü büyümeye devam ediyor"
+
+msgid "THE RITUAL IS COMPLETE\nSATAN COMES IN %d"
+msgstr "AYİN TAMAMLANDI\nŞEYTAN %d SANİYE İÇİNDE GELİYOR"
+
+msgid "THE SHRINES ARE BROKEN"
+msgstr "SUNAKLAR KIRILDI"
+
+msgid "%s APPROACHES"
+msgstr "%s YAKLAŞIYOR"
+
+msgid "DESTROY SATAN'S SHRINES   %d LEFT\n%d:%02d"
+msgstr "ŞEYTAN'IN SUNAKLARINI YOK ET   %d KALDI\n%d:%02d"
+
+# Announcements
+
+msgid "SCORCHED EARTH: THE LAVA BURNS HOTTER"
+msgstr "KAVRULMUŞ TOPRAK: LAV DAHA SICAK YANIYOR"
+
+msgid "HORDE SURGE"
+msgstr "SÜRÜ DALGASI"
+
+# Level-up and pact panel
+
+msgid "Click a choice or press 1-%d"
+msgstr "Bir seçeneğe tıkla ya da 1-%d tuşuna bas"
+
+msgid "LEVEL UP - CHOOSE ONE"
+msgstr "SEVİYE ATLADIN - BİRİNİ SEÇ"
+
+msgid "LEVEL UP - CHOOSE ONE (+%d MORE)"
+msgstr "SEVİYE ATLADIN - BİRİNİ SEÇ (+%d DAHA)"
+
+msgid "SHRINE PACT - TAKE ONE OR LEAVE"
+msgstr "SUNAK ANTLAŞMASI - BİRİNİ AL YA DA AYRIL"
+
+# Evolution panel
+
+msgid "%s EVOLUTION"
+msgstr "%s EVRİMİ"
+
+msgid "EVOLUTION"
+msgstr "EVRİM"
+
+msgid "Choose a path for this run: click or press 1 - 2"
+msgstr "Bu koşu için bir yol seç: tıkla ya da 1 - 2 tuşuna bas"
+
+# End states
+
+msgid "SATAN DEFEATED\nTHE WORLD IS SAVED"
+msgstr "ŞEYTAN YENİLDİ\nDÜNYA KURTARILDI"
+
+msgid "THE REALM OF %s IS SAVED"
+msgstr "%s DİYARI KURTARILDI"
+
+msgid "THE SHRINES OUTLASTED YOU"
+msgstr "SUNAKLAR SENDEN UZUN DAYANDI"
+
+msgid "YOU HAVE FALLEN"
+msgstr "DÜŞTÜN"
+
+msgid "R to start a new run"
+msgstr "Yeni bir koşu için R"
+
+msgid "FEATHERS COULD NOT BE SAVED"
+msgstr "TÜYLER KAYDEDİLEMEDİ"
+
+msgid "+%d FEATHERS"
+msgstr "+%d TÜY"
+
+msgid "KEPT %d OF %d FEATHERS"
+msgstr "%d / %d TÜY KORUNDU"
+
+msgid "%s DEFEATED\nYOUR PROGRESS COULD NOT BE SAVED (ERROR %d)"
+msgstr "%s YENİLDİ\nİLERLEMEN KAYDEDİLEMEDİ (HATA %d)"
+
+# Run scene labels and buttons (translated by the labels themselves)
+
+msgid "SURVIVAL RUN PROTOTYPE"
+msgstr "HAYATTA KALMA KOŞUSU PROTOTİPİ"
+
+msgid "Prototype visuals and sound"
+msgstr "Prototip görseller ve ses"
+
+msgid "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   Esc pause   |   F3 stats   |   R restart   |   Hold E exit"
+msgstr "WASD / Oklar hareket   |   Fare nişan   |   Sol tık / J basılı saldırı   |   Q / tekerlek silah   |   Space basılı uç   |   Shift / Sağ tık atıl   |   Esc duraklat   |   F3 istatistik   |   R yeniden   |   E basılı çıkış"
+
+msgid "PAUSED"
+msgstr "DURAKLATILDI"
+
+msgid "Esc to resume"
+msgstr "Devam etmek için Esc"
+
+msgid "RESUME"
+msgstr "DEVAM ET"
+
+msgid "RESTART RUN  [R]"
+msgstr "KOŞUYU YENİDEN BAŞLAT  [R]"
+
+msgid "SETTINGS"
+msgstr "AYARLAR"
+
+msgid "RETURN TO THE PENTAGRAM"
+msgstr "PENTAGRAMA DÖN"
+
+msgid "RETRY  [R]"
+msgstr "TEKRAR DENE  [R]"
+
+msgid "TRY SAVING AGAIN"
+msgstr "YENİDEN KAYDETMEYİ DENE"
+
+msgid "RETURN WITHOUT SAVING"
+msgstr "KAYDETMEDEN DÖN"
+
+# Difficulty tiers (Run.TIERS)
+
+msgid "PENANCE"
+msgstr "KEFARET"
+
+msgid "PURGATORY"
+msgstr "ARAF"
+
+msgid "DAMNATION"
+msgstr "LANET"
+
+msgid "ABYSS"
+msgstr "UÇURUM"
+
+# Sins (Run.BOSSES)
+
+msgid "PRIDE"
+msgstr "KİBİR"
+
+msgid "GREED"
+msgstr "AÇGÖZLÜLÜK"
+
+msgid "LUST"
+msgstr "ŞEHVET"
+
+msgid "ENVY"
+msgstr "KISKANÇLIK"
+
+msgid "GLUTTONY"
+msgstr "OBURLUK"
+
+msgid "WRATH"
+msgstr "GAZAP"
+
+msgid "SLOTH"
+msgstr "TEMBELLİK"
+
+msgid "SATAN"
+msgstr "ŞEYTAN"
+
+# Boss name tags (Run sets Boss.boss_name to the translated sin name; guards use this)
+
+msgid "%s GUARD"
+msgstr "%s MUHAFIZI"
+
+msgid "DECOY"
+msgstr "SURET"
+
+# Shrine pacts (Run.PACTS, Run.PACT_LEAVE)
+
+msgid "Glass Light"
+msgstr "Cam Işık"
+
+msgid "+25% damage from every weapon, but -25% max health"
+msgstr "Her silahtan +%25 hasar, ama -%25 azami can"
+
+msgid "Golden Tithe"
+msgstr "Altın Öşür"
+
+msgid "+50% feathers, but hearts drop half as often"
+msgstr "+%50 tüy, ama kalpler yarı sıklıkta düşer"
+
+msgid "Swift Blood"
+msgstr "Çevik Kan"
+
+msgid "Attacks, side weapons and dash 15% quicker, but enemies hit 20% harder on contact"
+msgstr "Saldırılar, yan silahlar ve atılma %15 daha hızlı, ama düşmanlar temasta %20 daha sert vurur"
+
+msgid "Leave"
+msgstr "Ayrıl"
+
+msgid "Walk away without a pact"
+msgstr "Antlaşma yapmadan uzaklaş"
+
+# Level-up choices (Run.UPGRADES)
+
+msgid "Sharper spear"
+msgstr "Keskin mızrak"
+
+msgid "+1 spear damage"
+msgstr "+1 mızrak hasarı"
+
+msgid "Quicker thrusts"
+msgstr "Hızlı dürtüşler"
+
+msgid "Thrust 12% faster"
+msgstr "Dürtüş %12 daha hızlı"
+
+msgid "Longer spear"
+msgstr "Uzun mızrak"
+
+msgid "+16 spear reach"
+msgstr "+16 mızrak menzili"
+
+msgid "Swifter mount"
+msgstr "Çevik binek"
+
+msgid "+20 movement speed"
+msgstr "+20 hareket hızı"
+
+msgid "Vitality"
+msgstr "Dirilik"
+
+msgid "+20 max health and heal 20"
+msgstr "+20 azami can ve 20 iyileşme"
+
+msgid "Wider pull"
+msgstr "Geniş çekim"
+
+msgid "+40 pickup radius"
+msgstr "+40 toplama yarıçapı"
+
+msgid "Piercing spear"
+msgstr "Delici mızrak"
+
+msgid "Thrust hits +1 more enemy"
+msgstr "Dürtüş +1 düşmana daha isabet eder"
+
+msgid "Quicker dash"
+msgstr "Hızlı atılma"
+
+msgid "Dash cooldown -15%"
+msgstr "Atılma bekleme süresi -%15"
+
+msgid "Heavier arrows"
+msgstr "Ağır oklar"
+
+msgid "+1 arrow damage"
+msgstr "+1 ok hasarı"
+
+msgid "Quicker shots"
+msgstr "Hızlı atışlar"
+
+msgid "Bow fires 15% faster"
+msgstr "Yay %15 daha hızlı atar"
+
+msgid "Piercing arrows"
+msgstr "Delici oklar"
+
+msgid "Arrows hit +1 more enemy"
+msgstr "Oklar +1 düşmana daha isabet eder"
+
+msgid "Might"
+msgstr "Kudret"
+
+msgid "+10% damage from every weapon"
+msgstr "Her silahtan +%10 hasar"
+
+msgid "Armor"
+msgstr "Zırh"
+
+msgid "Enemy hits deal 1 less damage"
+msgstr "Düşman vuruşları 1 daha az hasar verir"
+
+msgid "Haste"
+msgstr "Sürat"
+
+msgid "All cooldowns 8% shorter"
+msgstr "Tüm bekleme süreleri %8 daha kısa"
+
+msgid "Luck"
+msgstr "Şans"
+
+msgid "+20% heart, item, and evolution drops"
+msgstr "+%20 kalp, eşya ve evrim düşme şansı"
+
+# Weapon evolutions (Run.EVOLUTIONS; names are shown uppercase)
+
+msgid "WHIRLWIND"
+msgstr "KASIRGA"
+
+msgid "The finisher becomes a full spin, striking all around the angel."
+msgstr "Bitirici vuruş tam bir dönüşe dönüşür ve meleğin çevresindeki her şeye çarpar."
+
+msgid "CHAIN LIGHT"
+msgstr "ZİNCİR IŞIK"
+
+msgid "Finisher hits arc lightning on to up to 3 more enemies nearby."
+msgstr "Bitirici vuruşlar yakındaki en fazla 3 düşmana daha yıldırım sıçratır."
+
+msgid "RICOCHET"
+msgstr "SEKME"
+
+msgid "The finishing arrow bounces on to up to 4 more enemies."
+msgstr "Bitirici ok en fazla 4 düşmana daha seker."
+
+msgid "RAIN OF LIGHT"
+msgstr "IŞIK YAĞMURU"
+
+msgid "The finishing shot calls light down on a circle at the aim."
+msgstr "Bitirici atış, nişan alınan yerdeki bir çembere ışık indirir."
+
+# Collectible items (Run.ITEMS; shown without the "Item: " prefix)
+
+msgid "Spearhead"
+msgstr "Mızrak ucu"
+
+msgid "+2 spear damage"
+msgstr "+2 mızrak hasarı"
+
+msgid "Feather"
+msgstr "Tüy"
+
+msgid "Thrust 20% faster"
+msgstr "Dürtüş %20 daha hızlı"
+
+msgid "Heart vessel"
+msgstr "Kalp kabı"
+
+msgid "+40 max health and heal 40"
+msgstr "+40 azami can ve 40 iyileşme"
+
+msgid "Lodestone"
+msgstr "Mıknatıs taşı"
+
+msgid "+90 pickup radius"
+msgstr "+90 toplama yarıçapı"
+
+msgid "Long haft"
+msgstr "Uzun sap"
+
+msgid "+28 spear reach"
+msgstr "+28 mızrak menzili"
+
+msgid "Drill tip"
+msgstr "Matkap ucu"
+
+msgid "Thrust hits +2 more enemies"
+msgstr "Dürtüş +2 düşmana daha isabet eder"
+
+msgid "Horseshoe"
+msgstr "Nal"
+
+msgid "+40 movement speed"
+msgstr "+40 hareket hızı"
+
+msgid "Phial"
+msgstr "Şişe"
+
+msgid "Restore all life"
+msgstr "Tüm canı yeniler"
+
+# Side weapons (SideWeapons.NAMES, shown uppercase)
+
+msgid "ORBITING HALOS"
+msgstr "YÖRÜNGE HALELERİ"
+
+msgid "SEEKING FEATHERS"
+msgstr "GÜDÜMLÜ TÜYLER"
+
+msgid "HOLY PULSE"
+msgstr "KUTSAL NABIZ"
+
+msgid "JUDGMENT BOLT"
+msgstr "YARGI ŞİMŞEĞİ"
+
+# Shop item data (Progress.UPGRADES; names are shown uppercase)
+
+msgid "VITALITY"
+msgstr "DİRİLİK"
+
+msgid "+10 max health"
+msgstr "+10 azami can"
+
+msgid "MIGHT"
+msgstr "KUDRET"
+
+msgid "+5% damage from every weapon"
+msgstr "Her silahtan +%5 hasar"
+
+msgid "ARMOR"
+msgstr "ZIRH"
+
+msgid "Enemy hits deal 1 less"
+msgstr "Düşman vuruşları 1 daha az"
+
+msgid "HASTE"
+msgstr "SÜRAT"
+
+msgid "All cooldowns 4% shorter"
+msgstr "Tüm bekleme süreleri %4 daha kısa"
+
+msgid "LUCK"
+msgstr "ŞANS"
+
+msgid "+10% drop chances"
+msgstr "+%10 düşme şansı"
+
+msgid "SWIFTNESS"
+msgstr "ÇEVİKLİK"
+
+msgid "+10 movement speed"
+msgstr "+10 hareket hızı"
+
+msgid "PULL"
+msgstr "ÇEKİM"
+
+msgid "+15 pickup radius"
+msgstr "+15 toplama yarıçapı"
+
+msgid "WINGS"
+msgstr "KANATLAR"
+
+msgid "+0.3 s of flight"
+msgstr "+0,3 sn uçuş"
+
+msgid "FPS %3d   FRAME %5.1f ms"
+msgstr "FPS %3d   KARE %5.1f ms"
+
+msgid "CPU %5.1f ms  PHYS %5.1f ms"
+msgstr "CPU %5.1f ms  FİZİK %5.1f ms"
+
+msgid "DRAWS %4d   NODES %5d"
+msgstr "ÇİZİM %4d   DÜĞÜM %5d"
+
+msgid "MEMORY %6.1f MB"
+msgstr "BELLEK %6.1f MB"
+
+msgid "ENEMIES %3d / %d"
+msgstr "DÜŞMAN %3d / %d"
+
+msgid "BOSS    %s"
+msgstr "BÖLÜM SONU    %s"
+
+msgid "SHOTS   %3d   DROPS %3d"
+msgstr "ATIŞ   %3d   GANİMET %3d"
+
+msgid "KILLS   %4d  LEVEL %2d"
+msgstr "AV   %4d  SEVİYE %2d"
+
+msgid "DMG %d  ATK %.1f/s  REACH %d"
+msgstr "HASAR %d  HIZ %.1f/sn  MENZİL %d"
+
+msgid "PIERCE %d  SPEED %d  PULL %d"
+msgstr "DELME %d  HIZ %d  ÇEKİM %d"
+
+msgid "COMBO %d/%d  DASH %s  FLIGHT %d%%"
+msgstr "KOMBO %d/%d  ATILMA %s  UÇUŞ %d%%"
+
+msgid "HEAL IN %d"
+msgstr "ŞİFA: %d sn"
+
+msgid "%s %.1fs"
+msgstr "%s %.1f sn"

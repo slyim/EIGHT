@@ -1,0 +1,112 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://resources/ui_theme.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/how_to_play.gd" id="script"]
+[ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_player.aseprite" id="player"]
+[ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_spear_light.aseprite" id="spear_light"]
+[ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_pickup_xp.aseprite" id="pickup_xp"]
+[ext_resource type="SpriteFrames" path="res://assets/art/placeholder/placeholder_boss_pride.aseprite" id="boss_pride"]
+
+[node name="HowToPlay" type="CenterContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("theme")
+script = ExtResource("script")
+
+[node name="Rows" type="VBoxContainer" parent="."]
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Rows"]
+theme_type_variation = &"HeadingLabel"
+text = "HOW TO PLAY"
+
+[node name="player" type="HBoxContainer" parent="Rows"]
+theme_override_constants/separation = 16
+
+[node name="Icon" type="Control" parent="Rows/player"]
+custom_minimum_size = Vector2(80, 66)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Rows/player/Icon"]
+position = Vector2(40, 33)
+texture_filter = 1
+sprite_frames = ExtResource("player")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Copy" type="VBoxContainer" parent="Rows/player"]
+[node name="Title" type="Label" parent="Rows/player/Copy"]
+text = "Move and evade"
+theme_type_variation = &"HeadingLabel"
+[node name="Detail" type="Label" parent="Rows/player/Copy"]
+custom_minimum_size = Vector2(560, 0)
+autowrap_mode = 3
+text = "Move with WASD or arrows. Shift or right-click to dash. Hold Space to fly over ground attacks."
+
+[node name="spear_light" type="HBoxContainer" parent="Rows"]
+theme_override_constants/separation = 16
+
+[node name="Icon" type="Control" parent="Rows/spear_light"]
+custom_minimum_size = Vector2(80, 66)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Rows/spear_light/Icon"]
+position = Vector2(40, 33)
+texture_filter = 1
+sprite_frames = ExtResource("spear_light")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Copy" type="VBoxContainer" parent="Rows/spear_light"]
+[node name="Title" type="Label" parent="Rows/spear_light/Copy"]
+text = "Aim and attack"
+theme_type_variation = &"HeadingLabel"
+[node name="Detail" type="Label" parent="Rows/spear_light/Copy"]
+custom_minimum_size = Vector2(560, 0)
+autowrap_mode = 3
+text = "Aim with the mouse. Hold left-click or J to attack. Q or the wheel switches spear and bow."
+
+[node name="pickup_xp" type="HBoxContainer" parent="Rows"]
+theme_override_constants/separation = 16
+
+[node name="Icon" type="Control" parent="Rows/pickup_xp"]
+custom_minimum_size = Vector2(80, 66)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Rows/pickup_xp/Icon"]
+position = Vector2(40, 33)
+texture_filter = 1
+sprite_frames = ExtResource("pickup_xp")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Copy" type="VBoxContainer" parent="Rows/pickup_xp"]
+[node name="Title" type="Label" parent="Rows/pickup_xp/Copy"]
+text = "Build your strength"
+theme_type_variation = &"HeadingLabel"
+[node name="Detail" type="Label" parent="Rows/pickup_xp/Copy"]
+custom_minimum_size = Vector2(560, 0)
+autowrap_mode = 3
+text = "Collect experience. Click an upgrade or press its number. Open chests for side weapons."
+
+[node name="boss_pride" type="HBoxContainer" parent="Rows"]
+theme_override_constants/separation = 16
+
+[node name="Icon" type="Control" parent="Rows/boss_pride"]
+custom_minimum_size = Vector2(80, 66)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Rows/boss_pride/Icon"]
+position = Vector2(40, 33)
+texture_filter = 1
+sprite_frames = ExtResource("boss_pride")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Copy" type="VBoxContainer" parent="Rows/boss_pride"]
+[node name="Title" type="Label" parent="Rows/boss_pride/Copy"]
+text = "Seal the realm"
+theme_type_variation = &"HeadingLabel"
+[node name="Detail" type="Label" parent="Rows/boss_pride/Copy"]
+custom_minimum_size = Vector2(560, 0)
+autowrap_mode = 3
+text = "Break five shrines. Stay in a broken shrine’s ring for 10 seconds to heal once. Defeat the sin and hold E at the exit. Esc pauses."
+
+[node name="Back" type="Button" parent="Rows"]
+text = "BACK TO HUB"

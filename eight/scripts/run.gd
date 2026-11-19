@@ -51,6 +51,8 @@ const GUARD_LEASH: float = 520.0
 const GUARD_OFFSET: float = 130.0
 ## PLACEHOLDER healing: ground this far around a destroyed shrine shows healed, with a light.
 const HEAL_RADIUS: float = 300.0
+const SHRINE_HEAL_RADIUS: float = 96.0
+const SHRINE_HEAL_TIME: float = 10.0
 const HEAL_COLOR: Color = Color(0.36, 0.55, 0.45, 0.5)
 const HEAL_LIGHT: Color = Color(0.55, 1.0, 0.8, 0.5)
 ## PLACEHOLDER obstacle layout. Structures stand where the old pillars stood on every map;
@@ -357,6 +359,7 @@ const SIN_SPAWN_PACE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.4, 1.0]
 const DIFFICULTY_SECONDS: float = 60.0
 const TIER_UNITS: float = 2.0
 const HORDE_SPEED_GAIN: float = 0.15
+const MAX_HORDE_SPEED_SCALE: float = 1.5
 const HORDE_HEALTH_GAIN: float = 0.6
 const HORDE_DAMAGE_GAIN: float = 0.18
 const BOSS_SPEED_GAIN: float = 0.04
@@ -388,8 +391,19 @@ const TIERS: Array[Dictionary] = [
 		"boss_scaling": 1.25, "attack_rate": 1.75, "patterns": 2, "feathers": 3.0},
 ]
 ## PLACEHOLDER floor tints per sin map.
-const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6"),
-	Color("9bbfd5"), Color("b6b58a"), Color("d69a91"), Color("aba0cb"), Color("c08bba")]
+const REALM_TINTS: Array[Color] = [Color("e7a6b5"), Color("f0d483"), Color("eea4cd"),
+	Color("9cd6ac"), Color("efae72"), Color("ee8672"), Color("99bde7"), Color("c08bba")]
+## Temporary dialogue in BOSSES order. Speakers follow the week-six design board.
+const REALM_GREETINGS: Array[String] = [
+	"ODIN — Even the light bows here.",
+	"MIDAS — What will you pay to pass?",
+	"LILITH — Stay. The light can wait.",
+	"LOKI — Does that light know whose hand it serves?",
+	"WENDIGO — Another light to swallow.",
+	"CERBERUS — Three mouths. One gate.",
+	"EDWARD — Lay down your spear. Rest.",
+	"SATAN — Seven seals brought you to me.",
+]
 
 @export var spawning_enabled: bool = true
 ## Open the run with the angel descending onto the plain.
@@ -414,9 +428,9 @@ const REALM_TINTS: Array[Color] = [Color.WHITE, Color("a9c8a0"), Color("d4a5c6")
 var elapsed: float = 0.0
 var spawn_left: float = 1.0
 ## Seconds until the next horde spawn comes out a champion elite.
-var elite_left: float = ELITE_START
+@onready var elite_left: float = 55.0 if tier == 0 else ELITE_START
 ## Seconds until the next Horde Surge, and left in the current one (0 when none is running).
-var surge_next: float = randf_range(SURGE_GAP_MIN, SURGE_GAP_MAX)
+@onready var surge_next: float = randf_range(105.0 if tier == 0 else SURGE_GAP_MIN, SURGE_GAP_MAX)
 var surge_left: float = 0.0
 ## This run's map modifier (set before it enters the tree; see Game.start_map).
 var scorched: bool = false
@@ -426,6 +440,9 @@ var shrines_left: int = 0
 var shrine_total: int = 0
 ## Where shrines fell; the ground around each is drawn healed.
 var healed_spots: Array[Vector2] = []
+var ready_heals: Array[Vector2] = []
+var healing_at: Vector2 = Vector2.INF
+var healing_time: float = 0.0
 var guards: Array[Boss] = []
 var sin_boss_defeated: bool = false
 var ritual_left: float = RITUAL_TIME
@@ -531,6 +548,7 @@ func _ready() -> void:
 	player.ascended.connect(_on_ascended)
 	if intro_enabled:
 		player.begin_descent(DESCENT_HEIGHT, DESCENT_TIME)
+		hud.announce(REALM_GREETINGS[sin_index])
 	else:
 		has_landed = true
 		_announce_modifier()
@@ -761,6 +779,7 @@ func _on_shrine_destroyed(shrine: Breakable) -> void:
 	shrines_left -= 1
 	feathers_earned += FEATHERS_PER_SHRINE
 	healed_spots.append(shrine.position)
+	ready_heals.append(shrine.position)
 	var light: Node2D = Node2D.new()
 	light.name = &"HealedLight"
 	light.position = shrine.position
@@ -829,7 +848,7 @@ func _spawn_guards() -> void:
 		if shrine == null or shrine.kind != Breakable.Kind.SHRINE:
 			continue
 		var guard: Boss = _make_boss(GUARD_HEALTH_SCALE, true)
-		guard.boss_name = "%s GUARD (PLACEHOLDER)" % BOSSES[sin_index]["name"]
+		guard.boss_name = "%s GUARD" % BOSSES[sin_index]["name"]
 		guard.home = shrine.position
 		guard.leash = GUARD_LEASH
 		guard.position = _open_spot(shrine.position + shrine.position.normalized() * GUARD_OFFSET, guard.radius + 8.0)
@@ -878,6 +897,7 @@ func _physics_process(delta: float) -> void:
 		ritual_left -= delta
 		if ritual_left <= 0.0:
 			spawn_sin_boss()
+	_update_shrine_heal(delta)
 	if not spawning_enabled:
 		return
 	spawn_left -= delta
@@ -899,11 +919,36 @@ func _physics_process(delta: float) -> void:
 		spawn_left = interval * (2.0 if current_boss != null else 1.0)
 		for count: int in range(spawn_batch() + (SURGE_BATCH if surging else 0)):
 			if enemy_count < max_enemies:
-				var enemy: Enemy = spawn_enemy(_pick_enemy_type(), _random_offscreen_point())
+				var spot: Vector2 = _random_offscreen_point()
+				if not spot.is_finite():
+					break
+				var enemy: Enemy = spawn_enemy(_pick_enemy_type(), spot)
 				# A sleeper could doze off screen and hold an elite slot forever; the next spawn takes it.
 				if elite_left <= 0.0 and not enemy is Sleeper and get_tree().get_nodes_in_group(&"elites").size() < ELITE_MAX:
 					_make_elite(enemy)
 					elite_left = randf_range(ELITE_GAP_MIN, ELITE_GAP_MAX)
+
+
+func _update_shrine_heal(delta: float) -> void:
+	var spot: Vector2 = Vector2.INF
+	if player.health < player.max_health and not player.is_dead:
+		for center: Vector2 in ready_heals:
+			if player.position.distance_squared_to(center) <= SHRINE_HEAL_RADIUS * SHRINE_HEAL_RADIUS:
+				spot = center
+				break
+	if spot != healing_at:
+		healing_at = spot
+		healing_time = 0.0
+	if not spot.is_finite():
+		return
+	healing_time += delta
+	if healing_time >= SHRINE_HEAL_TIME:
+		ready_heals.erase(spot)
+		healing_at = Vector2.INF
+		healing_time = 0.0
+		player.heal(ceili(player.max_health * 0.25))
+		play_sfx(&"pickup_life")
+		queue_redraw()
 
 
 func difficulty() -> float:
@@ -967,9 +1012,14 @@ func _pick_enemy_type() -> int:
 
 
 func _random_offscreen_point() -> Vector2:
-	var point: Vector2 = player.global_position + Vector2.RIGHT.rotated(randf() * TAU) * randf_range(720.0, 820.0)
-	# Clear of the largest horde enemy's radius, so nothing spawns inside an obstacle.
-	return _open_spot(point.clamp(ARENA_RECT.position + Vector2(60.0, 60.0), ARENA_RECT.end - Vector2(60.0, 60.0)), 30.0)
+	var view: Rect2 = (get_canvas_transform().affine_inverse() * get_viewport_rect()).grow(48.0)
+	var angle: float = randf() * TAU
+	var distance: float = maxf(randf_range(720.0, 820.0), view.size.length() * 0.5 + 1.0)
+	for step: int in range(16):
+		var point: Vector2 = view.get_center() + Vector2.from_angle(angle + step * TAU / 16.0) * distance
+		if ARENA_RECT.grow(-30.0).has_point(point) and not _blocked_rect(point.x, point.y, 30.0):
+			return point
+	return Vector2.INF
 
 
 func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
@@ -978,7 +1028,8 @@ func spawn_enemy(type_index: int, at: Vector2) -> Enemy:
 	var enemy: Enemy = (data.get("scene", ENEMY_SCENE) as PackedScene).instantiate() as Enemy
 	var health_scale: float = rules["health"] * (1.0 + difficulty() * HORDE_HEALTH_GAIN * rules["health_scaling"])
 	enemy.max_health = maxi(1, roundi(float(data["health"]) * health_scale))
-	enemy.speed = float(data["speed"]) * rules["speed"] * (1.0 + difficulty() * HORDE_SPEED_GAIN * rules["speed_scaling"])
+	var speed_scale: float = minf(MAX_HORDE_SPEED_SCALE, 1.0 + difficulty() * HORDE_SPEED_GAIN * rules["speed_scaling"])
+	enemy.speed = float(data["speed"]) * rules["speed"] * speed_scale
 	enemy.radius = float(data["radius"])
 	enemy.xp_value = int(data["xp"])
 	enemy.knockback_strength = float(data["knockback"])
@@ -1039,7 +1090,7 @@ func _make_boss(health_scale: float = 1.0, guard: bool = false) -> Boss:
 	var rules: Dictionary = TIERS[tier]
 	var growth: float = difficulty() * rules["boss_scaling"]
 	var boss: Boss = BOSS_SCENE.instantiate() as Boss
-	boss.boss_name = "%s (PLACEHOLDER)" % data["name"]
+	boss.boss_name = data["name"]
 	boss.max_health = maxi(1, roundi(float(data["health"]) * health_scale * rules["boss_health"] * (1.0 + growth * BOSS_HEALTH_GAIN)))
 	boss.speed = float(data["speed"]) * rules["boss_speed"] * (1.0 + growth * BOSS_SPEED_GAIN)
 	boss.radius = float(data["radius"])
@@ -1574,6 +1625,8 @@ func _draw() -> void:
 	# PLACEHOLDER healed ground around each fallen shrine, then the whole realm once won.
 	for spot: Vector2 in healed_spots:
 		draw_circle(spot, HEAL_RADIUS, HEAL_COLOR)
+	for spot: Vector2 in ready_heals:
+		draw_arc(spot, SHRINE_HEAL_RADIUS, 0.0, TAU, 64, Color("bee5cf"), 2.0)
 	if heal_world > 0.0:
 		draw_rect(ARENA_RECT, Color(HEAL_COLOR, HEAL_COLOR.a * heal_world))
 	var landing: Texture2D = LANDING_FRAMES.get_frame_texture(&"idle", 0)

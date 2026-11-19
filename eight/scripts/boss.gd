@@ -645,7 +645,7 @@ func _attack(pattern: int) -> void:
 			bile.lifetime = bile_time
 			bile.damage = maxi(1, shot_damage / 2)
 			bile.target = target
-			get_parent().add_child(bile)
+			_spawn_hazard(bile)
 			bile.global_position = leap_spot
 		Pattern.VOMIT:
 			for index: int in range(VOMIT_COUNT):
@@ -663,7 +663,7 @@ func _attack(pattern: int) -> void:
 				pool.lifetime = sludge_time
 				pool.slow_factor = SLUDGE_SLOW
 				pool.target = target
-				get_parent().add_child(pool)
+				_spawn_hazard(pool)
 				pool.global_position = spot
 		Pattern.YAWN:
 			slam_flash_left = SLAM_FLASH
@@ -706,7 +706,7 @@ func _attack(pattern: int) -> void:
 				drop.delay = RAIN_DELAY + index * RAIN_STAGGER
 				drop.damage = shot_damage
 				drop.target = target
-				get_parent().add_child(drop)
+				_spawn_hazard(drop)
 				drop.global_position = center + RAIN_SPOTS[index]
 		Pattern.GUARD:
 			guard_left = GUARD_TIME
@@ -720,7 +720,7 @@ func _attack(pattern: int) -> void:
 			var wave: Shockwave = Shockwave.new()
 			wave.damage = contact_damage
 			wave.target = target
-			get_parent().add_child(wave)
+			_spawn_hazard(wave)
 			wave.global_position = global_position
 
 
@@ -786,13 +786,24 @@ func _check_phase() -> void:
 		phase_changed.emit(self)
 
 
+func _spawn_hazard(hazard: Node2D) -> void:
+	get_parent().add_child(hazard)
+	died.connect(hazard.queue_free.unbind(1))
+
+
+func display_name() -> String:
+	if boss_name.ends_with(" GUARD"):
+		return tr("%s GUARD") % tr(boss_name.trim_suffix(" GUARD"))
+	return tr(boss_name)
+
+
 func _fire(direction: Vector2, shot_speed: float = PROJECTILE_SPEED) -> void:
 	var projectile: EnemyProjectile = EnemyProjectile.new()
 	projectile.velocity = direction * shot_speed
 	projectile.damage = shot_damage
 	projectile.target = target
 	projectile.from_air = fan_from_air
-	get_parent().add_child(projectile)
+	_spawn_hazard(projectile)
 	projectile.global_position = global_position + direction * radius
 	if projectile.from_air:
 		projectile.modulate = VIOLET

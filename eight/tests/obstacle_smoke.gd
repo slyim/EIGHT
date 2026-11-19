@@ -311,7 +311,10 @@ func _run() -> void:
 			_check(Run.ARENA_RECT.grow(-ExitPortal.RADIUS).has_point(portal) and not run._blocked_rect(portal.x, portal.y, ExitPortal.RADIUS), "Map %d puts a portal inside an obstacle at %s." % [map, portal])
 		for sample: int in range(40):
 			player.global_position = sites[sample * 7 % sites.size()]
+			player.camera.force_update_scroll()
 			var spawn: Vector2 = run._random_offscreen_point()
+			var visible_world: Rect2 = run.get_canvas_transform().affine_inverse() * run.get_viewport_rect()
+			_check(Run.ARENA_RECT.grow(-30.0).has_point(spawn) and not visible_world.grow(30.0).has_point(spawn), "Map %d needs an off-screen spawn inside the arena at %s." % [map, player.global_position])
 			_check(not run._blocked_rect(spawn.x, spawn.y, 22.0), "Map %d spawns an enemy inside an obstacle at %s." % [map, spawn])
 	player.global_position = Vector2.ZERO
 

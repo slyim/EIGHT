@@ -49,7 +49,7 @@ func _run() -> void:
 	await _wait_ticks(3)
 	run.player.invulnerable_left = 100000.0
 	run.feather_drop_chance = 0.0
-	_check(is_equal_approx(run.elite_left, Run.ELITE_START), "Elites must wait ELITE_START (30 s) into the run.")
+	_check(is_equal_approx(run.elite_left, 55.0), "Penance must give the angel 55 seconds before its first champion.")
 	# The elite clock stands still before landing and while the game is paused (level-ups).
 	run.spawning_enabled = true
 	run.spawn_left = 1000.0
@@ -59,7 +59,7 @@ func _run() -> void:
 	paused = true
 	await _wait_ticks(5)
 	paused = false
-	_check(is_equal_approx(run.elite_left, Run.ELITE_START), "The elite clock must wait for landing and stop while paused (%.3f)." % run.elite_left)
+	_check(is_equal_approx(run.elite_left, 55.0), "The elite clock must wait for landing and stop while paused (%.3f)." % run.elite_left)
 	run.spawning_enabled = false
 
 	# The multipliers land on top of the spawned (tier- and clock-scaled) stats.

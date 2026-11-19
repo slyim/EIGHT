@@ -76,9 +76,10 @@ func can_grow() -> Array[int]:
 	return open
 
 
-## "Seeking feathers II" style name, for the HUD.
+## "SEEKING FEATHERS II" style name in the current language, for the HUD. The uppercase name
+## is the translation key, since String.to_upper() would miss Turkish dotted capitals.
 func label(kind: Kind) -> String:
-	return "%s %s" % [NAMES[kind], NUMERALS[levels[kind]]]
+	return "%s %s" % [tr(NAMES[kind].to_upper()), NUMERALS[levels[kind]]]
 
 
 func _physics_process(delta: float) -> void:

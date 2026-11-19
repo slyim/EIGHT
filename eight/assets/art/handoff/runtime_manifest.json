@@ -1,0 +1,921 @@
+{
+	"captures": [
+		{
+			"file": "runtime/enemy_00_husk.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_01_imp.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_02_brute.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_03_flyer.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_04_charger.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_05_ground_caster.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_06_bomber.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_07_splitter.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_08_shielder.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_09_mortar.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_10_sleeper.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/enemy_11_mirror.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/elite_ground.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/elite_flyer.png",
+			"height": 256,
+			"method": "staged_runtime",
+			"width": 256
+		},
+		{
+			"file": "runtime/pickup_xp.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/pickup_life.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/pickup_item.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/pickup_evolution_spear.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/pickup_evolution_bow.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/pickup_side_weapon_relic.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/pickup_feather_currency.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/projectile_ground.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/projectile_air.png",
+			"height": 160,
+			"method": "staged_runtime",
+			"width": 160
+		},
+		{
+			"file": "runtime/arrow.png",
+			"height": 140,
+			"method": "staged_runtime",
+			"width": 180
+		},
+		{
+			"file": "runtime/arrow_finisher.png",
+			"height": 140,
+			"method": "staged_runtime",
+			"width": 180
+		},
+		{
+			"file": "runtime/seeking_feather.png",
+			"height": 140,
+			"method": "staged_runtime",
+			"width": 180
+		},
+		{
+			"file": "runtime/breakable_wall_horizontal.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/breakable_wall_vertical.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/breakable_structure.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/breakable_tree.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/breakable_shrine.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_wall_stage1.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_wall_stage2.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_wall_stage3.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/debris_wall.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_structure_stage1.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_structure_stage2.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_structure_stage3.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/debris_structure.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_tree_stage1.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_tree_stage2.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_tree_stage3.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/debris_tree.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_shrine_stage1.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_shrine_stage2.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/damage_shrine_stage3.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/debris_shrine.png",
+			"height": 320,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/chest_closed.png",
+			"height": 180,
+			"method": "staged_runtime",
+			"width": 180
+		},
+		{
+			"file": "runtime/chest_open.png",
+			"height": 180,
+			"method": "staged_runtime",
+			"width": 180
+		},
+		{
+			"file": "runtime/portal_idle.png",
+			"height": 200,
+			"method": "staged_runtime",
+			"width": 200
+		},
+		{
+			"file": "runtime/portal_holding.png",
+			"height": 200,
+			"method": "staged_runtime",
+			"width": 200
+		},
+		{
+			"file": "runtime/healed_ground.png",
+			"height": 720,
+			"method": "staged_runtime",
+			"width": 720
+		},
+		{
+			"file": "runtime/strike_ground_tell.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 240
+		},
+		{
+			"file": "runtime/strike_ground_flash.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 240
+		},
+		{
+			"file": "runtime/strike_air_tell.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 240
+		},
+		{
+			"file": "runtime/strike_air_flash.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 240
+		},
+		{
+			"file": "runtime/bile.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 280
+		},
+		{
+			"file": "runtime/sludge.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 280
+		},
+		{
+			"file": "runtime/shockwave_rings.png",
+			"height": 900,
+			"method": "staged_runtime",
+			"width": 900
+		},
+		{
+			"file": "runtime/lava_layers.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 480
+		},
+		{
+			"file": "runtime/player_spear.png",
+			"height": 220,
+			"method": "staged_runtime",
+			"width": 300
+		},
+		{
+			"file": "runtime/player_bow.png",
+			"height": 220,
+			"method": "staged_runtime",
+			"width": 300
+		},
+		{
+			"file": "runtime/player_flight_shadow.png",
+			"height": 300,
+			"method": "staged_runtime",
+			"width": 340
+		},
+		{
+			"file": "runtime/spear_finisher.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 420
+		},
+		{
+			"file": "runtime/whirlwind.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 420
+		},
+		{
+			"file": "runtime/dash_afterimages.png",
+			"height": 300,
+			"method": "staged_runtime",
+			"width": 440
+		},
+		{
+			"file": "runtime/chain_light.png",
+			"height": 340,
+			"method": "staged_runtime",
+			"width": 420
+		},
+		{
+			"file": "runtime/rain_of_light_tell.png",
+			"height": 400,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/rain_of_light_streaks.png",
+			"height": 400,
+			"method": "staged_runtime",
+			"width": 360
+		},
+		{
+			"file": "runtime/side_halos.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 480
+		},
+		{
+			"file": "runtime/side_feathers.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 480
+		},
+		{
+			"file": "runtime/side_pulse.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 480
+		},
+		{
+			"file": "runtime/side_bolt.png",
+			"height": 420,
+			"method": "staged_runtime",
+			"width": 480
+		},
+		{
+			"file": "runtime/impact_sparks.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 300
+		},
+		{
+			"file": "runtime/state_charger_lane.png",
+			"height": 300,
+			"method": "staged_runtime",
+			"width": 420
+		},
+		{
+			"file": "runtime/state_caster_glint.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 300
+		},
+		{
+			"file": "runtime/state_flyer_glint_shadow.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 340
+		},
+		{
+			"file": "runtime/state_bomber_fuse.png",
+			"height": 260,
+			"method": "staged_runtime",
+			"width": 300
+		},
+		{
+			"file": "runtime/state_shielder_arc.png",
+			"height": 240,
+			"method": "staged_runtime",
+			"width": 300
+		},
+		{
+			"file": "runtime/state_mortar_strike.png",
+			"height": 300,
+			"method": "staged_runtime",
+			"width": 320
+		},
+		{
+			"file": "runtime/state_sleeper_waking.png",
+			"height": 300,
+			"method": "staged_runtime",
+			"width": 340
+		},
+		{
+			"file": "runtime/state_sleeper_pulse.png",
+			"height": 300,
+			"method": "staged_runtime",
+			"width": 340
+		},
+		{
+			"file": "runtime/boss_tell_00_charge.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_01_burst.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_02_aimed_fan.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_03_summon_marks.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_04_guard_rise.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_05_slam.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_06_shockwave_tell.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_07_coins.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_08_rain_tell.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_09_kisses.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_10_blink.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_11_leap.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_12_vomit.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_13_devour.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_14_snore.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_15_sludge_tell.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_16_yawn.png",
+			"height": 760,
+			"method": "staged_runtime",
+			"width": 760
+		},
+		{
+			"file": "runtime/boss_tell_17_nap.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_19_mirror_spear_thrust.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_20_mirror_bow_shot.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_21_decoy_marks.png",
+			"height": 520,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_tell_22_satan_beams.png",
+			"height": 1040,
+			"method": "staged_runtime",
+			"width": 1040
+		},
+		{
+			"file": "runtime/boss_guard_raised.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 320
+		},
+		{
+			"file": "runtime/boss_phase_pose.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 320
+		},
+		{
+			"file": "runtime/boss_envy_decoy_tint.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 320
+		},
+		{
+			"file": "runtime/boss_sloth_awake_tint.png",
+			"height": 280,
+			"method": "staged_runtime",
+			"width": 320
+		},
+		{
+			"file": "runtime/boss_release_01_burst.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_release_02_aimed_fan.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_release_07_coins.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_release_09_kisses.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_release_12_vomit.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_release_14_snore.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/boss_release_08_rain_tell.png",
+			"height": 560,
+			"method": "staged_runtime",
+			"width": 650
+		},
+		{
+			"file": "runtime/ui_hub_locked.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_hub_all_relics.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_how_to_play.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_shop.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_settings.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_00_pride.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_01_greed.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_02_lust.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_03_envy.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_04_gluttony.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_05_wrath.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_06_sloth.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/realm_07_satan.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/run_descent.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_level_up.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_evolution_spear.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_evolution_bow.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_shrine_pact.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_pause.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_live_feedback.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/prototype_spear_test.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/run_ascent_healing.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_victory.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		},
+		{
+			"file": "runtime/ui_defeat.png",
+			"height": 720,
+			"method": "full_scene",
+			"width": 1280
+		}
+	],
+	"engine": "4.7.2-stable (official)",
+	"renderer": "Forward+ / D3D12, project HIGH defaults except isolated save/settings",
+	"source_md5": {
+		"res://scenes/arrow.tscn": "5947fc0bffd5eba7696b26acf1ab2355",
+		"res://scenes/bomber.tscn": "648045035737ac86cd846467b67e6a81",
+		"res://scenes/boss.tscn": "dd7ad6b9ae42696aa7cc5034682861a4",
+		"res://scenes/breakable.tscn": "f48be098397cd4ee3c206813b26cef20",
+		"res://scenes/charger.tscn": "3b573a5c247e1e593f45f21b293ac90f",
+		"res://scenes/enemy.tscn": "b2eb886fcf9e8bf5076910c8a0daaeee",
+		"res://scenes/exit_portal.tscn": "d421317963a356b2e3e7b470f35f51d4",
+		"res://scenes/flying_enemy.tscn": "67ce01de84d5dbcdec3c841a0fb47e16",
+		"res://scenes/game.tscn": "a022024895f8d1ee939c91a7cf160d07",
+		"res://scenes/ground_caster.tscn": "f12a5de362f6e825670085193e2f4fb5",
+		"res://scenes/how_to_play.tscn": "abe3d17f7693bda1d03de34a2c9f3cdd",
+		"res://scenes/hub.tscn": "c9096c5a42853915311049e3ebefcab0",
+		"res://scenes/mirror.tscn": "da2c017084db03189120664d21eeaecd",
+		"res://scenes/mortar.tscn": "b69a6c8235802c2a45752bcb725d9e07",
+		"res://scenes/mounted_player.tscn": "00d3580b48ace0a8fcd21c19fff16ea8",
+		"res://scenes/practice_target.tscn": "95ae43267ac8923ca7d37688e696d2c6",
+		"res://scenes/prototype.tscn": "d43ab81357e5b370561445cc64f656c4",
+		"res://scenes/run.tscn": "498ef5d6ee63c51be7e775fbb85cc344",
+		"res://scenes/settings_panel.tscn": "09959829b8baa0ad4b1b0cb060431491",
+		"res://scenes/shielder.tscn": "f4f934e085373af0cd95ef742f48cf32",
+		"res://scenes/shop.tscn": "dd92fede7bd45871796bade9b50a8e00",
+		"res://scenes/sins/envy.tscn": "11d1798f0d5478ce6494fb48c1026ac0",
+		"res://scenes/sins/gluttony.tscn": "be736eec7159f1ae5450285f8cc11d97",
+		"res://scenes/sins/greed.tscn": "9dad73a619b1e770c6a9b55b9a5dd1e9",
+		"res://scenes/sins/lust.tscn": "947b4b9e314a226644c06c9cc73c031a",
+		"res://scenes/sins/pride.tscn": "303a8c078fc3ffc52eb07666edc38e83",
+		"res://scenes/sins/satan.tscn": "f566526ff134616f687e55582079fe5f",
+		"res://scenes/sins/sloth.tscn": "a3497e2310025686b83500c7a406fc3f",
+		"res://scenes/sins/wrath.tscn": "f367b624753c3721589bad0b097386e2",
+		"res://scenes/sleeper.tscn": "a41f3ad5dca76707eabc03b71fad8517",
+		"res://scenes/splitter.tscn": "f346c46bf157021f2cc8fd704fc4023d",
+		"res://scripts/arrow.gd": "c8abf481b43c9b4c401e279476bebef9",
+		"res://scripts/bile_zone.gd": "c4832e72a9843fb6b0189eb298005591",
+		"res://scripts/bomber.gd": "de243edbe21a204beba0ec2a7fef4f9a",
+		"res://scripts/boss.gd": "e56a3abdf7eb6996ca771421c96a0899",
+		"res://scripts/breakable.gd": "4bfcfbf5920d0d1187a5cdb2f941f358",
+		"res://scripts/charger.gd": "7eaac16d2648d717968d872115dcec7d",
+		"res://scripts/chest.gd": "b6c3d8d3d5d04ac73ebe38e9e95d5b52",
+		"res://scripts/damage_numbers.gd": "cc603f7183271442ddcd231e64e0cd0f",
+		"res://scripts/enemy.gd": "1c58a1826e59baa453494e909b117829",
+		"res://scripts/enemy_projectile.gd": "c1fe150bc07c7540e5bceef61ff5b706",
+		"res://scripts/exit_portal.gd": "6e3c6bc630247889a0a63001be866bc4",
+		"res://scripts/flying_enemy.gd": "f12414341aa920b5dd86b8d0343a2847",
+		"res://scripts/game.gd": "c50981d7abe09abe01cb5cf6989b820b",
+		"res://scripts/ground_caster.gd": "6c105995d947bdbc79ff0ab80d719735",
+		"res://scripts/ground_strike.gd": "ffe503f4218d5c56df318f1cfdc765a5",
+		"res://scripts/how_to_play.gd": "4c570c7cf5951f2158dfadf0f9adcb2d",
+		"res://scripts/hub.gd": "8a496a63fedad3bf182dc7f25d7cdfc9",
+		"res://scripts/hud.gd": "2110a0f9ea36d38ba9144e1c4f5e194c",
+		"res://scripts/impact_sparks.gd": "0cd4d8ec58ead39f97edf1e0bf0accb3",
+		"res://scripts/lava_pools.gd": "cfa33fe386033e334105fd5a68e06acc",
+		"res://scripts/light_rain.gd": "d890d30fd56d0be174a03d1d18af981b",
+		"res://scripts/lights.gd": "fbea99a405f68d36eee5a20417b2fd30",
+		"res://scripts/mirror.gd": "e96bda356ee572eb39e3c30e7271d52c",
+		"res://scripts/mortar.gd": "544f74bdda66a61d68b189659fafb008",
+		"res://scripts/mounted_player.gd": "a485be3c9c7dd1a2a188d83099acdc90",
+		"res://scripts/pickup.gd": "be26d64f2e3a3cea9113a21d66e1fac4",
+		"res://scripts/practice_target.gd": "7173d50d9c81821c9a18c7e5bd3fdd08",
+		"res://scripts/progress.gd": "1701b4fc6bd2b939bdfc2042922f08cf",
+		"res://scripts/prototype.gd": "b64070b2a2b33382d8e173726407465e",
+		"res://scripts/run.gd": "92f8aa7e07d19dcb77a0c41344fc4a9f",
+		"res://scripts/settings.gd": "1d5e0602966151626c163065d0863847",
+		"res://scripts/settings_panel.gd": "6c7edcb3c9113f948238f35e5089cb76",
+		"res://scripts/shielder.gd": "2e11892668d424c2115b86a38fa871ed",
+		"res://scripts/shockwave.gd": "d3561a241d1e012224fe5ace09f89d0a",
+		"res://scripts/shop.gd": "4ceee4ef7e4c8dea98b0f0046a7e48d9",
+		"res://scripts/side_weapons.gd": "c0f4ebff0aa69701305f0266a91f8b00",
+		"res://scripts/sleeper.gd": "08ba473b24e1bfdccbf12f409625bb45",
+		"res://shaders/atmosphere.gdshader": "884ff139d2cc1e0164169f1a9070d74e",
+		"res://shaders/emissive.gdshader": "e2c911f8ff6635f935fec9b4736fa38f",
+		"res://shaders/enemy_air_ammo.tres": "587d8c20956e8ff40a595e34e6ea886a",
+		"res://shaders/enemy_ammo.tres": "2f222bdfe9fe70c22a950819b898ae00",
+		"res://shaders/eyes.tres": "67a111c854cacd295a4e2bf8e93a14ce",
+		"res://shaders/lava.gdshader": "df4fc72e3d097a98dfe62fe1f12f8515",
+		"res://shaders/light.gdshader": "5f570a3d58063155de67f8ed18d4b170",
+		"res://shaders/lighting.gdshader": "8323465c4645f5814e1e9b1d8ea14e67",
+		"res://shaders/pickup_light.tres": "c6c2157398fd097c772c3bc57a4df232",
+		"res://shaders/player_light.tres": "d41022a1355bf45de05710218fe94e68",
+		"res://shaders/weapon_light.tres": "f10e27f08838b449c402c8eba0584695"
+	}
+}

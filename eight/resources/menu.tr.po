@@ -1,0 +1,186 @@
+# EIGHT menu, hub, shop, settings, prototype, and static scene text, Turkish.
+# Keys are the English source strings; format specifiers (%s, %d, %%) keep their order.
+msgid ""
+msgstr ""
+"Project-Id-Version: EIGHT\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Hub
+
+msgid "THE PENTAGRAM"
+msgstr "PENTAGRAM"
+
+msgid "Purge a sin's realm to seal its relic. With all seven relics in place, summon Satan."
+msgstr "Yadigarını mühürlemek için günah diyarını arındır. Yedi yadigarla Şeytan'ı çağır."
+
+msgid "HOW TO PLAY"
+msgstr "NASIL OYNANIR"
+
+msgid "QUIT"
+msgstr "ÇIKIŞ"
+
+msgid "SHOP  [B]"
+msgstr "DÜKKAN  [B]"
+
+msgid "FEATHERS  0"
+msgstr "TÜY  0"
+
+msgid "FEATHERS  %d"
+msgstr "TÜY  %d"
+
+msgid "BEST %s"
+msgstr "EN İYİ %s"
+
+msgid "ENTER  [%d]"
+msgstr "GİR  [%d]"
+
+msgid "SATAN HAS FALLEN\n%s  ·  BEST %s\nSUMMON AGAIN  [S]"
+msgstr "ŞEYTAN DÜŞTÜ\n%s  ·  EN İYİ %s\nTEKRAR ÇAĞIR  [S]"
+
+msgid "SUMMON SATAN\n%s\n[S]"
+msgstr "ŞEYTAN'I ÇAĞIR\n%s\n[S]"
+
+msgid "SATAN\n%d / %d RELICS"
+msgstr "ŞEYTAN\n%d / %d YADİGAR"
+
+# How to play
+
+msgid "Move and evade"
+msgstr "Hareket et ve kaçın"
+
+msgid "Move with WASD or arrows. Shift or right-click to dash. Hold Space to fly over ground attacks."
+msgstr "WASD veya ok tuşlarıyla hareket et. Atılmak için Shift veya sağ tık. Yer saldırılarının üzerinden uçmak için Space'e basılı tut."
+
+msgid "Aim and attack"
+msgstr "Nişan al ve saldır"
+
+msgid "Aim with the mouse. Hold left-click or J to attack. Q or the wheel switches spear and bow."
+msgstr "Fareyle nişan al. Saldırmak için sol tık veya J'ye basılı tut. Q veya fare tekerleği mızrak ve yay arasında geçiş yapar."
+
+msgid "Build your strength"
+msgstr "Gücünü artır"
+
+msgid "Collect experience. Click an upgrade or press its number. Open chests for side weapons."
+msgstr "Deneyim topla. Bir yükseltmeye tıkla veya numarasını tuşla. Yan silahlar için sandıkları aç."
+
+msgid "Seal the realm"
+msgstr "Diyarı mühürle"
+
+msgid "Break five shrines. Stay in a broken shrine’s ring for 10 seconds to heal once. Defeat the sin and hold E at the exit. Esc pauses."
+msgstr "Beş sunağı yık. Kırılan sunağın halkasında 10 saniye kalıp bir kez iyileş. Günahı yen ve çıkışta E’yi basılı tut. Esc oyunu duraklatır."
+
+msgid "BACK TO HUB"
+msgstr "MERKEZE DÖN"
+
+# Shop
+
+msgid "THE SHOP"
+msgstr "DÜKKAN"
+
+msgid "Feathers buy permanent ranks; every realm entered from the pentagram starts with them."
+msgstr "Tüyler kalıcı kademeler alır; pentagramdan girilen her diyar bunlarla başlar."
+
+msgid "BACK TO THE PENTAGRAM  [Esc]"
+msgstr "PENTAGRAMA DÖN  [Esc]"
+
+msgid "MAX"
+msgstr "AZAMİ"
+
+msgid "BUY  %d"
+msgstr "AL  %d"
+
+msgid "THE PURCHASE COULD NOT BE SAVED (ERROR %d)"
+msgstr "SATIN ALMA KAYDEDİLEMEDİ (HATA %d)"
+
+# Settings
+
+msgid "SETTINGS"
+msgstr "AYARLAR"
+
+msgid "QUALITY  HIGH"
+msgstr "KALİTE  YÜKSEK"
+
+msgid "QUALITY  %s"
+msgstr "KALİTE  %s"
+
+msgid "LOW"
+msgstr "DÜŞÜK"
+
+msgid "MEDIUM"
+msgstr "ORTA"
+
+msgid "HIGH"
+msgstr "YÜKSEK"
+
+msgid "ULTRA"
+msgstr "ULTRA"
+
+msgid "No glow, no lamp shadows, no extra effects. Cheapest."
+msgstr "Parıltı, lamba gölgesi ve ek efekt yok. En hafif."
+
+msgid "Glow, hard lamp shadows, lava shimmer, and pulsing sin eyes."
+msgstr "Parıltı, keskin lamba gölgeleri, lav parlaması ve atan günah gözleri."
+
+msgid "Adds soft shadows, world haze, and a wider bloom."
+msgstr "Yumuşak gölgeler, dünya sisi ve daha geniş parlama ekler."
+
+msgid "Adds two-tone light pools."
+msgstr "İki tonlu ışık havuzları ekler."
+
+msgid "VSYNC"
+msgstr "DİKEY EŞİTLEME"
+
+msgid "FRAME CAP  UNLIMITED"
+msgstr "KARE SINIRI  SINIRSIZ"
+
+msgid "FRAME CAP  %d FPS"
+msgstr "KARE SINIRI  %d FPS"
+
+msgid "FULLSCREEN"
+msgstr "TAM EKRAN"
+
+msgid "DAMAGE NUMBERS"
+msgstr "HASAR SAYILARI"
+
+msgid "SCREEN SHAKE %d%%"
+msgstr "EKRAN SARSINTISI %%%d"
+
+msgid "HIT-STOP"
+msgstr "VURUŞ DURAKLAMASI"
+
+msgid "LANGUAGE  %s"
+msgstr "DİL  %s"
+
+msgid "SETTINGS COULD NOT BE SAVED (ERROR %d)"
+msgstr "AYARLAR KAYDEDİLEMEDİ (HATA %d)"
+
+msgid "CLOSE  [Esc]"
+msgstr "KAPAT  [Esc]"
+
+# Run scene placeholder notice (updated by parent)
+
+msgid "Prototype visuals and sound"
+msgstr "Prototip görseller ve ses"
+
+# Prototype scene and practice target
+
+msgid "EIGHT / MOUNTED SPEAR TEST"
+msgstr "EIGHT / BİNEKLİ MIZRAK TESTİ"
+
+msgid "ALL VISUALS ARE PLACEHOLDERS. NO AUDIO. NOT FINAL GAME ART."
+msgstr "TÜM GÖRSELLER YER TUTUCUDUR. SES YOK. NİHAİ OYUN SANATI DEĞİLDİR."
+
+msgid "WASD / Arrows: move    |    Mouse: aim    |    Hold LMB / J: spear combo    |    Hold Space: fly    |    Shift / RMB: dash\nR: reset player and target    |    Close window: exit"
+msgstr "WASD / Oklar: hareket    |    Fare: nişan    |    Sol tık / J basılı: mızrak kombosu    |    Space basılı: uç    |    Shift / Sağ tık: atıl\nR: oyuncuyu ve hedefi sıfırla    |    Pencereyi kapat: çıkış"
+
+msgid "PLACEHOLDER TARGET\n3 / 3"
+msgstr "YER TUTUCU HEDEF\n3 / 3"
+
+msgid "PLACEHOLDER TARGET\n%d / %d"
+msgstr "YER TUTUCU HEDEF\n%d / %d"
+
+msgid "TARGET CLEARED\nR to reset"
+msgstr "HEDEF TEMİZLENDİ\nSıfırlamak için R"

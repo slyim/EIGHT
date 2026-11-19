@@ -39,11 +39,16 @@ var sealed_now: int = -1
 
 
 func _ready() -> void:
+	var settings: Settings = Settings.load_saved()
+	settings.apply_language()
+	settings.apply_display(get_window())
 	progress = Progress.load_saved()
+	($Feathers as Label).auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	for index: int in range(Run.SATAN):
 		var button: Button = Button.new()
 		button.name = "Sin%d" % (index + 1)
 		button.focus_mode = Control.FOCUS_NONE
+		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		button.custom_minimum_size = Vector2(136.0, 62.0)
 		button.add_theme_font_size_override(&"font_size", 16)
 		button.pressed.connect(enter_sin.bind(index))
@@ -52,6 +57,7 @@ func _ready() -> void:
 	satan_button = Button.new()
 	satan_button.name = &"Satan"
 	satan_button.focus_mode = Control.FOCUS_NONE
+	satan_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	satan_button.custom_minimum_size = Vector2(190.0, 70.0)
 	satan_button.add_theme_font_size_override(&"font_size", 20)
 	satan_button.pressed.connect(summon_satan)
@@ -70,11 +76,10 @@ func _ready() -> void:
 			add_child(arrow)
 			pair.append(arrow)
 		tier_arrows.append(pair)
+	($Guide as Button).pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/how_to_play.tscn"))
 	($Quit as Button).pressed.connect(get_tree().quit)
 	($Shop as Button).pressed.connect(open_shop)
 	($Settings as Button).pressed.connect(open_settings)
-	Settings.load_saved().apply_display(get_window())
-	($Feathers as Label).text = "FEATHERS  %d" % progress.feathers
 	pentagram.draw.connect(_draw_pentagram)
 	_refresh()
 	resized.connect(_layout)
@@ -90,6 +95,11 @@ func _ready() -> void:
 		var tween: Tween = create_tween().set_ignore_time_scale()
 		tween.tween_property(self, ^"seal_wave", 1.0, 1.4).set_delay(0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	just_sealed = -1
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and progress != null and satan_button != null:
+		_refresh()
 
 
 ## The UI scale follows the window like the game's (half the world's whole-number scale).
@@ -118,22 +128,23 @@ func cycle_tier(map: int) -> void:
 
 
 func _tier_name(tier: int) -> String:
-	return Run.TIERS[tier]["name"]
+	return tr(Run.TIERS[tier]["name"])
 
 
 func _refresh() -> void:
+	($Feathers as Label).text = tr("FEATHERS  %d") % progress.feathers
 	for index: int in range(sin_buttons.size()):
-		var beaten: String = "BEST %s" % _tier_name(progress.best[index]) if progress.best.has(index) else "ENTER  [%d]" % (index + 1)
-		sin_buttons[index].text = "%s  %s\n%s\n%s" % [NUMERALS[index], Run.BOSSES[index]["name"], _tier_name(tier_for(index)), beaten]
+		var beaten: String = tr("BEST %s") % _tier_name(progress.best[index]) if progress.best.has(index) else tr("ENTER  [%d]") % (index + 1)
+		sin_buttons[index].text = "%s  %s\n%s\n%s" % [NUMERALS[index], tr(Run.BOSSES[index]["name"]), _tier_name(tier_for(index)), beaten]
 	var relics: int = progress.sealed.size()
 	satan_button.disabled = not progress.satan_unlocked()
 	var tier_line: String = _tier_name(tier_for(Run.SATAN))
 	if progress.satan_defeated:
-		satan_button.text = "SATAN HAS FALLEN\n%s  ·  BEST %s\nSUMMON AGAIN  [S]" % [tier_line, _tier_name(progress.best.get(Run.SATAN, 0))]
+		satan_button.text = tr("SATAN HAS FALLEN\n%s  ·  BEST %s\nSUMMON AGAIN  [S]") % [tier_line, _tier_name(progress.best.get(Run.SATAN, 0))]
 	elif progress.satan_unlocked():
-		satan_button.text = "SUMMON SATAN\n%s\n[S]" % tier_line
+		satan_button.text = tr("SUMMON SATAN\n%s\n[S]") % tier_line
 	else:
-		satan_button.text = "SATAN\n%d / %d RELICS" % [relics, Run.SATAN]
+		satan_button.text = tr("SATAN\n%d / %d RELICS") % [relics, Run.SATAN]
 	# A map with only one open tier shows no picker.
 	for map: int in range(tier_arrows.size()):
 		var open: bool = progress.max_tier(map) > 0 and (map != Run.SATAN or progress.satan_unlocked())

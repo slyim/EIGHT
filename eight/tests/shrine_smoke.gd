@@ -63,6 +63,7 @@ func _run() -> void:
 	run.elapsed = 300.0
 	for type_index: int in range(Run.ENEMY_TYPES.size()):
 		var late: Enemy = run.spawn_enemy(type_index, Vector2(1000, 1000))
+		_check(is_equal_approx(late.speed, float(Run.ENEMY_TYPES[type_index]["speed"]) * 1.5), "Clock-driven horde speed must plateau at 150 percent on Penance.")
 		_check(late.speed > float(Run.ENEMY_TYPES[type_index]["speed"]) and late.max_health > int(Run.ENEMY_TYPES[type_index]["health"]) and late.contact_damage > int(Run.ENEMY_TYPES[type_index]["damage"]), "Every enemy type must scale generically.")
 		late.free()
 	run.enemy_count = 0
@@ -135,6 +136,25 @@ func _run() -> void:
 		if child.name.begins_with("HealedLight") and child.is_in_group(&"light"):
 			healed_lights += 1
 	_check(healed_lights == Run.SHRINE_COUNT - 1, "Each healed spot must carry a light (got %d)." % healed_lights)
+	# A wounded angel can defend a broken shrine for a single heal. Leaving restarts the wait.
+	var ring: Vector2 = run.ready_heals[0]
+	player.position = ring + Vector2(75, 0)
+	run._update_shrine_heal(11.0)
+	_check(run.ready_heals.has(ring), "A full-life angel must leave the shrine charge available.")
+	player.health = 10
+	await _ticks(10)
+	_check(run.healing_time > 0.0 and player.health == 10, "The ring must start counting during play.")
+	player.position = Vector2.ZERO
+	await _ticks(2)
+	_check(run.healing_time == 0.0, "Leaving the ring must reset its countdown.")
+	player.position = ring + Vector2(75, 0)
+	run._update_shrine_heal(9.9)
+	_check(player.health == 10, "The shrine must not pay early.")
+	run._update_shrine_heal(0.11)
+	var restored: int = 10 + ceili(player.max_health * 0.25)
+	run._update_shrine_heal(11.0)
+	_check(player.health == restored and not run.ready_heals.has(ring), "The shrine must restore a quarter of life only once.")
+	player.position = Vector2.ZERO
 	shrines[shrines.size() - 1].take_blow(1000)
 	_leave_pacts(run)
 	await _ticks(2)
@@ -143,7 +163,7 @@ func _run() -> void:
 	boss._attack(Boss.Pattern.SUMMON)
 	await _ticks(1)
 	_check(run.enemy_count > horde_before, "The sin itself must still summon minions.")
-	_check(run.shrines_left == 0 and boss != null and boss.boss_name.begins_with("PRIDE (") and boss.max_health >= int(Run.BOSSES[0]["health"]), "The last shrine must summon the full Pride boss.")
+	_check(run.shrines_left == 0 and boss != null and boss.boss_name == "PRIDE" and boss.max_health >= int(Run.BOSSES[0]["health"]), "The last shrine must summon the full Pride boss.")
 	_check(run.spawn_sin_boss() == null, "The sin must never be summoned twice.")
 	countdown = run.shrine_time_left
 	await _ticks(30)

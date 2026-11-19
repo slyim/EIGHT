@@ -1,0 +1,1248 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>EIGHT — illustrated artist handoff</title><style>
+:root{color-scheme:dark;--ink:#edf3ed;--muted:#a6bab9;--paper:#100d17;--panel:#191523;--panel2:#211b2c;--line:#40354e;--mint:#caebe0;--gold:#e6e29e;--plum:#97576c;--sea:#729aa1;--black:#070109}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.62 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--mint);text-underline-offset:3px}a:hover{color:#fff}code{font-family:ui-monospace,Consolas,monospace;color:var(--gold);font-size:.93em}h1,h2,h3,h4{line-height:1.18;margin:.2em 0 .55em;font-weight:650}h1{font-size:clamp(2.3rem,6vw,5.8rem);letter-spacing:-.055em;max-width:980px}h2{font-size:clamp(1.8rem,3vw,3rem);letter-spacing:-.035em}h3{font-size:1.35rem}h4{font-size:1.05rem}p{max-width:84ch}p,li{color:var(--muted)}strong{color:var(--ink)}.wrap{width:min(1500px,calc(100% - 48px));margin:auto}.hero{padding:76px 0 42px;border-bottom:1px solid var(--line);background:radial-gradient(circle at 86% 12%,#3a214080,transparent 35%),linear-gradient(125deg,#100d17,#171222)}.eyebrow,.kicker{display:block;color:var(--gold);font:700 .72rem/1.5 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase}.hero p{font-size:1.12rem;max-width:830px}.hero .lede{color:var(--ink);font-size:1.28rem;max-width:850px}.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}.stat{background:#ffffff08;border:1px solid var(--line);padding:12px 16px;min-width:145px}.stat strong{display:block;font-size:1.6rem}.stat span{font-size:.78rem;color:var(--muted)}nav{position:sticky;top:0;z-index:20;background:#100d17f2;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}nav .wrap{display:flex;align-items:center;gap:18px;overflow:auto;padding-top:10px;padding-bottom:10px}nav a{white-space:nowrap;text-decoration:none;font-size:.84rem;color:var(--muted)}nav a:hover{color:var(--mint)}nav .brand{color:var(--gold);font-weight:800;margin-right:auto}main section.chapter{padding:58px 0 18px;border-bottom:1px solid var(--line)}.chapter>p{max-width:960px}.callout{padding:18px 20px;border-left:3px solid var(--gold);background:#e6e29e0b;margin:22px 0}.callout p{margin:0}.warning{border-left-color:var(--plum)}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.panel{background:var(--panel);border:1px solid var(--line);padding:20px}.panel h3{margin-top:0}.swatch{display:inline-block;width:.85em;height:.85em;margin-right:.5em;border:1px solid #ffffff40;vertical-align:-.05em}table{border-collapse:collapse;width:100%;margin:20px 0;background:var(--panel)}th,td{text-align:left;vertical-align:top;padding:13px 15px;border-bottom:1px solid var(--line)}th{color:var(--gold);font-size:.77rem;text-transform:uppercase;letter-spacing:.07em}td{color:var(--muted)}tr:last-child td{border-bottom:0}.original-card{display:grid;grid-template-columns:minmax(180px,320px) 1fr;gap:24px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:20px;margin:16px 0}.original-preview{min-height:150px;display:grid;place-items:center;background:repeating-conic-gradient(#1e182e 0 25%,#2e3850 0 50%) 0 0/24px 24px;border:1px solid var(--line);overflow:hidden}.original-preview img{display:block;max-width:100%;max-height:260px;image-rendering:pixelated}.original-preview.icon img{width:128px;height:128px}.source-link{white-space:nowrap}.meta{font:400 .82rem/1.6 ui-monospace,Consolas,monospace}.group-heading{display:flex;align-items:baseline;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);margin-top:38px;padding-top:8px}.group-heading h3{color:var(--mint)}.group-heading span{color:var(--muted);font-size:.82rem}.sheet{background:var(--panel);border:1px solid var(--line);margin:22px 0;padding:20px}.sheet>header{display:flex;justify-content:space-between;gap:20px;align-items:start}.sheet h3{font-family:ui-monospace,Consolas,monospace;font-size:1.2rem;overflow-wrap:anywhere}.tag-block{margin:24px 0 6px}.tag-block h4{display:flex;gap:14px;align-items:center}.tag-block h4 span{font-weight:400;color:var(--muted);font-size:.75rem}.source-grid{display:flex;flex-wrap:wrap;align-items:end;gap:10px}.source-frame{margin:0;background:#0c0911;border:1px solid #32283e;padding:7px;min-width:84px}.source-frame>a{min-height:60px;display:flex;align-items:center;justify-content:center}.source-frame img{display:block;max-width:none;image-rendering:pixelated;image-rendering:crisp-edges}.source-frame figcaption{padding-top:7px;font:400 .7rem/1.35 ui-monospace,Consolas,monospace;color:var(--gold)}.source-frame figcaption span{display:block;color:var(--muted)}.pixel{background:repeating-conic-gradient(#1e182e 0 25%,#2e3850 0 50%) 0 0/16px 16px;image-rendering:pixelated}.runtime-group{padding-top:10px}.visual-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.visual-card{margin:0;background:var(--panel);border:1px solid var(--line);min-width:0}.visual-card.wide{grid-column:1/-1}.visual-card>a{display:grid;place-items:center;min-height:120px;background:#08060d;overflow:hidden}.visual-card img{display:block;width:100%;height:auto;max-height:900px;object-fit:contain;image-rendering:pixelated}.visual-card.wide img{max-height:900px}.visual-card figcaption{display:flex;flex-wrap:wrap;gap:5px 12px;padding:11px 13px;font-size:.78rem}.visual-card figcaption strong{width:100%}.visual-card figcaption span{color:var(--muted);flex:1 1 180px}.visual-card figcaption a{white-space:nowrap}.filter{display:flex;gap:10px;align-items:center;margin:20px 0}.filter input{width:min(480px,100%);background:#0b0810;border:1px solid var(--line);color:var(--ink);padding:11px 13px;font:inherit}.filter button,.expand button{background:var(--panel2);border:1px solid var(--line);color:var(--mint);padding:10px 13px;cursor:pointer}.hidden-by-filter{display:none!important}.status{display:inline-block;padding:2px 7px;border:1px solid var(--line);font:600 .7rem/1.5 ui-monospace,Consolas,monospace;color:var(--gold)}ol>li,ul>li{margin:.4em 0}.footer{padding:40px 0 80px}.footer p{font-size:.85rem}@media(max-width:800px){.wrap{width:min(100% - 24px,1500px)}.hero{padding-top:46px}.two-col,.three-col{grid-template-columns:1fr}.original-card{grid-template-columns:1fr}.sheet{padding:12px}.sheet>header{flex-direction:column}.visual-grid{grid-template-columns:1fr 1fr}th,td{padding:9px}.source-frame{max-width:46%}}@media(max-width:500px){.visual-grid{grid-template-columns:1fr}}@media print{body{background:#fff;color:#111;font-size:10pt}a{color:#111}p,li,td,.meta,.source-frame figcaption span,.visual-card figcaption span{color:#333}nav,.filter,.expand{display:none}.hero{padding:20px 0;background:#fff;color:#111}.wrap{width:100%}.panel,.sheet,.original-card,.visual-card,.source-frame,table{background:#fff;border-color:#bbb;break-inside:avoid}.sheet{break-before:page}.chapter{break-before:page}.visual-card img{max-height:700px}.source-frame img{border:1px solid #ddd}.kicker,.eyebrow,.group-heading h3,th,strong,h1,h2,h3,h4{color:#111}.stats{display:none}}
+</style></head>
+<body><header class="hero"><div class="wrap"><span class="eyebrow">EIGHT / HUMAN ART REPLACEMENT HANDOFF / 19 NOVEMBER 2026</span><h1>Every current visual, pictured.</h1><p class="lede">An offline reference for replacing the prototype’s temporary art with human-made work. Native source frames, original PNGs, shared/tinted variants, and actual Godot renders — with no new production art.</p><p>Open this file in any modern desktop browser. No server, internet connection, web fonts, or JavaScript libraries are required. Click an image or <strong>Native PNG</strong> to inspect or download the actual file.</p><div class="stats"><div class="stat"><strong>23 / 23</strong><span>existing Aseprite sheets</span></div><div class="stat"><strong>136</strong><span>unique source frames</span></div><div class="stat"><strong>234</strong><span>stored tag-frame PNGs</span></div><div class="stat"><strong>139</strong><span>actual runtime stills</span></div><div class="stat"><strong>2 + 1</strong><span>original PNGs + SVG</span></div><div class="stat"><strong>376</strong><span>pictures in this document</span></div></div></div></header>
+<nav aria-label="Handoff chapters"><div class="wrap"><a class="brand" href="#top">EIGHT / ART</a><a href="#brief">Direction</a><a href="#originals">Originals</a><a href="#sheets">23 sheets</a><a href="#runtime">Runtime visuals</a><a href="#realms">Realms</a><a href="#interface">UI + transitions</a><a href="#coverage">Coverage + gaps</a><a href="VERIFICATION.md">Verification</a></div></nav>
+<main id="top" class="wrap">
+<section class="chapter" id="brief"><span class="kicker">01 / READ FIRST</span><h2>Art direction and replacement rules</h2><div class="callout"><p><strong>Production art must be human-created.</strong> These exports and screenshots are documentary references only; they are not replacement assets. Existing placeholder sheets remain until each human-made replacement has been checked in game. Audio is outside this visual handoff.</p></div><div class="two-col"><div class="panel"><h3>Visual language</h3><ul><li><strong>Portraits and icons:</strong> vector artwork.</li><li><strong>World art:</strong> pixel art. Preserve nearest-neighbor sampling and the 2× prototype render scale; one source-art pixel occupies two world units.</li><li><strong>Hero:</strong> a female angel in a purple cloak, riding a black ox, with light spear/bow. Existing sheets face right and the game mirrors them.</li><li><strong>Do not treat procedural boss patterns, names, layout, balance or enemy tints as approved final character designs.</strong> They describe current test visuals only.</li></ul></div><div class="panel"><h3>Replacement workflow</h3><ol><li>Use the source canvas, tags, facing and alignment shown below.</li><li>Keep editable human-made sources with exports and update <code>art/CREDITS.md</code> with creator, rights and status.</li><li>Give each shared/tinted role its own readable silhouette or directed treatment; tint alone is not a final roster.</li><li>Check silhouettes, grips, warnings, hit areas and text-free runtime composition at game scale before replacing the old reference.</li></ol></div></div><h3>Realm assignments from the owner</h3><table><thead><tr><th>Realm</th><th>Sin</th><th>Direction</th><th>Reference</th></tr></thead><tbody><tr><td>Odin</td><td>Pride</td><td><span class="swatch" style="background:#e53935"></span>red</td><td><a href="runtime/realm_00_pride.png">Current realm still</a></td></tr><tr><td>Midas</td><td>Greed</td><td><span class="swatch" style="background:#f3cf45"></span>yellow</td><td><a href="runtime/realm_01_greed.png">Current realm still</a></td></tr><tr><td>Lilith</td><td>Lust</td><td><span class="swatch" style="background:#ef79b6"></span>pink</td><td><a href="runtime/realm_02_lust.png">Current realm still</a></td></tr><tr><td>Loki</td><td>Envy</td><td><span class="swatch" style="background:#4caf68"></span>green</td><td><a href="runtime/realm_03_envy.png">Current realm still</a></td></tr><tr><td>Wendigo</td><td>Gluttony</td><td><span class="swatch" style="background:#e68035"></span>orange</td><td><a href="runtime/realm_04_gluttony.png">Current realm still</a></td></tr><tr><td>Cerberus</td><td>Wrath</td><td><span class="swatch" style="background:#e53935"></span>red</td><td><a href="runtime/realm_05_wrath.png">Current realm still</a></td></tr><tr><td>Edward</td><td>Sloth</td><td><span class="swatch" style="background:#5588dd"></span>blue</td><td><a href="runtime/realm_06_sloth.png">Current realm still</a></td></tr><tr><td>Satan</td><td>finale</td><td><span class="swatch" style="background:#9b6ab0"></span>finale</td><td><a href="runtime/realm_07_satan.png">Current realm still</a></td></tr></tbody></table><p>Satan is the finale. No additional final accent color was supplied in this brief; the violet in current test effects is a placeholder, not an added direction.</p><div class="callout warning"><p><strong>Current runtime tints are documentary evidence, not color keys for final art.</strong> The realm stills below show the workspace as captured; use the assignments above for the replacement direction.</p></div></section>
+<section class="chapter" id="originals"><span class="kicker">02 / ORIGINAL IMAGES</span><h2>Original PNGs and the project icon</h2><p>Both original PNGs and the SVG are copied byte-for-byte into this handoff. Their SHA-256 hashes are recorded in <code>sheet_manifest.json</code> and checked in <a href="VERIFICATION.md">VERIFICATION.md</a>. Rights and provenance remain as documented in <a href="../CREDITS.md">art/CREDITS.md</a>; no new reuse license is asserted.</p><article class="original-card"><div class="original-preview"><a href="originals/Sprite-0001.png" target="_blank" rel="noreferrer"><img src="originals/Sprite-0001.png" alt="Owner-supplied spear image"></a></div>
+<div><span class="kicker">ORIGINAL PNG · SHA-256 d655b8edba97ddb8…</span><h3>Owner-supplied spear image</h3><p>Original PNG, unchanged. Imported only; its role and final status remain undecided.</p><p class="meta">32×32 px · <a href="originals/Sprite-0001.png" download>Download byte-identical original</a> · <a href="../Sprite-0001.png">Workspace source</a></p></div></article><article class="original-card"><div class="original-preview"><a href="originals/eight_logo_pixel.png" target="_blank" rel="noreferrer"><img src="originals/eight_logo_pixel.png" alt="EIGHT logo pixel adaptation"></a></div>
+<div><span class="kicker">ORIGINAL PNG · SHA-256 67c42ac884789b9b…</span><h3>EIGHT logo pixel adaptation</h3><p>Original PNG, unchanged. Owner-supplied design with an explicitly approved AI-assisted pixel adaptation; used in the HUD.</p><p class="meta">1774×887 px · <a href="originals/eight_logo_pixel.png" download>Download byte-identical original</a> · <a href="../eight_logo_pixel.png">Workspace source</a></p></div></article><article class="original-card"><div class="original-preview icon"><a href="originals/icon.svg" target="_blank" rel="noreferrer"><img src="originals/icon.svg" alt="Existing Godot project icon"></a></div>
+<div><span class="kicker">ORIGINAL SVG · TEMPLATE / EDITOR ICON</span><h3>Godot project icon</h3><p>Original <code>icon.svg</code>, unchanged. This is not final game art; a human-made application icon remains a separate delivery.</p><p class="meta">128×128 px · <a href="originals/icon.svg" download>Download byte-identical original</a> · <a href="../../../icon.svg">Workspace source</a></p></div></article><p class="meta">Marcellus and Alegreya Sans are retained, licensed UI fonts, not world art needing replacement. Their appearance is visible in the live UI screenshots; licenses and credits remain in <a href="../../fonts/CREDITS.md">assets/fonts/CREDITS.md</a>.</p></section>
+<section class="chapter" id="sheets"><span class="kicker">03 / COMPLETE SOURCE-FRAME GALLERY</span><h2>All 23 existing art sheets</h2><p>Every source frame from every <code>placeholder_*.aseprite</code> file is shown under its stored tag. PNGs are native canvas-size exports from the original Aseprite data, not rescaled replacements and not Godot cache images. Enlarged thumbnails use nearest-neighbor display only. Click through for the native file.</p><div class="callout warning"><p><strong>Stored tag ranges are preserved exactly, including overlaps.</strong> Some tags cover earlier frames again. All 234 tag-frame views are pictured and zero-based <code>source_frame</code> labels expose reuse. There are 136 unique source frames; no duplicate has been silently removed or retimed. In particular, decor has 9 unique frames across 45 stored tag-frame views.</p></div><div class="filter expand"><input id="visual-filter" type="search" placeholder="Filter sheets by name or animation tag…" aria-label="Filter sheets by name or animation tag"><button type="button" onclick="document.querySelectorAll('.source-frame,.sheet').forEach(x=>x.classList.remove('hidden-by-filter'));document.querySelector('#visual-filter').value=''">Clear</button></div><div class="group-heading"><h3>Hero and light weapon</h3></div><article class="sheet" id="sheet-placeholder_player" data-search="placeholder_player Hero and light weapon idle run dash jump descend">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_player</h3></div><a class="source-link" href="../placeholder/placeholder_player.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 16 unique source frames · 46 stored tag-frame views · 5 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–15</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_player/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_player/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_player/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_player/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_player/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_player/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_player/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_player/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 8">
+<a href="frames/placeholder_player/idle__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__008.png" alt="idle / source frame 08"></a>
+<figcaption>idle <span>source_frame 08 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 9">
+<a href="frames/placeholder_player/idle__009.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__009.png" alt="idle / source frame 09"></a>
+<figcaption>idle <span>source_frame 09 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 10">
+<a href="frames/placeholder_player/idle__010.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__010.png" alt="idle / source frame 10"></a>
+<figcaption>idle <span>source_frame 10 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 11">
+<a href="frames/placeholder_player/idle__011.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__011.png" alt="idle / source frame 11"></a>
+<figcaption>idle <span>source_frame 11 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 12">
+<a href="frames/placeholder_player/idle__012.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__012.png" alt="idle / source frame 12"></a>
+<figcaption>idle <span>source_frame 12 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 13">
+<a href="frames/placeholder_player/idle__013.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__013.png" alt="idle / source frame 13"></a>
+<figcaption>idle <span>source_frame 13 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 14">
+<a href="frames/placeholder_player/idle__014.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__014.png" alt="idle / source frame 14"></a>
+<figcaption>idle <span>source_frame 14 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 15">
+<a href="frames/placeholder_player/idle__015.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/idle__015.png" alt="idle / source frame 15"></a>
+<figcaption>idle <span>source_frame 15 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>run</code> <span>source frames 04–15</span></h4><div class="source-grid"><figure class="source-frame" data-search="run source frame 4">
+<a href="frames/placeholder_player/run__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__004.png" alt="run / source frame 04"></a>
+<figcaption>run <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 5">
+<a href="frames/placeholder_player/run__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__005.png" alt="run / source frame 05"></a>
+<figcaption>run <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 6">
+<a href="frames/placeholder_player/run__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__006.png" alt="run / source frame 06"></a>
+<figcaption>run <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 7">
+<a href="frames/placeholder_player/run__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__007.png" alt="run / source frame 07"></a>
+<figcaption>run <span>source_frame 07 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 8">
+<a href="frames/placeholder_player/run__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__008.png" alt="run / source frame 08"></a>
+<figcaption>run <span>source_frame 08 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 9">
+<a href="frames/placeholder_player/run__009.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__009.png" alt="run / source frame 09"></a>
+<figcaption>run <span>source_frame 09 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 10">
+<a href="frames/placeholder_player/run__010.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__010.png" alt="run / source frame 10"></a>
+<figcaption>run <span>source_frame 10 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 11">
+<a href="frames/placeholder_player/run__011.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__011.png" alt="run / source frame 11"></a>
+<figcaption>run <span>source_frame 11 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 12">
+<a href="frames/placeholder_player/run__012.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__012.png" alt="run / source frame 12"></a>
+<figcaption>run <span>source_frame 12 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 13">
+<a href="frames/placeholder_player/run__013.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__013.png" alt="run / source frame 13"></a>
+<figcaption>run <span>source_frame 13 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 14">
+<a href="frames/placeholder_player/run__014.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__014.png" alt="run / source frame 14"></a>
+<figcaption>run <span>source_frame 14 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="run source frame 15">
+<a href="frames/placeholder_player/run__015.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/run__015.png" alt="run / source frame 15"></a>
+<figcaption>run <span>source_frame 15 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>dash</code> <span>source frames 08–15</span></h4><div class="source-grid"><figure class="source-frame" data-search="dash source frame 8">
+<a href="frames/placeholder_player/dash__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__008.png" alt="dash / source frame 08"></a>
+<figcaption>dash <span>source_frame 08 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 9">
+<a href="frames/placeholder_player/dash__009.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__009.png" alt="dash / source frame 09"></a>
+<figcaption>dash <span>source_frame 09 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 10">
+<a href="frames/placeholder_player/dash__010.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__010.png" alt="dash / source frame 10"></a>
+<figcaption>dash <span>source_frame 10 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 11">
+<a href="frames/placeholder_player/dash__011.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__011.png" alt="dash / source frame 11"></a>
+<figcaption>dash <span>source_frame 11 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 12">
+<a href="frames/placeholder_player/dash__012.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__012.png" alt="dash / source frame 12"></a>
+<figcaption>dash <span>source_frame 12 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 13">
+<a href="frames/placeholder_player/dash__013.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__013.png" alt="dash / source frame 13"></a>
+<figcaption>dash <span>source_frame 13 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 14">
+<a href="frames/placeholder_player/dash__014.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__014.png" alt="dash / source frame 14"></a>
+<figcaption>dash <span>source_frame 14 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="dash source frame 15">
+<a href="frames/placeholder_player/dash__015.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/dash__015.png" alt="dash / source frame 15"></a>
+<figcaption>dash <span>source_frame 15 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>jump</code> <span>source frames 10–15</span></h4><div class="source-grid"><figure class="source-frame" data-search="jump source frame 10">
+<a href="frames/placeholder_player/jump__010.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/jump__010.png" alt="jump / source frame 10"></a>
+<figcaption>jump <span>source_frame 10 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="jump source frame 11">
+<a href="frames/placeholder_player/jump__011.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/jump__011.png" alt="jump / source frame 11"></a>
+<figcaption>jump <span>source_frame 11 · 120 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="jump source frame 12">
+<a href="frames/placeholder_player/jump__012.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/jump__012.png" alt="jump / source frame 12"></a>
+<figcaption>jump <span>source_frame 12 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="jump source frame 13">
+<a href="frames/placeholder_player/jump__013.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/jump__013.png" alt="jump / source frame 13"></a>
+<figcaption>jump <span>source_frame 13 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="jump source frame 14">
+<a href="frames/placeholder_player/jump__014.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/jump__014.png" alt="jump / source frame 14"></a>
+<figcaption>jump <span>source_frame 14 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="jump source frame 15">
+<a href="frames/placeholder_player/jump__015.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/jump__015.png" alt="jump / source frame 15"></a>
+<figcaption>jump <span>source_frame 15 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>descend</code> <span>source frames 12–15</span></h4><div class="source-grid"><figure class="source-frame" data-search="descend source frame 12">
+<a href="frames/placeholder_player/descend__012.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/descend__012.png" alt="descend / source frame 12"></a>
+<figcaption>descend <span>source_frame 12 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="descend source frame 13">
+<a href="frames/placeholder_player/descend__013.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/descend__013.png" alt="descend / source frame 13"></a>
+<figcaption>descend <span>source_frame 13 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="descend source frame 14">
+<a href="frames/placeholder_player/descend__014.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/descend__014.png" alt="descend / source frame 14"></a>
+<figcaption>descend <span>source_frame 14 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="descend source frame 15">
+<a href="frames/placeholder_player/descend__015.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_player/descend__015.png" alt="descend / source frame 15"></a>
+<figcaption>descend <span>source_frame 15 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_spear_light" data-search="placeholder_spear_light Hero and light weapon idle">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_spear_light</h3></div><a class="source-link" href="../placeholder/placeholder_spear_light.aseprite" download>Original .aseprite</a></header>
+<p class="meta">48×16 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_spear_light/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:192px;height:64px" width="192" height="64" src="frames/placeholder_spear_light/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_spear_light/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:192px;height:64px" width="192" height="64" src="frames/placeholder_spear_light/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_spear_light/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:192px;height:64px" width="192" height="64" src="frames/placeholder_spear_light/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_spear_light/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:192px;height:64px" width="192" height="64" src="frames/placeholder_spear_light/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 80 ms</span></figcaption>
+</figure></div></section>
+</article><div class="group-heading"><h3>Base horde sheets</h3></div><article class="sheet" id="sheet-placeholder_enemy_husk" data-search="placeholder_enemy_husk Base horde sheets walk">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_enemy_husk</h3></div><a class="source-link" href="../placeholder/placeholder_enemy_husk.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>walk</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="walk source frame 0">
+<a href="frames/placeholder_enemy_husk/walk__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_husk/walk__000.png" alt="walk / source frame 00"></a>
+<figcaption>walk <span>source_frame 00 · 140 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 1">
+<a href="frames/placeholder_enemy_husk/walk__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_husk/walk__001.png" alt="walk / source frame 01"></a>
+<figcaption>walk <span>source_frame 01 · 140 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 2">
+<a href="frames/placeholder_enemy_husk/walk__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_husk/walk__002.png" alt="walk / source frame 02"></a>
+<figcaption>walk <span>source_frame 02 · 140 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 3">
+<a href="frames/placeholder_enemy_husk/walk__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_husk/walk__003.png" alt="walk / source frame 03"></a>
+<figcaption>walk <span>source_frame 03 · 140 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_enemy_imp" data-search="placeholder_enemy_imp Base horde sheets walk">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_enemy_imp</h3></div><a class="source-link" href="../placeholder/placeholder_enemy_imp.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>walk</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="walk source frame 0">
+<a href="frames/placeholder_enemy_imp/walk__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_imp/walk__000.png" alt="walk / source frame 00"></a>
+<figcaption>walk <span>source_frame 00 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 1">
+<a href="frames/placeholder_enemy_imp/walk__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_imp/walk__001.png" alt="walk / source frame 01"></a>
+<figcaption>walk <span>source_frame 01 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 2">
+<a href="frames/placeholder_enemy_imp/walk__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_imp/walk__002.png" alt="walk / source frame 02"></a>
+<figcaption>walk <span>source_frame 02 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 3">
+<a href="frames/placeholder_enemy_imp/walk__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_imp/walk__003.png" alt="walk / source frame 03"></a>
+<figcaption>walk <span>source_frame 03 · 80 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_enemy_brute" data-search="placeholder_enemy_brute Base horde sheets walk">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_enemy_brute</h3></div><a class="source-link" href="../placeholder/placeholder_enemy_brute.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>walk</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="walk source frame 0">
+<a href="frames/placeholder_enemy_brute/walk__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_brute/walk__000.png" alt="walk / source frame 00"></a>
+<figcaption>walk <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 1">
+<a href="frames/placeholder_enemy_brute/walk__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_brute/walk__001.png" alt="walk / source frame 01"></a>
+<figcaption>walk <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 2">
+<a href="frames/placeholder_enemy_brute/walk__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_brute/walk__002.png" alt="walk / source frame 02"></a>
+<figcaption>walk <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="walk source frame 3">
+<a href="frames/placeholder_enemy_brute/walk__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_enemy_brute/walk__003.png" alt="walk / source frame 03"></a>
+<figcaption>walk <span>source_frame 03 · 180 ms</span></figcaption>
+</figure></div></section>
+</article><div class="group-heading"><h3>Seven sins and finale</h3></div><article class="sheet" id="sheet-placeholder_boss_pride" data-search="placeholder_boss_pride Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_pride</h3></div><a class="source-link" href="../placeholder/placeholder_boss_pride.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_pride/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_pride/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_pride/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_pride/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_pride/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_pride/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_pride/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_pride/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_pride/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_pride/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_pride/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_pride/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_pride/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_greed" data-search="placeholder_boss_greed Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_greed</h3></div><a class="source-link" href="../placeholder/placeholder_boss_greed.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_greed/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_greed/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_greed/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_greed/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_greed/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_greed/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_greed/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_greed/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_greed/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_greed/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_greed/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_greed/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_greed/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_lust" data-search="placeholder_boss_lust Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_lust</h3></div><a class="source-link" href="../placeholder/placeholder_boss_lust.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_lust/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_lust/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_lust/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_lust/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_lust/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_lust/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_lust/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_lust/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_lust/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_lust/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_lust/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_lust/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_lust/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_envy" data-search="placeholder_boss_envy Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_envy</h3></div><a class="source-link" href="../placeholder/placeholder_boss_envy.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_envy/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_envy/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_envy/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_envy/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_envy/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_envy/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_envy/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_envy/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_envy/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_envy/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_envy/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_envy/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_envy/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_gluttony" data-search="placeholder_boss_gluttony Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_gluttony</h3></div><a class="source-link" href="../placeholder/placeholder_boss_gluttony.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_gluttony/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_gluttony/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_gluttony/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_gluttony/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_gluttony/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_gluttony/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_gluttony/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_gluttony/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_gluttony/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_gluttony/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_gluttony/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_gluttony/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_gluttony/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_wrath" data-search="placeholder_boss_wrath Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_wrath</h3></div><a class="source-link" href="../placeholder/placeholder_boss_wrath.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_wrath/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_wrath/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_wrath/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_wrath/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_wrath/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_wrath/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_wrath/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_wrath/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_wrath/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_wrath/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_wrath/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_wrath/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_wrath/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_sloth" data-search="placeholder_boss_sloth Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_sloth</h3></div><a class="source-link" href="../placeholder/placeholder_boss_sloth.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_sloth/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_sloth/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_sloth/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_sloth/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_sloth/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_sloth/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_sloth/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_sloth/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_sloth/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_sloth/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_sloth/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_sloth/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_sloth/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_boss_satan" data-search="placeholder_boss_satan Seven sins and finale idle attack">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_boss_satan</h3></div><a class="source-link" href="../placeholder/placeholder_boss_satan.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 8 unique source frames · 12 stored tag-frame views · 2 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_boss_satan/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_boss_satan/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_boss_satan/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_boss_satan/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 180 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 4">
+<a href="frames/placeholder_boss_satan/idle__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__004.png" alt="idle / source frame 04"></a>
+<figcaption>idle <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 5">
+<a href="frames/placeholder_boss_satan/idle__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__005.png" alt="idle / source frame 05"></a>
+<figcaption>idle <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 6">
+<a href="frames/placeholder_boss_satan/idle__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__006.png" alt="idle / source frame 06"></a>
+<figcaption>idle <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 7">
+<a href="frames/placeholder_boss_satan/idle__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/idle__007.png" alt="idle / source frame 07"></a>
+<figcaption>idle <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>attack</code> <span>source frames 04–07</span></h4><div class="source-grid"><figure class="source-frame" data-search="attack source frame 4">
+<a href="frames/placeholder_boss_satan/attack__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/attack__004.png" alt="attack / source frame 04"></a>
+<figcaption>attack <span>source_frame 04 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 5">
+<a href="frames/placeholder_boss_satan/attack__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/attack__005.png" alt="attack / source frame 05"></a>
+<figcaption>attack <span>source_frame 05 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 6">
+<a href="frames/placeholder_boss_satan/attack__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/attack__006.png" alt="attack / source frame 06"></a>
+<figcaption>attack <span>source_frame 06 · 100 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="attack source frame 7">
+<a href="frames/placeholder_boss_satan/attack__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_boss_satan/attack__007.png" alt="attack / source frame 07"></a>
+<figcaption>attack <span>source_frame 07 · 100 ms</span></figcaption>
+</figure></div></section>
+</article><div class="group-heading"><h3>Pickups and impact effects</h3></div><article class="sheet" id="sheet-placeholder_pickup_xp" data-search="placeholder_pickup_xp Pickups and impact effects idle">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_pickup_xp</h3></div><a class="source-link" href="../placeholder/placeholder_pickup_xp.aseprite" download>Original .aseprite</a></header>
+<p class="meta">16×16 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_pickup_xp/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_xp/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 140 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_pickup_xp/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_xp/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 140 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_pickup_xp/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_xp/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 140 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_pickup_xp/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_xp/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 140 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_pickup_life" data-search="placeholder_pickup_life Pickups and impact effects idle">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_pickup_life</h3></div><a class="source-link" href="../placeholder/placeholder_pickup_life.aseprite" download>Original .aseprite</a></header>
+<p class="meta">16×16 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_pickup_life/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_life/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_pickup_life/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_life/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_pickup_life/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_life/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_pickup_life/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_life/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 160 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_pickup_item" data-search="placeholder_pickup_item Pickups and impact effects idle">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_pickup_item</h3></div><a class="source-link" href="../placeholder/placeholder_pickup_item.aseprite" download>Original .aseprite</a></header>
+<p class="meta">16×16 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_pickup_item/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_item/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 1">
+<a href="frames/placeholder_pickup_item/idle__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_item/idle__001.png" alt="idle / source frame 01"></a>
+<figcaption>idle <span>source_frame 01 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 2">
+<a href="frames/placeholder_pickup_item/idle__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_item/idle__002.png" alt="idle / source frame 02"></a>
+<figcaption>idle <span>source_frame 02 · 160 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="idle source frame 3">
+<a href="frames/placeholder_pickup_item/idle__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_pickup_item/idle__003.png" alt="idle / source frame 03"></a>
+<figcaption>idle <span>source_frame 03 · 160 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_projectile_fire" data-search="placeholder_projectile_fire Pickups and impact effects fly">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_projectile_fire</h3></div><a class="source-link" href="../placeholder/placeholder_projectile_fire.aseprite" download>Original .aseprite</a></header>
+<p class="meta">16×16 canvas · 3 unique source frames · 3 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>fly</code> <span>source frames 00–02</span></h4><div class="source-grid"><figure class="source-frame" data-search="fly source frame 0">
+<a href="frames/placeholder_projectile_fire/fly__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_projectile_fire/fly__000.png" alt="fly / source frame 00"></a>
+<figcaption>fly <span>source_frame 00 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="fly source frame 1">
+<a href="frames/placeholder_projectile_fire/fly__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_projectile_fire/fly__001.png" alt="fly / source frame 01"></a>
+<figcaption>fly <span>source_frame 01 · 80 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="fly source frame 2">
+<a href="frames/placeholder_projectile_fire/fly__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:64px;height:64px" width="64" height="64" src="frames/placeholder_projectile_fire/fly__002.png" alt="fly / source frame 02"></a>
+<figcaption>fly <span>source_frame 02 · 80 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_vfx_slash" data-search="placeholder_vfx_slash Pickups and impact effects _slash">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_vfx_slash</h3></div><a class="source-link" href="../placeholder/placeholder_vfx_slash.aseprite" download>Original .aseprite</a></header>
+<p class="meta">128×128 canvas · 5 unique source frames · 5 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>_slash</code> <span>source frames 00–04</span></h4><div class="source-grid"><figure class="source-frame" data-search="_slash source frame 0">
+<a href="frames/placeholder_vfx_slash/_slash__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_vfx_slash/_slash__000.png" alt="_slash / source frame 00"></a>
+<figcaption>_slash <span>source_frame 00 · 50 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_slash source frame 1">
+<a href="frames/placeholder_vfx_slash/_slash__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_vfx_slash/_slash__001.png" alt="_slash / source frame 01"></a>
+<figcaption>_slash <span>source_frame 01 · 50 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_slash source frame 2">
+<a href="frames/placeholder_vfx_slash/_slash__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_vfx_slash/_slash__002.png" alt="_slash / source frame 02"></a>
+<figcaption>_slash <span>source_frame 02 · 50 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_slash source frame 3">
+<a href="frames/placeholder_vfx_slash/_slash__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_vfx_slash/_slash__003.png" alt="_slash / source frame 03"></a>
+<figcaption>_slash <span>source_frame 03 · 50 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_slash source frame 4">
+<a href="frames/placeholder_vfx_slash/_slash__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_vfx_slash/_slash__004.png" alt="_slash / source frame 04"></a>
+<figcaption>_slash <span>source_frame 04 · 50 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_vfx_poof" data-search="placeholder_vfx_poof Pickups and impact effects _poof">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_vfx_poof</h3></div><a class="source-link" href="../placeholder/placeholder_vfx_poof.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 5 unique source frames · 5 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>_poof</code> <span>source frames 00–04</span></h4><div class="source-grid"><figure class="source-frame" data-search="_poof source frame 0">
+<a href="frames/placeholder_vfx_poof/_poof__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_vfx_poof/_poof__000.png" alt="_poof / source frame 00"></a>
+<figcaption>_poof <span>source_frame 00 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_poof source frame 1">
+<a href="frames/placeholder_vfx_poof/_poof__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_vfx_poof/_poof__001.png" alt="_poof / source frame 01"></a>
+<figcaption>_poof <span>source_frame 01 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_poof source frame 2">
+<a href="frames/placeholder_vfx_poof/_poof__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_vfx_poof/_poof__002.png" alt="_poof / source frame 02"></a>
+<figcaption>_poof <span>source_frame 02 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_poof source frame 3">
+<a href="frames/placeholder_vfx_poof/_poof__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_vfx_poof/_poof__003.png" alt="_poof / source frame 03"></a>
+<figcaption>_poof <span>source_frame 03 · 60 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="_poof source frame 4">
+<a href="frames/placeholder_vfx_poof/_poof__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_vfx_poof/_poof__004.png" alt="_poof / source frame 04"></a>
+<figcaption>_poof <span>source_frame 04 · 60 ms</span></figcaption>
+</figure></div></section>
+</article><div class="group-heading"><h3>Environment</h3></div><article class="sheet" id="sheet-placeholder_env_floor" data-search="placeholder_env_floor Environment tiles">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_env_floor</h3></div><a class="source-link" href="../placeholder/placeholder_env_floor.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 4 unique source frames · 4 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>tiles</code> <span>source frames 00–03</span></h4><div class="source-grid"><figure class="source-frame" data-search="tiles source frame 0">
+<a href="frames/placeholder_env_floor/tiles__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_floor/tiles__000.png" alt="tiles / source frame 00"></a>
+<figcaption>tiles <span>source_frame 00 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="tiles source frame 1">
+<a href="frames/placeholder_env_floor/tiles__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_floor/tiles__001.png" alt="tiles / source frame 01"></a>
+<figcaption>tiles <span>source_frame 01 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="tiles source frame 2">
+<a href="frames/placeholder_env_floor/tiles__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_floor/tiles__002.png" alt="tiles / source frame 02"></a>
+<figcaption>tiles <span>source_frame 02 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="tiles source frame 3">
+<a href="frames/placeholder_env_floor/tiles__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_floor/tiles__003.png" alt="tiles / source frame 03"></a>
+<figcaption>tiles <span>source_frame 03 · 1000 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_env_landing" data-search="placeholder_env_landing Environment idle">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_env_landing</h3></div><a class="source-link" href="../placeholder/placeholder_env_landing.aseprite" download>Original .aseprite</a></header>
+<p class="meta">64×64 canvas · 1 unique source frames · 1 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–00</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_env_landing/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:256px;height:256px" width="256" height="256" src="frames/placeholder_env_landing/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 1000 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_env_pillar" data-search="placeholder_env_pillar Environment idle">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_env_pillar</h3></div><a class="source-link" href="../placeholder/placeholder_env_pillar.aseprite" download>Original .aseprite</a></header>
+<p class="meta">80×80 canvas · 1 unique source frames · 1 stored tag-frame views · 1 tags</p>
+<section class="tag-block"><h4><code>idle</code> <span>source frames 00–00</span></h4><div class="source-grid"><figure class="source-frame" data-search="idle source frame 0">
+<a href="frames/placeholder_env_pillar/idle__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:240px;height:240px" width="240" height="240" src="frames/placeholder_env_pillar/idle__000.png" alt="idle / source frame 00"></a>
+<figcaption>idle <span>source_frame 00 · 1000 ms</span></figcaption>
+</figure></div></section>
+</article><article class="sheet" id="sheet-placeholder_env_decor" data-search="placeholder_env_decor Environment mushroom deadgrass rock thorns bones pool crystal growth deadtree">
+<header><div><span class="kicker">PLACEHOLDER · original Aseprite source</span><h3>placeholder_env_decor</h3></div><a class="source-link" href="../placeholder/placeholder_env_decor.aseprite" download>Original .aseprite</a></header>
+<p class="meta">32×32 canvas · 9 unique source frames · 45 stored tag-frame views · 9 tags</p>
+<section class="tag-block"><h4><code>mushroom</code> <span>source frames 00–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="mushroom source frame 0">
+<a href="frames/placeholder_env_decor/mushroom__000.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__000.png" alt="mushroom / source frame 00"></a>
+<figcaption>mushroom <span>source_frame 00 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 1">
+<a href="frames/placeholder_env_decor/mushroom__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__001.png" alt="mushroom / source frame 01"></a>
+<figcaption>mushroom <span>source_frame 01 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 2">
+<a href="frames/placeholder_env_decor/mushroom__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__002.png" alt="mushroom / source frame 02"></a>
+<figcaption>mushroom <span>source_frame 02 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 3">
+<a href="frames/placeholder_env_decor/mushroom__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__003.png" alt="mushroom / source frame 03"></a>
+<figcaption>mushroom <span>source_frame 03 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 4">
+<a href="frames/placeholder_env_decor/mushroom__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__004.png" alt="mushroom / source frame 04"></a>
+<figcaption>mushroom <span>source_frame 04 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 5">
+<a href="frames/placeholder_env_decor/mushroom__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__005.png" alt="mushroom / source frame 05"></a>
+<figcaption>mushroom <span>source_frame 05 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 6">
+<a href="frames/placeholder_env_decor/mushroom__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__006.png" alt="mushroom / source frame 06"></a>
+<figcaption>mushroom <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 7">
+<a href="frames/placeholder_env_decor/mushroom__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__007.png" alt="mushroom / source frame 07"></a>
+<figcaption>mushroom <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="mushroom source frame 8">
+<a href="frames/placeholder_env_decor/mushroom__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/mushroom__008.png" alt="mushroom / source frame 08"></a>
+<figcaption>mushroom <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>deadgrass</code> <span>source frames 01–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="deadgrass source frame 1">
+<a href="frames/placeholder_env_decor/deadgrass__001.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__001.png" alt="deadgrass / source frame 01"></a>
+<figcaption>deadgrass <span>source_frame 01 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 2">
+<a href="frames/placeholder_env_decor/deadgrass__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__002.png" alt="deadgrass / source frame 02"></a>
+<figcaption>deadgrass <span>source_frame 02 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 3">
+<a href="frames/placeholder_env_decor/deadgrass__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__003.png" alt="deadgrass / source frame 03"></a>
+<figcaption>deadgrass <span>source_frame 03 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 4">
+<a href="frames/placeholder_env_decor/deadgrass__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__004.png" alt="deadgrass / source frame 04"></a>
+<figcaption>deadgrass <span>source_frame 04 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 5">
+<a href="frames/placeholder_env_decor/deadgrass__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__005.png" alt="deadgrass / source frame 05"></a>
+<figcaption>deadgrass <span>source_frame 05 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 6">
+<a href="frames/placeholder_env_decor/deadgrass__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__006.png" alt="deadgrass / source frame 06"></a>
+<figcaption>deadgrass <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 7">
+<a href="frames/placeholder_env_decor/deadgrass__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__007.png" alt="deadgrass / source frame 07"></a>
+<figcaption>deadgrass <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="deadgrass source frame 8">
+<a href="frames/placeholder_env_decor/deadgrass__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadgrass__008.png" alt="deadgrass / source frame 08"></a>
+<figcaption>deadgrass <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>rock</code> <span>source frames 02–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="rock source frame 2">
+<a href="frames/placeholder_env_decor/rock__002.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__002.png" alt="rock / source frame 02"></a>
+<figcaption>rock <span>source_frame 02 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="rock source frame 3">
+<a href="frames/placeholder_env_decor/rock__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__003.png" alt="rock / source frame 03"></a>
+<figcaption>rock <span>source_frame 03 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="rock source frame 4">
+<a href="frames/placeholder_env_decor/rock__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__004.png" alt="rock / source frame 04"></a>
+<figcaption>rock <span>source_frame 04 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="rock source frame 5">
+<a href="frames/placeholder_env_decor/rock__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__005.png" alt="rock / source frame 05"></a>
+<figcaption>rock <span>source_frame 05 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="rock source frame 6">
+<a href="frames/placeholder_env_decor/rock__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__006.png" alt="rock / source frame 06"></a>
+<figcaption>rock <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="rock source frame 7">
+<a href="frames/placeholder_env_decor/rock__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__007.png" alt="rock / source frame 07"></a>
+<figcaption>rock <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="rock source frame 8">
+<a href="frames/placeholder_env_decor/rock__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/rock__008.png" alt="rock / source frame 08"></a>
+<figcaption>rock <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>thorns</code> <span>source frames 03–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="thorns source frame 3">
+<a href="frames/placeholder_env_decor/thorns__003.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/thorns__003.png" alt="thorns / source frame 03"></a>
+<figcaption>thorns <span>source_frame 03 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="thorns source frame 4">
+<a href="frames/placeholder_env_decor/thorns__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/thorns__004.png" alt="thorns / source frame 04"></a>
+<figcaption>thorns <span>source_frame 04 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="thorns source frame 5">
+<a href="frames/placeholder_env_decor/thorns__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/thorns__005.png" alt="thorns / source frame 05"></a>
+<figcaption>thorns <span>source_frame 05 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="thorns source frame 6">
+<a href="frames/placeholder_env_decor/thorns__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/thorns__006.png" alt="thorns / source frame 06"></a>
+<figcaption>thorns <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="thorns source frame 7">
+<a href="frames/placeholder_env_decor/thorns__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/thorns__007.png" alt="thorns / source frame 07"></a>
+<figcaption>thorns <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="thorns source frame 8">
+<a href="frames/placeholder_env_decor/thorns__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/thorns__008.png" alt="thorns / source frame 08"></a>
+<figcaption>thorns <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>bones</code> <span>source frames 04–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="bones source frame 4">
+<a href="frames/placeholder_env_decor/bones__004.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/bones__004.png" alt="bones / source frame 04"></a>
+<figcaption>bones <span>source_frame 04 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="bones source frame 5">
+<a href="frames/placeholder_env_decor/bones__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/bones__005.png" alt="bones / source frame 05"></a>
+<figcaption>bones <span>source_frame 05 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="bones source frame 6">
+<a href="frames/placeholder_env_decor/bones__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/bones__006.png" alt="bones / source frame 06"></a>
+<figcaption>bones <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="bones source frame 7">
+<a href="frames/placeholder_env_decor/bones__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/bones__007.png" alt="bones / source frame 07"></a>
+<figcaption>bones <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="bones source frame 8">
+<a href="frames/placeholder_env_decor/bones__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/bones__008.png" alt="bones / source frame 08"></a>
+<figcaption>bones <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>pool</code> <span>source frames 05–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="pool source frame 5">
+<a href="frames/placeholder_env_decor/pool__005.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/pool__005.png" alt="pool / source frame 05"></a>
+<figcaption>pool <span>source_frame 05 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="pool source frame 6">
+<a href="frames/placeholder_env_decor/pool__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/pool__006.png" alt="pool / source frame 06"></a>
+<figcaption>pool <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="pool source frame 7">
+<a href="frames/placeholder_env_decor/pool__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/pool__007.png" alt="pool / source frame 07"></a>
+<figcaption>pool <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="pool source frame 8">
+<a href="frames/placeholder_env_decor/pool__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/pool__008.png" alt="pool / source frame 08"></a>
+<figcaption>pool <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>crystal</code> <span>source frames 06–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="crystal source frame 6">
+<a href="frames/placeholder_env_decor/crystal__006.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/crystal__006.png" alt="crystal / source frame 06"></a>
+<figcaption>crystal <span>source_frame 06 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="crystal source frame 7">
+<a href="frames/placeholder_env_decor/crystal__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/crystal__007.png" alt="crystal / source frame 07"></a>
+<figcaption>crystal <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="crystal source frame 8">
+<a href="frames/placeholder_env_decor/crystal__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/crystal__008.png" alt="crystal / source frame 08"></a>
+<figcaption>crystal <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>growth</code> <span>source frames 07–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="growth source frame 7">
+<a href="frames/placeholder_env_decor/growth__007.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/growth__007.png" alt="growth / source frame 07"></a>
+<figcaption>growth <span>source_frame 07 · 1000 ms</span></figcaption>
+</figure><figure class="source-frame" data-search="growth source frame 8">
+<a href="frames/placeholder_env_decor/growth__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/growth__008.png" alt="growth / source frame 08"></a>
+<figcaption>growth <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section><section class="tag-block"><h4><code>deadtree</code> <span>source frames 08–08</span></h4><div class="source-grid"><figure class="source-frame" data-search="deadtree source frame 8">
+<a href="frames/placeholder_env_decor/deadtree__008.png" target="_blank" rel="noreferrer"><img class="pixel" style="width:128px;height:128px" width="128" height="128" src="frames/placeholder_env_decor/deadtree__008.png" alt="deadtree / source frame 08"></a>
+<figcaption>deadtree <span>source_frame 08 · 1000 ms</span></figcaption>
+</figure></div></section>
+</article></section>
+<section class="chapter" id="runtime"><span class="kicker">04 / SHARED + CODE-DRAWN VISUALS</span><h2>What the running game actually draws</h2><p>These are PNG screenshots rendered by Godot 4.7.2 using the current project, its real scene tints, materials, shaders and draw calls. Individual subjects were staged in live project scenes for legibility; full scenes appear in later chapters. No screenshot is presented as final concept art.</p><p>The nine additional horde types intentionally expose shared bases: sleeper shares husk; flyer, ground caster, bomber and mirror share imp; charger, splitter, shielder and mortar share brute. Champion treatment and the code overlays are shown separately.</p><section class="runtime-group" id="runtime-enemy"><div class="group-heading"><h3>Shared / tinted horde and elite treatment</h3><span>14 stills</span></div><p>Every horde type rendered by the live project. Base sprites remain husk, imp, or brute; scene tints and code overlays are not dedicated character sheets.</p><div class="visual-grid"><figure class="visual-card" data-search="husk enemy_00_husk staged live godot render · no replacement art">
+<a href="runtime/enemy_00_husk.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_00_husk.png" alt="Husk"></a>
+<figcaption><strong>Husk</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_00_husk.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="imp enemy_01_imp staged live godot render · no replacement art">
+<a href="runtime/enemy_01_imp.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_01_imp.png" alt="Imp"></a>
+<figcaption><strong>Imp</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_01_imp.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="brute enemy_02_brute staged live godot render · no replacement art">
+<a href="runtime/enemy_02_brute.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_02_brute.png" alt="Brute"></a>
+<figcaption><strong>Brute</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_02_brute.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="flyer enemy_03_flyer staged live godot render · no replacement art">
+<a href="runtime/enemy_03_flyer.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_03_flyer.png" alt="Flyer"></a>
+<figcaption><strong>Flyer</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_03_flyer.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="charger enemy_04_charger staged live godot render · no replacement art">
+<a href="runtime/enemy_04_charger.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_04_charger.png" alt="Charger"></a>
+<figcaption><strong>Charger</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_04_charger.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="ground caster enemy_05_ground_caster staged live godot render · no replacement art">
+<a href="runtime/enemy_05_ground_caster.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_05_ground_caster.png" alt="Ground caster"></a>
+<figcaption><strong>Ground caster</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_05_ground_caster.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="bomber enemy_06_bomber staged live godot render · no replacement art">
+<a href="runtime/enemy_06_bomber.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_06_bomber.png" alt="Bomber"></a>
+<figcaption><strong>Bomber</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_06_bomber.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="splitter enemy_07_splitter staged live godot render · no replacement art">
+<a href="runtime/enemy_07_splitter.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_07_splitter.png" alt="Splitter"></a>
+<figcaption><strong>Splitter</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_07_splitter.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="shielder enemy_08_shielder staged live godot render · no replacement art">
+<a href="runtime/enemy_08_shielder.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_08_shielder.png" alt="Shielder"></a>
+<figcaption><strong>Shielder</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_08_shielder.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="mortar enemy_09_mortar staged live godot render · no replacement art">
+<a href="runtime/enemy_09_mortar.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_09_mortar.png" alt="Mortar"></a>
+<figcaption><strong>Mortar</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_09_mortar.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="sleeper enemy_10_sleeper staged live godot render · no replacement art">
+<a href="runtime/enemy_10_sleeper.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_10_sleeper.png" alt="Sleeper"></a>
+<figcaption><strong>Sleeper</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_10_sleeper.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="mirror enemy_11_mirror staged live godot render · no replacement art">
+<a href="runtime/enemy_11_mirror.png" target="_blank" rel="noreferrer"><img src="runtime/enemy_11_mirror.png" alt="Mirror"></a>
+<figcaption><strong>Mirror</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/enemy_11_mirror.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="elite ground elite_ground staged live godot render · no replacement art">
+<a href="runtime/elite_ground.png" target="_blank" rel="noreferrer"><img src="runtime/elite_ground.png" alt="Elite ground"></a>
+<figcaption><strong>Elite ground</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/elite_ground.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="elite flyer elite_flyer staged live godot render · no replacement art">
+<a href="runtime/elite_flyer.png" target="_blank" rel="noreferrer"><img src="runtime/elite_flyer.png" alt="Elite flyer"></a>
+<figcaption><strong>Elite flyer</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/elite_flyer.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-state"><div class="group-heading"><h3>Enemy attack and state overlays</h3><span>8 stills</span></div><p>Actual charger lane, caster/flyer glint, bomber fuse, shielder arc, mortar strike, and sleeper wake/pulse states.</p><div class="visual-grid"><figure class="visual-card" data-search="state charger lane state_charger_lane staged live godot render · no replacement art">
+<a href="runtime/state_charger_lane.png" target="_blank" rel="noreferrer"><img src="runtime/state_charger_lane.png" alt="State charger lane"></a>
+<figcaption><strong>State charger lane</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_charger_lane.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state caster glint state_caster_glint staged live godot render · no replacement art">
+<a href="runtime/state_caster_glint.png" target="_blank" rel="noreferrer"><img src="runtime/state_caster_glint.png" alt="State caster glint"></a>
+<figcaption><strong>State caster glint</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_caster_glint.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state flyer glint shadow state_flyer_glint_shadow staged live godot render · no replacement art">
+<a href="runtime/state_flyer_glint_shadow.png" target="_blank" rel="noreferrer"><img src="runtime/state_flyer_glint_shadow.png" alt="State flyer glint shadow"></a>
+<figcaption><strong>State flyer glint shadow</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_flyer_glint_shadow.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state bomber fuse state_bomber_fuse staged live godot render · no replacement art">
+<a href="runtime/state_bomber_fuse.png" target="_blank" rel="noreferrer"><img src="runtime/state_bomber_fuse.png" alt="State bomber fuse"></a>
+<figcaption><strong>State bomber fuse</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_bomber_fuse.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state shielder arc state_shielder_arc staged live godot render · no replacement art">
+<a href="runtime/state_shielder_arc.png" target="_blank" rel="noreferrer"><img src="runtime/state_shielder_arc.png" alt="State shielder arc"></a>
+<figcaption><strong>State shielder arc</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_shielder_arc.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state mortar strike state_mortar_strike staged live godot render · no replacement art">
+<a href="runtime/state_mortar_strike.png" target="_blank" rel="noreferrer"><img src="runtime/state_mortar_strike.png" alt="State mortar strike"></a>
+<figcaption><strong>State mortar strike</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_mortar_strike.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state sleeper waking state_sleeper_waking staged live godot render · no replacement art">
+<a href="runtime/state_sleeper_waking.png" target="_blank" rel="noreferrer"><img src="runtime/state_sleeper_waking.png" alt="State sleeper waking"></a>
+<figcaption><strong>State sleeper waking</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_sleeper_waking.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="state sleeper pulse state_sleeper_pulse staged live godot render · no replacement art">
+<a href="runtime/state_sleeper_pulse.png" target="_blank" rel="noreferrer"><img src="runtime/state_sleeper_pulse.png" alt="State sleeper pulse"></a>
+<figcaption><strong>State sleeper pulse</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/state_sleeper_pulse.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-pickup"><div class="group-heading"><h3>Shared and tinted pickups</h3><span>7 stills</span></div><p>XP, life and item sheets plus their spear-evolution, bow-evolution, relic and feather-currency tint variants.</p><div class="visual-grid"><figure class="visual-card" data-search="pickup xp pickup_xp staged live godot render · no replacement art">
+<a href="runtime/pickup_xp.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_xp.png" alt="Pickup xp"></a>
+<figcaption><strong>Pickup xp</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_xp.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="pickup life pickup_life staged live godot render · no replacement art">
+<a href="runtime/pickup_life.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_life.png" alt="Pickup life"></a>
+<figcaption><strong>Pickup life</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_life.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="pickup item pickup_item staged live godot render · no replacement art">
+<a href="runtime/pickup_item.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_item.png" alt="Pickup item"></a>
+<figcaption><strong>Pickup item</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_item.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="pickup evolution spear pickup_evolution_spear staged live godot render · no replacement art">
+<a href="runtime/pickup_evolution_spear.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_evolution_spear.png" alt="Pickup evolution spear"></a>
+<figcaption><strong>Pickup evolution spear</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_evolution_spear.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="pickup evolution bow pickup_evolution_bow staged live godot render · no replacement art">
+<a href="runtime/pickup_evolution_bow.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_evolution_bow.png" alt="Pickup evolution bow"></a>
+<figcaption><strong>Pickup evolution bow</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_evolution_bow.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="pickup side weapon relic pickup_side_weapon_relic staged live godot render · no replacement art">
+<a href="runtime/pickup_side_weapon_relic.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_side_weapon_relic.png" alt="Pickup side weapon relic"></a>
+<figcaption><strong>Pickup side weapon relic</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_side_weapon_relic.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="pickup feather currency pickup_feather_currency staged live godot render · no replacement art">
+<a href="runtime/pickup_feather_currency.png" target="_blank" rel="noreferrer"><img src="runtime/pickup_feather_currency.png" alt="Pickup feather currency"></a>
+<figcaption><strong>Pickup feather currency</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/pickup_feather_currency.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-shots"><div class="group-heading"><h3>Projectiles and arrow variants</h3><span>5 stills</span></div><p>Ground/air enemy fire, normal and finishing arrows, and gold seeking-feather projectiles.</p><div class="visual-grid"><figure class="visual-card" data-search="projectile ground projectile_ground staged live godot render · no replacement art">
+<a href="runtime/projectile_ground.png" target="_blank" rel="noreferrer"><img src="runtime/projectile_ground.png" alt="Projectile ground"></a>
+<figcaption><strong>Projectile ground</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/projectile_ground.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="projectile air projectile_air staged live godot render · no replacement art">
+<a href="runtime/projectile_air.png" target="_blank" rel="noreferrer"><img src="runtime/projectile_air.png" alt="Projectile air"></a>
+<figcaption><strong>Projectile air</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/projectile_air.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="arrow arrow staged live godot render · no replacement art">
+<a href="runtime/arrow.png" target="_blank" rel="noreferrer"><img src="runtime/arrow.png" alt="Arrow"></a>
+<figcaption><strong>Arrow</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/arrow.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="arrow finisher arrow_finisher staged live godot render · no replacement art">
+<a href="runtime/arrow_finisher.png" target="_blank" rel="noreferrer"><img src="runtime/arrow_finisher.png" alt="Arrow finisher"></a>
+<figcaption><strong>Arrow finisher</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/arrow_finisher.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="seeking feather seeking_feather staged live godot render · no replacement art">
+<a href="runtime/seeking_feather.png" target="_blank" rel="noreferrer"><img src="runtime/seeking_feather.png" alt="Seeking feather"></a>
+<figcaption><strong>Seeking feather</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/seeking_feather.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-objects"><div class="group-heading"><h3>Breakables, damage stages and objectives</h3><span>26 stills</span></div><p>Walls, pillar structure, tree and shrine; three crack/damage stages plus debris per kind; chest, portal and healed ground.</p><div class="visual-grid"><figure class="visual-card" data-search="breakable wall horizontal breakable_wall_horizontal staged live godot render · no replacement art">
+<a href="runtime/breakable_wall_horizontal.png" target="_blank" rel="noreferrer"><img src="runtime/breakable_wall_horizontal.png" alt="Breakable wall horizontal"></a>
+<figcaption><strong>Breakable wall horizontal</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/breakable_wall_horizontal.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="breakable wall vertical breakable_wall_vertical staged live godot render · no replacement art">
+<a href="runtime/breakable_wall_vertical.png" target="_blank" rel="noreferrer"><img src="runtime/breakable_wall_vertical.png" alt="Breakable wall vertical"></a>
+<figcaption><strong>Breakable wall vertical</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/breakable_wall_vertical.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="breakable structure breakable_structure staged live godot render · no replacement art">
+<a href="runtime/breakable_structure.png" target="_blank" rel="noreferrer"><img src="runtime/breakable_structure.png" alt="Breakable structure"></a>
+<figcaption><strong>Breakable structure</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/breakable_structure.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="breakable tree breakable_tree staged live godot render · no replacement art">
+<a href="runtime/breakable_tree.png" target="_blank" rel="noreferrer"><img src="runtime/breakable_tree.png" alt="Breakable tree"></a>
+<figcaption><strong>Breakable tree</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/breakable_tree.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="breakable shrine breakable_shrine staged live godot render · no replacement art">
+<a href="runtime/breakable_shrine.png" target="_blank" rel="noreferrer"><img src="runtime/breakable_shrine.png" alt="Breakable shrine"></a>
+<figcaption><strong>Breakable shrine</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/breakable_shrine.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage wall stage1 damage_wall_stage1 staged live godot render · no replacement art">
+<a href="runtime/damage_wall_stage1.png" target="_blank" rel="noreferrer"><img src="runtime/damage_wall_stage1.png" alt="Damage wall stage1"></a>
+<figcaption><strong>Damage wall stage1</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_wall_stage1.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage wall stage2 damage_wall_stage2 staged live godot render · no replacement art">
+<a href="runtime/damage_wall_stage2.png" target="_blank" rel="noreferrer"><img src="runtime/damage_wall_stage2.png" alt="Damage wall stage2"></a>
+<figcaption><strong>Damage wall stage2</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_wall_stage2.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage wall stage3 damage_wall_stage3 staged live godot render · no replacement art">
+<a href="runtime/damage_wall_stage3.png" target="_blank" rel="noreferrer"><img src="runtime/damage_wall_stage3.png" alt="Damage wall stage3"></a>
+<figcaption><strong>Damage wall stage3</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_wall_stage3.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="debris wall debris_wall staged live godot render · no replacement art">
+<a href="runtime/debris_wall.png" target="_blank" rel="noreferrer"><img src="runtime/debris_wall.png" alt="Debris wall"></a>
+<figcaption><strong>Debris wall</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/debris_wall.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage structure stage1 damage_structure_stage1 staged live godot render · no replacement art">
+<a href="runtime/damage_structure_stage1.png" target="_blank" rel="noreferrer"><img src="runtime/damage_structure_stage1.png" alt="Damage structure stage1"></a>
+<figcaption><strong>Damage structure stage1</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_structure_stage1.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage structure stage2 damage_structure_stage2 staged live godot render · no replacement art">
+<a href="runtime/damage_structure_stage2.png" target="_blank" rel="noreferrer"><img src="runtime/damage_structure_stage2.png" alt="Damage structure stage2"></a>
+<figcaption><strong>Damage structure stage2</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_structure_stage2.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage structure stage3 damage_structure_stage3 staged live godot render · no replacement art">
+<a href="runtime/damage_structure_stage3.png" target="_blank" rel="noreferrer"><img src="runtime/damage_structure_stage3.png" alt="Damage structure stage3"></a>
+<figcaption><strong>Damage structure stage3</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_structure_stage3.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="debris structure debris_structure staged live godot render · no replacement art">
+<a href="runtime/debris_structure.png" target="_blank" rel="noreferrer"><img src="runtime/debris_structure.png" alt="Debris structure"></a>
+<figcaption><strong>Debris structure</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/debris_structure.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage tree stage1 damage_tree_stage1 staged live godot render · no replacement art">
+<a href="runtime/damage_tree_stage1.png" target="_blank" rel="noreferrer"><img src="runtime/damage_tree_stage1.png" alt="Damage tree stage1"></a>
+<figcaption><strong>Damage tree stage1</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_tree_stage1.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage tree stage2 damage_tree_stage2 staged live godot render · no replacement art">
+<a href="runtime/damage_tree_stage2.png" target="_blank" rel="noreferrer"><img src="runtime/damage_tree_stage2.png" alt="Damage tree stage2"></a>
+<figcaption><strong>Damage tree stage2</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_tree_stage2.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage tree stage3 damage_tree_stage3 staged live godot render · no replacement art">
+<a href="runtime/damage_tree_stage3.png" target="_blank" rel="noreferrer"><img src="runtime/damage_tree_stage3.png" alt="Damage tree stage3"></a>
+<figcaption><strong>Damage tree stage3</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_tree_stage3.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="debris tree debris_tree staged live godot render · no replacement art">
+<a href="runtime/debris_tree.png" target="_blank" rel="noreferrer"><img src="runtime/debris_tree.png" alt="Debris tree"></a>
+<figcaption><strong>Debris tree</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/debris_tree.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage shrine stage1 damage_shrine_stage1 staged live godot render · no replacement art">
+<a href="runtime/damage_shrine_stage1.png" target="_blank" rel="noreferrer"><img src="runtime/damage_shrine_stage1.png" alt="Damage shrine stage1"></a>
+<figcaption><strong>Damage shrine stage1</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_shrine_stage1.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage shrine stage2 damage_shrine_stage2 staged live godot render · no replacement art">
+<a href="runtime/damage_shrine_stage2.png" target="_blank" rel="noreferrer"><img src="runtime/damage_shrine_stage2.png" alt="Damage shrine stage2"></a>
+<figcaption><strong>Damage shrine stage2</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_shrine_stage2.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="damage shrine stage3 damage_shrine_stage3 staged live godot render · no replacement art">
+<a href="runtime/damage_shrine_stage3.png" target="_blank" rel="noreferrer"><img src="runtime/damage_shrine_stage3.png" alt="Damage shrine stage3"></a>
+<figcaption><strong>Damage shrine stage3</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/damage_shrine_stage3.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="debris shrine debris_shrine staged live godot render · no replacement art">
+<a href="runtime/debris_shrine.png" target="_blank" rel="noreferrer"><img src="runtime/debris_shrine.png" alt="Debris shrine"></a>
+<figcaption><strong>Debris shrine</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/debris_shrine.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="chest closed chest_closed staged live godot render · no replacement art">
+<a href="runtime/chest_closed.png" target="_blank" rel="noreferrer"><img src="runtime/chest_closed.png" alt="Chest closed"></a>
+<figcaption><strong>Chest closed</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/chest_closed.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="chest open chest_open staged live godot render · no replacement art">
+<a href="runtime/chest_open.png" target="_blank" rel="noreferrer"><img src="runtime/chest_open.png" alt="Chest open"></a>
+<figcaption><strong>Chest open</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/chest_open.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="portal idle portal_idle staged live godot render · no replacement art">
+<a href="runtime/portal_idle.png" target="_blank" rel="noreferrer"><img src="runtime/portal_idle.png" alt="Portal idle"></a>
+<figcaption><strong>Portal idle</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/portal_idle.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="portal holding portal_holding staged live godot render · no replacement art">
+<a href="runtime/portal_holding.png" target="_blank" rel="noreferrer"><img src="runtime/portal_holding.png" alt="Portal holding"></a>
+<figcaption><strong>Portal holding</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/portal_holding.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="healed ground healed_ground staged live godot render · no replacement art">
+<a href="runtime/healed_ground.png" target="_blank" rel="noreferrer"><img src="runtime/healed_ground.png" alt="Healed ground"></a>
+<figcaption><strong>Healed ground</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/healed_ground.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-hazards"><div class="group-heading"><h3>Terrain hazards</h3><span>8 stills</span></div><p>Code-drawn lava, ground/air strike tells and flashes, bile, slowing sludge and expanding shockwave rings.</p><div class="visual-grid"><figure class="visual-card" data-search="strike ground tell strike_ground_tell staged live godot render · no replacement art">
+<a href="runtime/strike_ground_tell.png" target="_blank" rel="noreferrer"><img src="runtime/strike_ground_tell.png" alt="Strike ground tell"></a>
+<figcaption><strong>Strike ground tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/strike_ground_tell.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="strike ground flash strike_ground_flash staged live godot render · no replacement art">
+<a href="runtime/strike_ground_flash.png" target="_blank" rel="noreferrer"><img src="runtime/strike_ground_flash.png" alt="Strike ground flash"></a>
+<figcaption><strong>Strike ground flash</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/strike_ground_flash.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="strike air tell strike_air_tell staged live godot render · no replacement art">
+<a href="runtime/strike_air_tell.png" target="_blank" rel="noreferrer"><img src="runtime/strike_air_tell.png" alt="Strike air tell"></a>
+<figcaption><strong>Strike air tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/strike_air_tell.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="strike air flash strike_air_flash staged live godot render · no replacement art">
+<a href="runtime/strike_air_flash.png" target="_blank" rel="noreferrer"><img src="runtime/strike_air_flash.png" alt="Strike air flash"></a>
+<figcaption><strong>Strike air flash</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/strike_air_flash.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="bile bile staged live godot render · no replacement art">
+<a href="runtime/bile.png" target="_blank" rel="noreferrer"><img src="runtime/bile.png" alt="Bile"></a>
+<figcaption><strong>Bile</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/bile.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="sludge sludge staged live godot render · no replacement art">
+<a href="runtime/sludge.png" target="_blank" rel="noreferrer"><img src="runtime/sludge.png" alt="Sludge"></a>
+<figcaption><strong>Sludge</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/sludge.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="shockwave rings shockwave_rings staged live godot render · no replacement art">
+<a href="runtime/shockwave_rings.png" target="_blank" rel="noreferrer"><img src="runtime/shockwave_rings.png" alt="Shockwave rings"></a>
+<figcaption><strong>Shockwave rings</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/shockwave_rings.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="lava layers lava_layers staged live godot render · no replacement art">
+<a href="runtime/lava_layers.png" target="_blank" rel="noreferrer"><img src="runtime/lava_layers.png" alt="Lava layers"></a>
+<figcaption><strong>Lava layers</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/lava_layers.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-vfx"><div class="group-heading"><h3>Hero weapons and VFX</h3><span>14 stills</span></div><p>Spear/bow, flight shadow, finisher and Whirlwind arcs, dash afterimages, Chain Light, Rain of Light, side weapons and impact sparks.</p><div class="visual-grid"><figure class="visual-card" data-search="player spear player_spear staged live godot render · no replacement art">
+<a href="runtime/player_spear.png" target="_blank" rel="noreferrer"><img src="runtime/player_spear.png" alt="Player spear"></a>
+<figcaption><strong>Player spear</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/player_spear.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="player bow player_bow staged live godot render · no replacement art">
+<a href="runtime/player_bow.png" target="_blank" rel="noreferrer"><img src="runtime/player_bow.png" alt="Player bow"></a>
+<figcaption><strong>Player bow</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/player_bow.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="player flight shadow player_flight_shadow staged live godot render · no replacement art">
+<a href="runtime/player_flight_shadow.png" target="_blank" rel="noreferrer"><img src="runtime/player_flight_shadow.png" alt="Player flight shadow"></a>
+<figcaption><strong>Player flight shadow</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/player_flight_shadow.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="spear finisher spear_finisher staged live godot render · no replacement art">
+<a href="runtime/spear_finisher.png" target="_blank" rel="noreferrer"><img src="runtime/spear_finisher.png" alt="Spear finisher"></a>
+<figcaption><strong>Spear finisher</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/spear_finisher.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="whirlwind whirlwind staged live godot render · no replacement art">
+<a href="runtime/whirlwind.png" target="_blank" rel="noreferrer"><img src="runtime/whirlwind.png" alt="Whirlwind"></a>
+<figcaption><strong>Whirlwind</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/whirlwind.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="dash afterimages dash_afterimages staged live godot render · no replacement art">
+<a href="runtime/dash_afterimages.png" target="_blank" rel="noreferrer"><img src="runtime/dash_afterimages.png" alt="Dash afterimages"></a>
+<figcaption><strong>Dash afterimages</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/dash_afterimages.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="chain light chain_light staged live godot render · no replacement art">
+<a href="runtime/chain_light.png" target="_blank" rel="noreferrer"><img src="runtime/chain_light.png" alt="Chain light"></a>
+<figcaption><strong>Chain light</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/chain_light.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="rain of light tell rain_of_light_tell staged live godot render · no replacement art">
+<a href="runtime/rain_of_light_tell.png" target="_blank" rel="noreferrer"><img src="runtime/rain_of_light_tell.png" alt="Rain of light tell"></a>
+<figcaption><strong>Rain of light tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/rain_of_light_tell.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="rain of light streaks rain_of_light_streaks staged live godot render · no replacement art">
+<a href="runtime/rain_of_light_streaks.png" target="_blank" rel="noreferrer"><img src="runtime/rain_of_light_streaks.png" alt="Rain of light streaks"></a>
+<figcaption><strong>Rain of light streaks</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/rain_of_light_streaks.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="side halos side_halos staged live godot render · no replacement art">
+<a href="runtime/side_halos.png" target="_blank" rel="noreferrer"><img src="runtime/side_halos.png" alt="Side halos"></a>
+<figcaption><strong>Side halos</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/side_halos.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="side feathers side_feathers staged live godot render · no replacement art">
+<a href="runtime/side_feathers.png" target="_blank" rel="noreferrer"><img src="runtime/side_feathers.png" alt="Side feathers"></a>
+<figcaption><strong>Side feathers</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/side_feathers.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="side pulse side_pulse staged live godot render · no replacement art">
+<a href="runtime/side_pulse.png" target="_blank" rel="noreferrer"><img src="runtime/side_pulse.png" alt="Side pulse"></a>
+<figcaption><strong>Side pulse</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/side_pulse.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="side bolt side_bolt staged live godot render · no replacement art">
+<a href="runtime/side_bolt.png" target="_blank" rel="noreferrer"><img src="runtime/side_bolt.png" alt="Side bolt"></a>
+<figcaption><strong>Side bolt</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/side_bolt.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="impact sparks impact_sparks staged live godot render · no replacement art">
+<a href="runtime/impact_sparks.png" target="_blank" rel="noreferrer"><img src="runtime/impact_sparks.png" alt="Impact sparks"></a>
+<figcaption><strong>Impact sparks</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/impact_sparks.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-boss"><div class="group-heading"><h3>Boss tells and special treatments</h3><span>26 stills</span></div><p>All rendered Boss.Pattern tell shapes, both Mirror outcomes, guard, phase pose, decoy tint and Sloth awake tint. The MIRROR selector itself has no separate rendered shape.</p><div class="visual-grid"><figure class="visual-card" data-search="charge boss_tell_00_charge staged live godot render · no replacement art">
+<a href="runtime/boss_tell_00_charge.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_00_charge.png" alt="Charge"></a>
+<figcaption><strong>Charge</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_00_charge.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="burst boss_tell_01_burst staged live godot render · no replacement art">
+<a href="runtime/boss_tell_01_burst.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_01_burst.png" alt="Burst"></a>
+<figcaption><strong>Burst</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_01_burst.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="aimed fan boss_tell_02_aimed_fan staged live godot render · no replacement art">
+<a href="runtime/boss_tell_02_aimed_fan.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_02_aimed_fan.png" alt="Aimed fan"></a>
+<figcaption><strong>Aimed fan</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_02_aimed_fan.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="summon marks boss_tell_03_summon_marks staged live godot render · no replacement art">
+<a href="runtime/boss_tell_03_summon_marks.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_03_summon_marks.png" alt="Summon marks"></a>
+<figcaption><strong>Summon marks</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_03_summon_marks.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="guard rise boss_tell_04_guard_rise staged live godot render · no replacement art">
+<a href="runtime/boss_tell_04_guard_rise.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_04_guard_rise.png" alt="Guard rise"></a>
+<figcaption><strong>Guard rise</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_04_guard_rise.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="slam boss_tell_05_slam staged live godot render · no replacement art">
+<a href="runtime/boss_tell_05_slam.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_05_slam.png" alt="Slam"></a>
+<figcaption><strong>Slam</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_05_slam.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="shockwave tell boss_tell_06_shockwave_tell staged live godot render · no replacement art">
+<a href="runtime/boss_tell_06_shockwave_tell.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_06_shockwave_tell.png" alt="Shockwave tell"></a>
+<figcaption><strong>Shockwave tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_06_shockwave_tell.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="coins boss_tell_07_coins staged live godot render · no replacement art">
+<a href="runtime/boss_tell_07_coins.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_07_coins.png" alt="Coins"></a>
+<figcaption><strong>Coins</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_07_coins.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="rain tell boss_tell_08_rain_tell staged live godot render · no replacement art">
+<a href="runtime/boss_tell_08_rain_tell.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_08_rain_tell.png" alt="Rain tell"></a>
+<figcaption><strong>Rain tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_08_rain_tell.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="kisses boss_tell_09_kisses staged live godot render · no replacement art">
+<a href="runtime/boss_tell_09_kisses.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_09_kisses.png" alt="Kisses"></a>
+<figcaption><strong>Kisses</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_09_kisses.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="blink boss_tell_10_blink staged live godot render · no replacement art">
+<a href="runtime/boss_tell_10_blink.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_10_blink.png" alt="Blink"></a>
+<figcaption><strong>Blink</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_10_blink.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="leap boss_tell_11_leap staged live godot render · no replacement art">
+<a href="runtime/boss_tell_11_leap.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_11_leap.png" alt="Leap"></a>
+<figcaption><strong>Leap</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_11_leap.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="vomit boss_tell_12_vomit staged live godot render · no replacement art">
+<a href="runtime/boss_tell_12_vomit.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_12_vomit.png" alt="Vomit"></a>
+<figcaption><strong>Vomit</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_12_vomit.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="devour boss_tell_13_devour staged live godot render · no replacement art">
+<a href="runtime/boss_tell_13_devour.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_13_devour.png" alt="Devour"></a>
+<figcaption><strong>Devour</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_13_devour.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="snore boss_tell_14_snore staged live godot render · no replacement art">
+<a href="runtime/boss_tell_14_snore.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_14_snore.png" alt="Snore"></a>
+<figcaption><strong>Snore</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_14_snore.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="sludge tell boss_tell_15_sludge_tell staged live godot render · no replacement art">
+<a href="runtime/boss_tell_15_sludge_tell.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_15_sludge_tell.png" alt="Sludge tell"></a>
+<figcaption><strong>Sludge tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_15_sludge_tell.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="yawn boss_tell_16_yawn staged live godot render · no replacement art">
+<a href="runtime/boss_tell_16_yawn.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_16_yawn.png" alt="Yawn"></a>
+<figcaption><strong>Yawn</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_16_yawn.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="nap boss_tell_17_nap staged live godot render · no replacement art">
+<a href="runtime/boss_tell_17_nap.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_17_nap.png" alt="Nap"></a>
+<figcaption><strong>Nap</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_17_nap.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="mirror spear thrust boss_tell_19_mirror_spear_thrust staged live godot render · no replacement art">
+<a href="runtime/boss_tell_19_mirror_spear_thrust.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_19_mirror_spear_thrust.png" alt="Mirror spear thrust"></a>
+<figcaption><strong>Mirror spear thrust</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_19_mirror_spear_thrust.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="mirror bow shot boss_tell_20_mirror_bow_shot staged live godot render · no replacement art">
+<a href="runtime/boss_tell_20_mirror_bow_shot.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_20_mirror_bow_shot.png" alt="Mirror bow shot"></a>
+<figcaption><strong>Mirror bow shot</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_20_mirror_bow_shot.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="decoy marks boss_tell_21_decoy_marks staged live godot render · no replacement art">
+<a href="runtime/boss_tell_21_decoy_marks.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_21_decoy_marks.png" alt="Decoy marks"></a>
+<figcaption><strong>Decoy marks</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_21_decoy_marks.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="satan beams boss_tell_22_satan_beams staged live godot render · no replacement art">
+<a href="runtime/boss_tell_22_satan_beams.png" target="_blank" rel="noreferrer"><img src="runtime/boss_tell_22_satan_beams.png" alt="Satan beams"></a>
+<figcaption><strong>Satan beams</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_tell_22_satan_beams.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="boss guard raised boss_guard_raised staged live godot render · no replacement art">
+<a href="runtime/boss_guard_raised.png" target="_blank" rel="noreferrer"><img src="runtime/boss_guard_raised.png" alt="Boss guard raised"></a>
+<figcaption><strong>Boss guard raised</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_guard_raised.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="boss phase pose boss_phase_pose staged live godot render · no replacement art">
+<a href="runtime/boss_phase_pose.png" target="_blank" rel="noreferrer"><img src="runtime/boss_phase_pose.png" alt="Boss phase pose"></a>
+<figcaption><strong>Boss phase pose</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_phase_pose.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="boss envy decoy tint boss_envy_decoy_tint staged live godot render · no replacement art">
+<a href="runtime/boss_envy_decoy_tint.png" target="_blank" rel="noreferrer"><img src="runtime/boss_envy_decoy_tint.png" alt="Boss envy decoy tint"></a>
+<figcaption><strong>Boss envy decoy tint</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_envy_decoy_tint.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="boss sloth awake tint boss_sloth_awake_tint staged live godot render · no replacement art">
+<a href="runtime/boss_sloth_awake_tint.png" target="_blank" rel="noreferrer"><img src="runtime/boss_sloth_awake_tint.png" alt="Boss sloth awake tint"></a>
+<figcaption><strong>Boss sloth awake tint</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_sloth_awake_tint.png" download>Native PNG</a></figcaption>
+</figure></div></section><section class="runtime-group" id="runtime-release"><div class="group-heading"><h3>Boss projectile and hazard releases</h3><span>7 stills</span></div><p>Actual spawned projectile formations and rain circles after the tells release.</p><div class="visual-grid"><figure class="visual-card" data-search="burst boss_release_01_burst staged live godot render · no replacement art">
+<a href="runtime/boss_release_01_burst.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_01_burst.png" alt="Burst"></a>
+<figcaption><strong>Burst</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_01_burst.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="aimed fan boss_release_02_aimed_fan staged live godot render · no replacement art">
+<a href="runtime/boss_release_02_aimed_fan.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_02_aimed_fan.png" alt="Aimed fan"></a>
+<figcaption><strong>Aimed fan</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_02_aimed_fan.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="coins boss_release_07_coins staged live godot render · no replacement art">
+<a href="runtime/boss_release_07_coins.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_07_coins.png" alt="Coins"></a>
+<figcaption><strong>Coins</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_07_coins.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="kisses boss_release_09_kisses staged live godot render · no replacement art">
+<a href="runtime/boss_release_09_kisses.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_09_kisses.png" alt="Kisses"></a>
+<figcaption><strong>Kisses</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_09_kisses.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="vomit boss_release_12_vomit staged live godot render · no replacement art">
+<a href="runtime/boss_release_12_vomit.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_12_vomit.png" alt="Vomit"></a>
+<figcaption><strong>Vomit</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_12_vomit.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="snore boss_release_14_snore staged live godot render · no replacement art">
+<a href="runtime/boss_release_14_snore.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_14_snore.png" alt="Snore"></a>
+<figcaption><strong>Snore</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_14_snore.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card" data-search="rain tell boss_release_08_rain_tell staged live godot render · no replacement art">
+<a href="runtime/boss_release_08_rain_tell.png" target="_blank" rel="noreferrer"><img src="runtime/boss_release_08_rain_tell.png" alt="Rain tell"></a>
+<figcaption><strong>Rain tell</strong><span>Staged live Godot render · no replacement art</span><a href="runtime/boss_release_08_rain_tell.png" download>Native PNG</a></figcaption>
+</figure></div></section></section>
+<section class="chapter" id="realms"><span class="kicker">05 / EIGHT FULL-SCENE REALM RENDERS</span><h2>Realm tints, terrain, arena and live HUD</h2><p>One full game-scene screenshot per sin and Satan. These show the current placeholder floor tints and generated layouts — not exhaustive captures of every random decoration, obstacle layout or shader phase.</p><div class="visual-grid"><figure class="visual-card wide" data-search="odin / pride realm_00_pride full game-scene render · owner direction: red">
+<a href="runtime/realm_00_pride.png" target="_blank" rel="noreferrer"><img src="runtime/realm_00_pride.png" alt="Odin / Pride"></a>
+<figcaption><strong>Odin / Pride</strong><span>Full game-scene render · owner direction: red</span><a href="runtime/realm_00_pride.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="midas / greed realm_01_greed full game-scene render · owner direction: yellow">
+<a href="runtime/realm_01_greed.png" target="_blank" rel="noreferrer"><img src="runtime/realm_01_greed.png" alt="Midas / Greed"></a>
+<figcaption><strong>Midas / Greed</strong><span>Full game-scene render · owner direction: yellow</span><a href="runtime/realm_01_greed.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="lilith / lust realm_02_lust full game-scene render · owner direction: pink">
+<a href="runtime/realm_02_lust.png" target="_blank" rel="noreferrer"><img src="runtime/realm_02_lust.png" alt="Lilith / Lust"></a>
+<figcaption><strong>Lilith / Lust</strong><span>Full game-scene render · owner direction: pink</span><a href="runtime/realm_02_lust.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="loki / envy realm_03_envy full game-scene render · owner direction: green">
+<a href="runtime/realm_03_envy.png" target="_blank" rel="noreferrer"><img src="runtime/realm_03_envy.png" alt="Loki / Envy"></a>
+<figcaption><strong>Loki / Envy</strong><span>Full game-scene render · owner direction: green</span><a href="runtime/realm_03_envy.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="wendigo / gluttony realm_04_gluttony full game-scene render · owner direction: orange">
+<a href="runtime/realm_04_gluttony.png" target="_blank" rel="noreferrer"><img src="runtime/realm_04_gluttony.png" alt="Wendigo / Gluttony"></a>
+<figcaption><strong>Wendigo / Gluttony</strong><span>Full game-scene render · owner direction: orange</span><a href="runtime/realm_04_gluttony.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="cerberus / wrath realm_05_wrath full game-scene render · owner direction: red">
+<a href="runtime/realm_05_wrath.png" target="_blank" rel="noreferrer"><img src="runtime/realm_05_wrath.png" alt="Cerberus / Wrath"></a>
+<figcaption><strong>Cerberus / Wrath</strong><span>Full game-scene render · owner direction: red</span><a href="runtime/realm_05_wrath.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="edward / sloth realm_06_sloth full game-scene render · owner direction: blue">
+<a href="runtime/realm_06_sloth.png" target="_blank" rel="noreferrer"><img src="runtime/realm_06_sloth.png" alt="Edward / Sloth"></a>
+<figcaption><strong>Edward / Sloth</strong><span>Full game-scene render · owner direction: blue</span><a href="runtime/realm_06_sloth.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="satan / finale realm_07_satan full game-scene render · owner direction: finale">
+<a href="runtime/realm_07_satan.png" target="_blank" rel="noreferrer"><img src="runtime/realm_07_satan.png" alt="Satan / finale"></a>
+<figcaption><strong>Satan / finale</strong><span>Full game-scene render · owner direction: finale</span><a href="runtime/realm_07_satan.png" download>Native PNG</a></figcaption>
+</figure></div></section>
+<section class="chapter" id="interface"><span class="kicker">06 / INTERFACE + TRANSITIONS</span><h2>Vector UI, code-drawn hub, feedback and endings</h2><p>Actual 1280×720 full-scene captures of the hub and its relic state, instructions, shop, settings, HUD choices, live feedback, descent/ascent, win/defeat treatment and the separate spear test space. Text, controls and live values should remain functional UI rather than being baked into illustrations.</p><div class="visual-grid"><figure class="visual-card wide" data-search="ui hub locked ui_hub_locked actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_hub_locked.png" target="_blank" rel="noreferrer"><img src="runtime/ui_hub_locked.png" alt="Ui hub locked"></a>
+<figcaption><strong>Ui hub locked</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_hub_locked.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui hub all relics ui_hub_all_relics actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_hub_all_relics.png" target="_blank" rel="noreferrer"><img src="runtime/ui_hub_all_relics.png" alt="Ui hub all relics"></a>
+<figcaption><strong>Ui hub all relics</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_hub_all_relics.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui how to play ui_how_to_play actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_how_to_play.png" target="_blank" rel="noreferrer"><img src="runtime/ui_how_to_play.png" alt="Ui how to play"></a>
+<figcaption><strong>Ui how to play</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_how_to_play.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui shop ui_shop actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_shop.png" target="_blank" rel="noreferrer"><img src="runtime/ui_shop.png" alt="Ui shop"></a>
+<figcaption><strong>Ui shop</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_shop.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui settings ui_settings actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_settings.png" target="_blank" rel="noreferrer"><img src="runtime/ui_settings.png" alt="Ui settings"></a>
+<figcaption><strong>Ui settings</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_settings.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="run descent run_descent actual game scene · ui text and live values remain ui">
+<a href="runtime/run_descent.png" target="_blank" rel="noreferrer"><img src="runtime/run_descent.png" alt="Run descent"></a>
+<figcaption><strong>Run descent</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/run_descent.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui level up ui_level_up actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_level_up.png" target="_blank" rel="noreferrer"><img src="runtime/ui_level_up.png" alt="Ui level up"></a>
+<figcaption><strong>Ui level up</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_level_up.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui evolution spear ui_evolution_spear actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_evolution_spear.png" target="_blank" rel="noreferrer"><img src="runtime/ui_evolution_spear.png" alt="Ui evolution spear"></a>
+<figcaption><strong>Ui evolution spear</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_evolution_spear.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui evolution bow ui_evolution_bow actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_evolution_bow.png" target="_blank" rel="noreferrer"><img src="runtime/ui_evolution_bow.png" alt="Ui evolution bow"></a>
+<figcaption><strong>Ui evolution bow</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_evolution_bow.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui shrine pact ui_shrine_pact actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_shrine_pact.png" target="_blank" rel="noreferrer"><img src="runtime/ui_shrine_pact.png" alt="Ui shrine pact"></a>
+<figcaption><strong>Ui shrine pact</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_shrine_pact.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui pause ui_pause actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_pause.png" target="_blank" rel="noreferrer"><img src="runtime/ui_pause.png" alt="Ui pause"></a>
+<figcaption><strong>Ui pause</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_pause.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui live feedback ui_live_feedback actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_live_feedback.png" target="_blank" rel="noreferrer"><img src="runtime/ui_live_feedback.png" alt="Ui live feedback"></a>
+<figcaption><strong>Ui live feedback</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_live_feedback.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="prototype spear test prototype_spear_test actual game scene · ui text and live values remain ui">
+<a href="runtime/prototype_spear_test.png" target="_blank" rel="noreferrer"><img src="runtime/prototype_spear_test.png" alt="Prototype spear test"></a>
+<figcaption><strong>Prototype spear test</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/prototype_spear_test.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="run ascent healing run_ascent_healing actual game scene · ui text and live values remain ui">
+<a href="runtime/run_ascent_healing.png" target="_blank" rel="noreferrer"><img src="runtime/run_ascent_healing.png" alt="Run ascent healing"></a>
+<figcaption><strong>Run ascent healing</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/run_ascent_healing.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui victory ui_victory actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_victory.png" target="_blank" rel="noreferrer"><img src="runtime/ui_victory.png" alt="Ui victory"></a>
+<figcaption><strong>Ui victory</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_victory.png" download>Native PNG</a></figcaption>
+</figure><figure class="visual-card wide" data-search="ui defeat ui_defeat actual game scene · ui text and live values remain ui">
+<a href="runtime/ui_defeat.png" target="_blank" rel="noreferrer"><img src="runtime/ui_defeat.png" alt="Ui defeat"></a>
+<figcaption><strong>Ui defeat</strong><span>Actual game scene · UI text and live values remain UI</span><a href="runtime/ui_defeat.png" download>Native PNG</a></figcaption>
+</figure></div></section>
+<section class="chapter" id="coverage"><span class="kicker">07 / COVERAGE, HONEST LIMITS + HANDOFF</span><h2>Covered does not mean finished</h2><table><thead><tr><th>Scope</th><th>Pictured evidence</th><th>Status / remaining human work</th></tr></thead><tbody>
+<tr><td>Original authored/imported imagery</td><td>2 original PNGs + original Godot SVG</td><td><span class="status">PICTURED</span> Logo has its documented scoped exception; project icon still needs human replacement; Sprite-0001 role is unresolved.</td></tr>
+<tr><td>Existing temporary sheets</td><td>23/23 sheets; 136/136 unique source frames; 234 tag-frame views</td><td><span class="status">PICTURED</span> All are temporary placeholders awaiting human-made replacement.</td></tr>
+<tr><td>Shared/tinted horde</td><td>12 horde types, ground/flying elite treatment, attack/state overlays</td><td><span class="status">PICTURED</span> Nine roles have no dedicated base sheet; all roster silhouettes/treatments need final direction.</td></tr>
+<tr><td>Bosses, guards and special copies</td><td>8 boss sheets, all rendered tell shapes, both Mirror outcomes, decoy and Sloth awake tints</td><td><span class="status">PICTURED</span> Shrine guards reuse their realm’s boss art. Preserve actual hit areas and warning timing during replacement.</td></tr>
+<tr><td>Weapons, pickups, terrain, VFX and UI</td><td>139 runtime stills across the runtime, realm and interface chapters</td><td><span class="status">PICTURED</span> Code-drawn subjects have no dedicated final sheet unless separately noted above.</td></tr>
+<tr><td>Fonts and audio</td><td>Fonts appear in UI screenshots; audio intentionally not pictured</td><td><span class="status">OUT OF SCOPE</span> Retain licensed UI fonts. Audio replacement needs its own handoff.</td></tr>
+</tbody></table><h3>Not exhaustively pictured — read before drawing</h3><ul><li><strong>Procedural permutations:</strong> one representative render is supplied for lava layouts, arena decoration, wall orientation, obstacle crack paths and debris. Every random seed and every frame of debris motion is not a separate deliverable.</li><li><strong>Time-based shader motion and transitions:</strong> stills show representative glow, haze, pulse, shimmer, descent and healed states. They cannot verify animation cadence, bloom over time or final feel; check those in Godot.</li><li><strong>Runtime-generated timing/cache atlases:</strong> excluded as duplicates. The gallery covers original Aseprite source frames and stored tags instead.</li><li><strong>Mirror selector:</strong> has no unique draw call of its own. Its actual spear-thrust and bow-shot outcomes are pictured separately; it is not falsely listed as uncovered art.</li><li><strong>Editor-only gizmos and debug collision shapes:</strong> not production-facing art and not included.</li><li><strong>Original Aseprite sources:</strong> linked to their unchanged workspace files for replacement. The original PNG/SVG images requested for portability are included inside this folder.</li></ul><div class="callout"><p><strong>Recommended first replacement check:</strong> the female purple-cloaked angel on the black ox, one husk, the light spear, and corrupted floor in the opening encounter. Judge silhouette, grip, contrast and 2× world scale before drawing the rest.</p></div><aside class="callout" id="shrine-heal"><h3>Healing ring at a broken shrine</h3><p><a href="shrine-heal.png">Open the full-size gameplay reference</a>. The pale inner circle marks the usable area. The broad green glow shows healed ground. Keep the inner boundary visible when a guard attack crosses it. After one heal, the boundary disappears and the ground stays lit. The countdown uses localized UI text.</p></aside><h3>Files to keep with this document</h3><ul><li><code>index.html</code> — this illustrated offline handoff.</li><li><code>originals/</code> — byte-identical original PNGs and SVG.</li><li><code>frames/</code> — native source-frame PNGs from all 23 sheets.</li><li><code>runtime/</code> — actual Godot screenshots.</li><li><code>sheet_manifest.json</code> — source paths, hashes, canvas sizes, tags, unique source IDs and frame durations.</li><li><code>runtime_manifest.json</code> — capture list, dimensions, methods and source-code hashes at capture time.</li><li><code>VERIFICATION.md</code> — verification commands, counts and limitations.</li></ul></section>
+</main><footer class="footer wrap"><p>EIGHT artist handoff · generated from the shared workspace on 19 November 2026. All game artwork shown remains under its existing status and rights. No production artwork was generated for this document.</p></footer><script>
+const filter = document.querySelector('#visual-filter');
+if (filter) {
+  filter.addEventListener('input', () => {
+    const query = filter.value.trim().toLowerCase();
+    document.querySelectorAll('[data-search]').forEach(item => {
+      item.classList.toggle('hidden-by-filter', query && !item.dataset.search.includes(query));
+    });
+  });
+}
+function allDetails(open) { document.querySelectorAll('details').forEach(d => d.open = open); }
+</script></body></html>

@@ -1,0 +1,2295 @@
+{
+  "format": "Original Aseprite source frames (not importer-expanded timing frames)",
+  "sheets": [
+    {
+      "name": "placeholder_boss_envy",
+      "source": "eight/assets/art/placeholder/placeholder_boss_envy.aseprite",
+      "sha256": "bd055e7508c32a2f37908ab04e18a22f46fa851962be5c970c44bc36241b3fac",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_envy/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_envy/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_envy/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_envy/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_envy/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_envy/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_gluttony",
+      "source": "eight/assets/art/placeholder/placeholder_boss_gluttony.aseprite",
+      "sha256": "a88b26d07ed2841086d94fccb1430106692026632f1ea76c39459bb36a0e786c",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_gluttony/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_gluttony/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_greed",
+      "source": "eight/assets/art/placeholder/placeholder_boss_greed.aseprite",
+      "sha256": "1a7d3dd6fbc7b70321aa55549a391b576116f41cdf9157dff2ea5f706d09f509",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_greed/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_greed/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_greed/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_greed/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_greed/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_greed/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_lust",
+      "source": "eight/assets/art/placeholder/placeholder_boss_lust.aseprite",
+      "sha256": "4796c73c6827debf679785f25b39f7a2cf1cab1a8f697cd0c19f9c76c1e7a935",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_lust/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_lust/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_lust/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_lust/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_lust/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_lust/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_pride",
+      "source": "eight/assets/art/placeholder/placeholder_boss_pride.aseprite",
+      "sha256": "b15cc37b19c73f19a6edc492d414045cd4f109dc2ebe3299c418b216a8a88cf8",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_pride/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_pride/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_pride/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_pride/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_pride/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_pride/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_satan",
+      "source": "eight/assets/art/placeholder/placeholder_boss_satan.aseprite",
+      "sha256": "eb34c48b6b4eefd69c180d123469b73900a210e1974f3c29b2b8562ad45d4fd1",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_satan/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_satan/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_satan/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_satan/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_satan/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_satan/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_sloth",
+      "source": "eight/assets/art/placeholder/placeholder_boss_sloth.aseprite",
+      "sha256": "1dd7b566f487981d2e0e544392ae447f1043550e3683dd6d211e5f0af1df6425",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_sloth/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_sloth/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_sloth/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_boss_wrath",
+      "source": "eight/assets/art/placeholder/placeholder_boss_wrath.aseprite",
+      "sha256": "2274db30d6747b18d696e1f4693b68fee6cb21bfd9fceefca21792727d3c45b7",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 8,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_wrath/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__001.png",
+              "source_frame": 1,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__002.png",
+              "source_frame": 2,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__003.png",
+              "source_frame": 3,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/idle__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "attack",
+          "first": 4,
+          "last": 7,
+          "frames": [
+            {
+              "file": "frames/placeholder_boss_wrath/attack__004.png",
+              "source_frame": 4,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/attack__005.png",
+              "source_frame": 5,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/attack__006.png",
+              "source_frame": 6,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_boss_wrath/attack__007.png",
+              "source_frame": 7,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 12,
+      "overlapping_source_frames": 4
+    },
+    {
+      "name": "placeholder_enemy_brute",
+      "source": "eight/assets/art/placeholder/placeholder_enemy_brute.aseprite",
+      "sha256": "79a4f0b99cd7a4a611558a9c4831edd4cabee9f2ba01c858124c878209f4d094",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "walk",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_enemy_brute/walk__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_enemy_brute/walk__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_enemy_brute/walk__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 180
+            },
+            {
+              "file": "frames/placeholder_enemy_brute/walk__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 180
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_enemy_husk",
+      "source": "eight/assets/art/placeholder/placeholder_enemy_husk.aseprite",
+      "sha256": "fd2420f521848de730e20f7f7337cc7e93e91d2268e460518e1887148b492fe9",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "walk",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_enemy_husk/walk__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 140
+            },
+            {
+              "file": "frames/placeholder_enemy_husk/walk__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 140
+            },
+            {
+              "file": "frames/placeholder_enemy_husk/walk__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 140
+            },
+            {
+              "file": "frames/placeholder_enemy_husk/walk__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 140
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_enemy_imp",
+      "source": "eight/assets/art/placeholder/placeholder_enemy_imp.aseprite",
+      "sha256": "16d3ae7bac1aeccd072d03145039f28801eb47d835303271cbe3665bc7a05cc0",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "walk",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_enemy_imp/walk__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_enemy_imp/walk__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_enemy_imp/walk__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_enemy_imp/walk__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 80
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_env_decor",
+      "source": "eight/assets/art/placeholder/placeholder_env_decor.aseprite",
+      "sha256": "f8c8f14d9098d37925b69497d039bdd8430c526d9de057da4b94a02dcf418eaa",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 9,
+      "animations": [
+        {
+          "name": "mushroom",
+          "first": 0,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/mushroom__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/mushroom__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "deadgrass",
+          "first": 1,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/deadgrass__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "rock",
+          "first": 2,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/rock__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/rock__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/rock__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/rock__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/rock__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/rock__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/rock__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "thorns",
+          "first": 3,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/thorns__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/thorns__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/thorns__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/thorns__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/thorns__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/thorns__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "bones",
+          "first": 4,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/bones__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/bones__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/bones__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/bones__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/bones__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "pool",
+          "first": 5,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/pool__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/pool__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/pool__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/pool__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "crystal",
+          "first": 6,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/crystal__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/crystal__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/crystal__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "growth",
+          "first": 7,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/growth__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_decor/growth__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        },
+        {
+          "name": "deadtree",
+          "first": 8,
+          "last": 8,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_decor/deadtree__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 45,
+      "overlapping_source_frames": 36
+    },
+    {
+      "name": "placeholder_env_floor",
+      "source": "eight/assets/art/placeholder/placeholder_env_floor.aseprite",
+      "sha256": "a9d54615f65f8a3137ca3dbd1d15f54ed65faa8ad49f60e263abbc1c6f54aa90",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "tiles",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_floor/tiles__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_floor/tiles__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_floor/tiles__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            },
+            {
+              "file": "frames/placeholder_env_floor/tiles__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 1000
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_env_landing",
+      "source": "eight/assets/art/placeholder/placeholder_env_landing.aseprite",
+      "sha256": "2ad0a74cd007d4317c09e93e897b70c10e189723cad05dc6f04cb0b120732f25",
+      "canvas": [
+        64,
+        64
+      ],
+      "frame_count": 1,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 0,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_landing/idle__000.png",
+              "source_frame": 0,
+              "width": 64,
+              "height": 64,
+              "duration_ms": 1000
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 1,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_env_pillar",
+      "source": "eight/assets/art/placeholder/placeholder_env_pillar.aseprite",
+      "sha256": "56c30cabcb8bb6582653fb2473fdbb30ae403b25fc2554aedd767573136facbe",
+      "canvas": [
+        80,
+        80
+      ],
+      "frame_count": 1,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 0,
+          "frames": [
+            {
+              "file": "frames/placeholder_env_pillar/idle__000.png",
+              "source_frame": 0,
+              "width": 80,
+              "height": 80,
+              "duration_ms": 1000
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 1,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_pickup_item",
+      "source": "eight/assets/art/placeholder/placeholder_pickup_item.aseprite",
+      "sha256": "3f2780709f5dcdbf48f96fbb5137ffb164a0ace3a26d09b1626def7090a5476c",
+      "canvas": [
+        16,
+        16
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_pickup_item/idle__000.png",
+              "source_frame": 0,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_pickup_item/idle__001.png",
+              "source_frame": 1,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_pickup_item/idle__002.png",
+              "source_frame": 2,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_pickup_item/idle__003.png",
+              "source_frame": 3,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_pickup_life",
+      "source": "eight/assets/art/placeholder/placeholder_pickup_life.aseprite",
+      "sha256": "d3e9b76dd450bd2c671dd64381b7a5f60f933418ccf644895979db14976cf81d",
+      "canvas": [
+        16,
+        16
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_pickup_life/idle__000.png",
+              "source_frame": 0,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_pickup_life/idle__001.png",
+              "source_frame": 1,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_pickup_life/idle__002.png",
+              "source_frame": 2,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_pickup_life/idle__003.png",
+              "source_frame": 3,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 160
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_pickup_xp",
+      "source": "eight/assets/art/placeholder/placeholder_pickup_xp.aseprite",
+      "sha256": "0774ba2d42a7d5161968eb8cb7b662c845883dae154a6c23446e928a034847ef",
+      "canvas": [
+        16,
+        16
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_pickup_xp/idle__000.png",
+              "source_frame": 0,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 140
+            },
+            {
+              "file": "frames/placeholder_pickup_xp/idle__001.png",
+              "source_frame": 1,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 140
+            },
+            {
+              "file": "frames/placeholder_pickup_xp/idle__002.png",
+              "source_frame": 2,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 140
+            },
+            {
+              "file": "frames/placeholder_pickup_xp/idle__003.png",
+              "source_frame": 3,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 140
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_player",
+      "source": "eight/assets/art/placeholder/placeholder_player.aseprite",
+      "sha256": "ae846a626908c6c9c2ff838c9cf0befc62c2fa956d86ba91f8a69d12a4c84d3f",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 16,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 15,
+          "frames": [
+            {
+              "file": "frames/placeholder_player/idle__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_player/idle__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_player/idle__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_player/idle__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 160
+            },
+            {
+              "file": "frames/placeholder_player/idle__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_player/idle__009.png",
+              "source_frame": 9,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_player/idle__010.png",
+              "source_frame": 10,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/idle__011.png",
+              "source_frame": 11,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/idle__012.png",
+              "source_frame": 12,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__013.png",
+              "source_frame": 13,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__014.png",
+              "source_frame": 14,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/idle__015.png",
+              "source_frame": 15,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "run",
+          "first": 4,
+          "last": 15,
+          "frames": [
+            {
+              "file": "frames/placeholder_player/run__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__005.png",
+              "source_frame": 5,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__006.png",
+              "source_frame": 6,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__007.png",
+              "source_frame": 7,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_player/run__009.png",
+              "source_frame": 9,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_player/run__010.png",
+              "source_frame": 10,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/run__011.png",
+              "source_frame": 11,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/run__012.png",
+              "source_frame": 12,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__013.png",
+              "source_frame": 13,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__014.png",
+              "source_frame": 14,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/run__015.png",
+              "source_frame": 15,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "dash",
+          "first": 8,
+          "last": 15,
+          "frames": [
+            {
+              "file": "frames/placeholder_player/dash__008.png",
+              "source_frame": 8,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_player/dash__009.png",
+              "source_frame": 9,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_player/dash__010.png",
+              "source_frame": 10,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/dash__011.png",
+              "source_frame": 11,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/dash__012.png",
+              "source_frame": 12,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/dash__013.png",
+              "source_frame": 13,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/dash__014.png",
+              "source_frame": 14,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/dash__015.png",
+              "source_frame": 15,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "jump",
+          "first": 10,
+          "last": 15,
+          "frames": [
+            {
+              "file": "frames/placeholder_player/jump__010.png",
+              "source_frame": 10,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/jump__011.png",
+              "source_frame": 11,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 120
+            },
+            {
+              "file": "frames/placeholder_player/jump__012.png",
+              "source_frame": 12,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/jump__013.png",
+              "source_frame": 13,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/jump__014.png",
+              "source_frame": 14,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/jump__015.png",
+              "source_frame": 15,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            }
+          ]
+        },
+        {
+          "name": "descend",
+          "first": 12,
+          "last": 15,
+          "frames": [
+            {
+              "file": "frames/placeholder_player/descend__012.png",
+              "source_frame": 12,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/descend__013.png",
+              "source_frame": 13,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/descend__014.png",
+              "source_frame": 14,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            },
+            {
+              "file": "frames/placeholder_player/descend__015.png",
+              "source_frame": 15,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 100
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 46,
+      "overlapping_source_frames": 30
+    },
+    {
+      "name": "placeholder_projectile_fire",
+      "source": "eight/assets/art/placeholder/placeholder_projectile_fire.aseprite",
+      "sha256": "c90f5ae9ad9c0f89e4a2dbd05ecd7380954bd0e702cdf4f3b7eb7b2bd06313a6",
+      "canvas": [
+        16,
+        16
+      ],
+      "frame_count": 3,
+      "animations": [
+        {
+          "name": "fly",
+          "first": 0,
+          "last": 2,
+          "frames": [
+            {
+              "file": "frames/placeholder_projectile_fire/fly__000.png",
+              "source_frame": 0,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_projectile_fire/fly__001.png",
+              "source_frame": 1,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_projectile_fire/fly__002.png",
+              "source_frame": 2,
+              "width": 16,
+              "height": 16,
+              "duration_ms": 80
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 3,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_spear_light",
+      "source": "eight/assets/art/placeholder/placeholder_spear_light.aseprite",
+      "sha256": "505e8d30d753c4b22c151eed874df20d531d14a671b938256243f75065c9c6de",
+      "canvas": [
+        48,
+        16
+      ],
+      "frame_count": 4,
+      "animations": [
+        {
+          "name": "idle",
+          "first": 0,
+          "last": 3,
+          "frames": [
+            {
+              "file": "frames/placeholder_spear_light/idle__000.png",
+              "source_frame": 0,
+              "width": 48,
+              "height": 16,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_spear_light/idle__001.png",
+              "source_frame": 1,
+              "width": 48,
+              "height": 16,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_spear_light/idle__002.png",
+              "source_frame": 2,
+              "width": 48,
+              "height": 16,
+              "duration_ms": 80
+            },
+            {
+              "file": "frames/placeholder_spear_light/idle__003.png",
+              "source_frame": 3,
+              "width": 48,
+              "height": 16,
+              "duration_ms": 80
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 4,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_vfx_poof",
+      "source": "eight/assets/art/placeholder/placeholder_vfx_poof.aseprite",
+      "sha256": "3c82361adee1878c97aa8d76876b3e4722648675e55ee48457368cc6586c55a7",
+      "canvas": [
+        32,
+        32
+      ],
+      "frame_count": 5,
+      "animations": [
+        {
+          "name": "_poof",
+          "first": 0,
+          "last": 4,
+          "frames": [
+            {
+              "file": "frames/placeholder_vfx_poof/_poof__000.png",
+              "source_frame": 0,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_vfx_poof/_poof__001.png",
+              "source_frame": 1,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_vfx_poof/_poof__002.png",
+              "source_frame": 2,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_vfx_poof/_poof__003.png",
+              "source_frame": 3,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            },
+            {
+              "file": "frames/placeholder_vfx_poof/_poof__004.png",
+              "source_frame": 4,
+              "width": 32,
+              "height": 32,
+              "duration_ms": 60
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 5,
+      "overlapping_source_frames": 0
+    },
+    {
+      "name": "placeholder_vfx_slash",
+      "source": "eight/assets/art/placeholder/placeholder_vfx_slash.aseprite",
+      "sha256": "fdd085581a1d12d29492a5587cedaa3fedfd0e3beaa4fcc81b7233e87c14a216",
+      "canvas": [
+        128,
+        128
+      ],
+      "frame_count": 5,
+      "animations": [
+        {
+          "name": "_slash",
+          "first": 0,
+          "last": 4,
+          "frames": [
+            {
+              "file": "frames/placeholder_vfx_slash/_slash__000.png",
+              "source_frame": 0,
+              "width": 128,
+              "height": 128,
+              "duration_ms": 50
+            },
+            {
+              "file": "frames/placeholder_vfx_slash/_slash__001.png",
+              "source_frame": 1,
+              "width": 128,
+              "height": 128,
+              "duration_ms": 50
+            },
+            {
+              "file": "frames/placeholder_vfx_slash/_slash__002.png",
+              "source_frame": 2,
+              "width": 128,
+              "height": 128,
+              "duration_ms": 50
+            },
+            {
+              "file": "frames/placeholder_vfx_slash/_slash__003.png",
+              "source_frame": 3,
+              "width": 128,
+              "height": 128,
+              "duration_ms": 50
+            },
+            {
+              "file": "frames/placeholder_vfx_slash/_slash__004.png",
+              "source_frame": 4,
+              "width": 128,
+              "height": 128,
+              "duration_ms": 50
+            }
+          ]
+        }
+      ],
+      "exported_tag_frames": 5,
+      "overlapping_source_frames": 0
+    }
+  ],
+  "original_images": [
+    {
+      "file": "originals/Sprite-0001.png",
+      "source": "eight/assets/art/Sprite-0001.png",
+      "sha256": "d655b8edba97ddb8a3496bcb52b41cb354b32ea06675bd51593388d5f09ea771",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    {
+      "file": "originals/eight_logo_pixel.png",
+      "source": "eight/assets/art/eight_logo_pixel.png",
+      "sha256": "67c42ac884789b9b3d721c47ccac35325b31ee65512fe3d9e005d72ec63f6bbe",
+      "canvas": [
+        1774,
+        887
+      ]
+    }
+  ],
+  "icon": {
+    "file": "originals/icon.svg",
+    "source": "eight/icon.svg",
+    "sha256": "6c80384360a5b269d1054bfb27241258154e2cc8167c522016fdc1820e84e0f8",
+    "canvas": [
+      128,
+      128
+    ]
+  }
+}

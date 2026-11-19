@@ -102,6 +102,10 @@ enter_portal={
 ]
 }
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://resources/menu.tr.po", "res://resources/gameplay.tr.po", "res://resources/lore.tr.po")
+
 [layer_names]
 
 2d_physics/layer_1="World"

@@ -66,6 +66,7 @@ func _ready() -> void:
 	# Shop ranks apply to hub-launched runs only (F6 and tests stay unaffected).
 	Progress.load_saved().apply_upgrades(run)
 	var settings: Settings = Settings.load_saved()
+	settings.apply_language()
 	settings.apply_display(get_window())
 	settings.apply_run(run)
 	get_window().size_changed.connect(_on_size_changed)

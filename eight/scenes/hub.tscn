@@ -69,6 +69,13 @@ theme_override_font_sizes/font_size = 15
 text = "Purge a sin's realm to seal its relic. With all seven relics in place, summon Satan."
 horizontal_alignment = 1
 
+[node name="Guide" type="Button" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 198.0
+offset_bottom = 62.0
+text = "HOW TO PLAY"
+
 [node name="Quit" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 3

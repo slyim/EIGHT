@@ -34,7 +34,7 @@ func _run() -> void:
 	run.player.invulnerable_left = 100000.0
 	run.elite_left = 100000.0
 	run.max_enemies = 1000
-	_check(run.surge_left == 0.0 and run.surge_next >= Run.SURGE_GAP_MIN - 1.0 and run.surge_next <= Run.SURGE_GAP_MAX, "The first surge must wait 90-150 s (%.1f)." % run.surge_next)
+	_check(run.surge_left == 0.0 and run.surge_next >= 105.0 - 1.0 and run.surge_next <= Run.SURGE_GAP_MAX, "The first Penance surge must wait 105-150 s (%.1f)." % run.surge_next)
 	# The surge clock stands still before landing and while paused (level-ups).
 	var waiting: float = run.surge_next
 	run.has_landed = false

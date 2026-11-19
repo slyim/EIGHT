@@ -239,6 +239,7 @@ func _run() -> void:
 	current_scene = fourth
 	await _wait_ticks(30)
 	_check(fourth.player.is_descending() and fourth.player.height > 0.0, "A run must open with the descent.")
+	_check(fourth.hud.relic_label.visible and fourth.hud.relic_label.text == Run.REALM_GREETINGS[fourth.sin_index], "The realm's speaker must greet the angel during descent.")
 	_check(fourth.enemy_count == 0 and fourth.elapsed == 0.0, "Nothing may spawn before the angel lands.")
 	await _wait_ticks(90)
 	_check(not fourth.player.is_descending() and fourth.has_landed, "The angel must land on the plain.")

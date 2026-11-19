@@ -23,6 +23,9 @@ const QUALITY_NOTES: Array[String] = [
 const FPS_CAPS: Array[int] = [30, 60, 120, 0]
 ## Screen-shake scales; 1.0 is full strength.
 const SHAKE_SCALES: Array[float] = [0.0, 0.5, 1.0]
+## Supported UI locales (first entry is the default) and their native display names.
+const LANGUAGES: Array[String] = ["en", "tr"]
+const LANGUAGE_NAMES: Array[String] = ["English", "Türkçe"]
 ## PLACEHOLDER-tunable strengths the quality steps switch between (on values match the
 ## approved look; off is 0).
 const HAZE_ON: float = 0.045
@@ -41,6 +44,8 @@ var damage_numbers: bool = true
 ## Index into SHAKE_SCALES.
 var shake: int = 2
 var hit_stop: bool = true
+## Active locale code from LANGUAGES.
+var language: String = "en"
 
 
 static func load_saved() -> Settings:
@@ -65,6 +70,8 @@ static func load_saved() -> Settings:
 		settings.shake = stored
 	stored = file.get_value("gameplay", "hit_stop", true)
 	settings.hit_stop = stored if stored is bool else true
+	stored = file.get_value("general", "language", "en")
+	settings.language = stored if stored is String and LANGUAGES.has(stored) else "en"
 	return settings
 
 
@@ -77,7 +84,15 @@ func save() -> Error:
 	file.set_value("gameplay", "damage_numbers", damage_numbers)
 	file.set_value("gameplay", "shake", shake)
 	file.set_value("gameplay", "hit_stop", hit_stop)
+	file.set_value("general", "language", language)
 	return file.save(path)
+
+
+## Sets Godot's active locale from this setting (falls back to English when unknown).
+func apply_language() -> void:
+	var locale: String = language if LANGUAGES.has(language) else "en"
+	if TranslationServer.get_locale() != locale:
+		TranslationServer.set_locale(locale)
 
 
 ## The window: vsync, frame cap, and fullscreen (window mode is left alone when headless).

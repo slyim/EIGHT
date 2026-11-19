@@ -127,7 +127,9 @@ func _run() -> void:
 	guard._fire(Vector2.RIGHT)
 	var fired: EnemyProjectile = get_nodes_in_group(&"enemy_projectiles")[0] as EnemyProjectile
 	_check(fired.damage == guard.shot_damage, "A boss shot must carry the boss's shot damage.")
-	fired.queue_free()
+	guard.take_hit(guard.max_health * 10)
+	await _ticks(2)
+	_check(not is_instance_valid(fired), "Defeating a guard must clear its live shot.")
 	_check(hard.spawn_interval() < easy_interval and hard.spawn_batch() > easy_batch, "Abyss must spawn faster and in bigger waves.")
 	_check(hard.shrine_time == easy_time and absf(hard.shrine_time_left - easy_left) < 0.2, "The countdown must never change with the tier.")
 	hard.feathers_earned = 11

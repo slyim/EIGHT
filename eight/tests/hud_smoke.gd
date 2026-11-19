@@ -74,7 +74,7 @@ func _run() -> void:
 	# The placeholder notice stays up; the debug overlay stays out of the way until F3.
 	var notice: Label = hud.get_node("AssetNotice") as Label
 	_check(notice.is_visible_in_tree(), "The placeholder notice must always show.")
-	_check(notice.text.contains("PLACEHOLDER ART") and notice.text.contains("PLACEHOLDER AUDIO"), "The notice must name art and audio.")
+	_check(notice.text == "Prototype visuals and sound", "The notice must identify prototype visuals and sound.")
 	_check(not hud.stats_panel.visible, "The stats overlay must start hidden.")
 	await _toggle_stats(hud)
 	_check(hud.stats_panel.visible and hud.debug_label.text.contains("FPS"), "F3 must show the filled stats overlay.")

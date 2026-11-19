@@ -253,19 +253,19 @@ func _process(_delta: float) -> void:
 		debug_label.text = _stats_text()
 	var minutes: int = int(run.elapsed) / 60
 	var seconds: int = int(run.elapsed) % 60
-	stats_label.text = "KILLS %s    FEATHERS %s" % [compact(run.kills), compact(run.feathers_total())]
+	stats_label.text = tr("KILLS %s    FEATHERS %s") % [compact(run.kills), compact(run.feathers_total())]
 	if run.shrine_total > 0:
-		stats_label.text += "    SHRINES %d / %d" % [run.shrine_total - run.shrines_left, run.shrine_total]
-	difficulty_label.text = "TIME %02d:%02d   %s   THREAT %d" % [minutes, seconds, Run.TIERS[run.tier]["name"], run.difficulty_tier()]
-	stage_label.text = "REALM OF %s" % Run.BOSSES[run.sin_index]["name"]
+		stats_label.text += "    " + tr("SHRINES %d / %d") % [run.shrine_total - run.shrines_left, run.shrine_total]
+	difficulty_label.text = tr("TIME %02d:%02d   %s   THREAT %d") % [minutes, seconds, tr(Run.TIERS[run.tier]["name"]), run.difficulty_tier()]
+	stage_label.text = tr("REALM OF %s") % tr(Run.BOSSES[run.sin_index]["name"])
 	if run.scorched:
-		stage_label.text += "   SCORCHED EARTH"
+		stage_label.text += "   " + tr("SCORCHED EARTH")
 	if run.surge_left > 0.0 and not run.ended:
-		stage_label.text += "   HORDE SURGE %d" % ceili(run.surge_left)
+		stage_label.text += "   " + tr("HORDE SURGE %d") % ceili(run.surge_left)
 	shrine_markers.queue_redraw()
 	xp_bar.max_value = run.xp_needed()
 	xp_bar.value = run.xp
-	xp_label.text = "LEVEL %d    XP %d / %d" % [run.level, run.xp, run.xp_needed()]
+	xp_label.text = tr("LEVEL %d    XP %d / %d") % [run.level, run.xp, run.xp_needed()]
 
 	var player: MountedPlayer = run.player
 	# Hits, edges, and callouts belong to the live world; a paused screen shows none of them.
@@ -278,13 +278,16 @@ func _process(_delta: float) -> void:
 		_place_perfect()
 	elif perfect_label.visible:
 		perfect_label.visible = false
-	_update_ability(dash_bar, dash_label, "DASH", _dash_wait(), player.dash_duration + player.dash_cooldown)
+	_update_ability(dash_bar, dash_label, tr("DASH"), _dash_wait(), player.dash_duration + player.dash_cooldown)
 	_update_flight(player)
 	_update_weapon(player)
 	var burning: bool = run.lava != null and run.lava.burning
-	burn_label.visible = not run.ended and (burning or run.player.slow_left > 0.0)
-	burn_label.text = "BURNING" if burning else "SLOWED"
+	burn_label.visible = not run.ended and (burning or run.player.slow_left > 0.0 or run.healing_time > 0.0)
+	burn_label.text = tr("BURNING") if burning else tr("SLOWED")
 	burn_label.self_modulate = BURN_TINT if burning else SLOW_TINT
+	if not burning and player.slow_left <= 0.0 and run.healing_time > 0.0:
+		burn_label.text = tr("HEAL IN %d") % ceili(Run.SHRINE_HEAL_TIME - run.healing_time)
+		burn_label.self_modulate = Color("bee5cf")
 	_update_side_weapons(player)
 	# Once the run ends the play gauges and controls step aside for the ending.
 	($Abilities as Control).visible = not run.ended
@@ -292,15 +295,15 @@ func _process(_delta: float) -> void:
 
 	items_label.visible = not run.items.is_empty()
 	if items_label.visible:
-		var lines: PackedStringArray = PackedStringArray(["ITEMS (%d)" % run.items.size()])
+		var lines: PackedStringArray = PackedStringArray([tr("ITEMS (%d)") % run.items.size()])
 		for item: Dictionary in run.items.slice(-ITEMS_SHOWN):
-			lines.append("%s  %s" % [(item["name"] as String).trim_prefix("Item: "), item["text"]])
+			lines.append("%s  %s" % [tr((item["name"] as String).trim_prefix("Item: ")), tr(item["text"])])
 		items_label.text = "\n".join(lines)
 
 	var boss: Boss = run.current_boss
 	boss_tag.visible = is_instance_valid(boss)
 	if boss_tag.visible:
-		boss_tag.text = boss.boss_name
+		boss_tag.text = boss.display_name()
 		_place_tag(boss_tag, boss.global_position - Vector2(0.0, boss.radius + 18.0))
 	portal_tag.visible = is_instance_valid(run.exit_portal)
 	if portal_tag.visible:
@@ -308,7 +311,7 @@ func _process(_delta: float) -> void:
 	boss_panel.visible = is_instance_valid(boss)
 	boss_status_label.visible = not boss_panel.visible
 	if boss_panel.visible:
-		boss_name_label.text = "%s  %d%%" % [boss.boss_name, ceili(100.0 * boss.health / boss.max_health)]
+		boss_name_label.text = "%s  %d%%" % [boss.display_name(), ceili(100.0 * boss.health / boss.max_health)]
 		boss_bar.max_value = boss.max_health
 		boss_bar.value = boss.health
 	else:
@@ -320,19 +323,19 @@ func _update_boss_status() -> void:
 		boss_status_label.text = ""
 		return
 	if is_instance_valid(run.exit_portal):
-		boss_status_label.text = "%s DEFEATED - HOLD E IN PORTAL TO LEAVE\nStay to grow stronger; the horde keeps rising" % Run.BOSSES[run.sin_index]["name"]
+		boss_status_label.text = tr("%s DEFEATED - HOLD E IN PORTAL TO LEAVE\nStay to grow stronger; the horde keeps rising") % tr(Run.BOSSES[run.sin_index]["name"])
 		boss_status_label.self_modulate = ALERT_TINT
 		return
 	if run.sin_index == Run.SATAN:
-		boss_status_label.text = "THE RITUAL IS COMPLETE\nSATAN COMES IN %d" % ceili(run.ritual_left)
+		boss_status_label.text = tr("THE RITUAL IS COMPLETE\nSATAN COMES IN %d") % ceili(run.ritual_left)
 		boss_status_label.self_modulate = ALERT_TINT
 		return
 	if run.shrines_left <= 0:
-		boss_status_label.text = "THE SHRINES ARE BROKEN" if run.shrine_total > 0 else "%s APPROACHES" % Run.BOSSES[run.sin_index]["name"]
+		boss_status_label.text = tr("THE SHRINES ARE BROKEN") if run.shrine_total > 0 else tr("%s APPROACHES") % tr(Run.BOSSES[run.sin_index]["name"])
 		boss_status_label.self_modulate = Color.WHITE
 		return
 	var left: int = ceili(run.shrine_time_left)
-	boss_status_label.text = "DESTROY SATAN'S SHRINES   %d LEFT\n%d:%02d" % [run.shrines_left, left / 60, left % 60]
+	boss_status_label.text = tr("DESTROY SATAN'S SHRINES   %d LEFT\n%d:%02d") % [run.shrines_left, left / 60, left % 60]
 	boss_status_label.self_modulate = ALERT_TINT if run.shrine_time_left <= SHRINE_WARNING_SECONDS else Color.WHITE
 
 
@@ -401,21 +404,21 @@ func _update_flight(player: MountedPlayer) -> void:
 	var low: bool = player.flight_stamina < player.flight_min_stamina
 	flight_bar.self_modulate = ABILITY_WAIT_TINT if locked or low else Color.WHITE
 	if locked:
-		flight_label.text = "FLIGHT --"
+		flight_label.text = tr("FLIGHT --")
 	elif player.flight_stamina >= player.flight_time:
-		flight_label.text = "FLIGHT READY"
+		flight_label.text = tr("FLIGHT READY")
 	else:
-		flight_label.text = "FLIGHT %d%%" % _flight_percent(player)
+		flight_label.text = tr("FLIGHT %d%%") % _flight_percent(player)
 
 
-## The weapon's evolution path name, or "" before it evolves.
+## The weapon's evolution path name in the current language, or "" before it evolves.
 func path_name(player: MountedPlayer, which: MountedPlayer.Weapon) -> String:
 	var path: int = player.spear_path if which == MountedPlayer.Weapon.SPEAR else player.bow_path
-	return "" if path == 0 else String(Run.EVOLUTIONS[which][path - 1]["name"]).to_upper()
+	return "" if path == 0 else tr(String(Run.EVOLUTIONS[which][path - 1]["name"]).to_upper())
 
 
 func _update_weapon(player: MountedPlayer) -> void:
-	var weapon_name: String = "SPEAR" if player.weapon == MountedPlayer.Weapon.SPEAR else "BOW"
+	var weapon_name: String = tr("SPEAR") if player.weapon == MountedPlayer.Weapon.SPEAR else tr("BOW")
 	# Path names are unique per weapon, so an evolved weapon shows just its path (it fits the gauge).
 	var evolved: String = path_name(player, player.weapon)
 	if evolved != "":
@@ -434,15 +437,15 @@ func _update_ability(bar: ProgressBar, label: Label, ability: String, wait: floa
 	bar.value = 0.0 if locked else 1.0 - clampf(wait / total, 0.0, 1.0)
 	bar.self_modulate = Color.WHITE if usable else ABILITY_WAIT_TINT
 	if usable:
-		label.text = "%s READY" % ability
+		label.text = tr("%s READY") % ability
 	elif locked:
 		label.text = "%s --" % ability
 	else:
-		label.text = "%s %.1fs" % [ability, ceilf(wait * 10.0) / 10.0]
+		label.text = tr("%s %.1fs") % [ability, ceilf(wait * 10.0) / 10.0]
 
 
 func _update_life(current: int, maximum: int) -> void:
-	life_label.text = "LIFE %d / %d" % [current, maximum]
+	life_label.text = tr("LIFE %d / %d") % [current, maximum]
 	var low_life: bool = not run.ended and not run.player.is_dead and current > 0 and current <= roundi(LOW_LIFE_FRACTION * maximum)
 	life_label.self_modulate = LOW_LIFE_TINT if current <= roundi(LOW_LIFE_FRACTION * maximum) else Color.WHITE
 	if vignette != null:
@@ -560,24 +563,24 @@ func _stats_text() -> String:
 	var boss_text: String = "-"
 	if is_instance_valid(run.current_boss):
 		boss_text = "%s %d%%" % [
-			run.current_boss.boss_name.get_slice(" ", 0),
+			run.current_boss.display_name(),
 			roundi(100.0 * run.current_boss.health / run.current_boss.max_health),
 		]
 	var attack_rate: float = 1.0 / maxf(player.thrust_cooldown * player.haste, player.thrust_duration)
 	var lines: PackedStringArray = PackedStringArray([
-		"FPS %3d   FRAME %5.1f ms" % [roundi(fps), frame_ms],
-		"CPU %5.1f ms  PHYS %5.1f ms" % [process_ms, physics_ms],
-		"DRAWS %4d   NODES %5d" % [draw_calls, nodes],
-		"MEMORY %6.1f MB" % memory_mb,
+		tr("FPS %3d   FRAME %5.1f ms") % [roundi(fps), frame_ms],
+		tr("CPU %5.1f ms  PHYS %5.1f ms") % [process_ms, physics_ms],
+		tr("DRAWS %4d   NODES %5d") % [draw_calls, nodes],
+		tr("MEMORY %6.1f MB") % memory_mb,
 		"",
-		"ENEMIES %3d / %d" % [run.enemy_count, run.max_enemies],
-		"BOSS    %s" % boss_text,
-		"SHOTS   %3d   DROPS %3d" % [get_tree().get_node_count_in_group(&"enemy_projectiles"), run.pickups.get_child_count()],
-		"KILLS   %4d  LEVEL %2d" % [run.kills, run.level],
+		tr("ENEMIES %3d / %d") % [run.enemy_count, run.max_enemies],
+		tr("BOSS    %s") % boss_text,
+		tr("SHOTS   %3d   DROPS %3d") % [get_tree().get_node_count_in_group(&"enemy_projectiles"), run.pickups.get_child_count()],
+		tr("KILLS   %4d  LEVEL %2d") % [run.kills, run.level],
 		"",
-		"DMG %d  ATK %.1f/s  REACH %d" % [player.dealt(player.spear_damage), attack_rate, roundi(player.spear_reach)],
-		"PIERCE %d  SPEED %d  PULL %d" % [player.spear_pierce, roundi(player.movement_speed), roundi(player.pickup_radius)],
-		"COMBO %d/%d  DASH %s  FLIGHT %d%%" % [
+		tr("DMG %d  ATK %.1f/s  REACH %d") % [player.dealt(player.spear_damage), attack_rate, roundi(player.spear_reach)],
+		tr("PIERCE %d  SPEED %d  PULL %d") % [player.spear_pierce, roundi(player.movement_speed), roundi(player.pickup_radius)],
+		tr("COMBO %d/%d  DASH %s  FLIGHT %d%%") % [
 			player.combo_step() + 1,
 			MountedPlayer.COMBO_LENGTH,
 			"ok" if _dash_wait() <= 0.0 else "--",
@@ -624,11 +627,11 @@ func show_level_up(options: Array[Dictionary], heading: String = "") -> void:
 		choice_details[index].visible = index < options.size()
 		if index < options.size():
 			var option: Dictionary = options[index]
-			choice_buttons[index].text = "%d   %s" % [index + 1, option["name"]]
-			choice_details[index].text = option["text"]
-	($LevelUp/Box/Hint as Label).text = "Click a choice or press 1-%d" % options.size()
+			choice_buttons[index].text = "%d   %s" % [index + 1, tr(option["name"])]
+			choice_details[index].text = tr(option["text"])
+	($LevelUp/Box/Hint as Label).text = tr("Click a choice or press 1-%d") % options.size()
 	var more: int = run.pending_level_ups - 1
-	level_up_heading.text = heading if heading != "" else ("LEVEL UP - CHOOSE ONE" if more <= 0 else "LEVEL UP - CHOOSE ONE (+%d MORE)" % more)
+	level_up_heading.text = tr(heading) if heading != "" else (tr("LEVEL UP - CHOOSE ONE") if more <= 0 else tr("LEVEL UP - CHOOSE ONE (+%d MORE)") % more)
 	# One pausing panel at a time: a level-up replaces the pause menu (the tree stays paused).
 	pause_menu.hide()
 	# No focus grab: Space is the flight key and must not pick a choice by accident.
@@ -691,16 +694,16 @@ static func compact(count: int) -> String:
 ## Adds the banked feathers to the end card: all of them on a win, half on a defeat.
 func show_feathers(kept: int, earned: int, saved: bool) -> void:
 	if not saved:
-		end_label.text += "\nFEATHERS COULD NOT BE SAVED"
+		end_label.text += "\n" + tr("FEATHERS COULD NOT BE SAVED")
 	elif kept == earned:
-		end_label.text += "\n+%d FEATHERS" % kept
+		end_label.text += "\n" + tr("+%d FEATHERS") % kept
 	else:
-		end_label.text += "\nKEPT %d OF %d FEATHERS" % [kept, earned]
+		end_label.text += "\n" + tr("KEPT %d OF %d FEATHERS") % [kept, earned]
 
 
 ## The win could not be written: say so, and offer to try again or leave knowingly unsaved.
 func show_save_failed(error: Error) -> void:
-	end_label.text = "%s DEFEATED\nYOUR PROGRESS COULD NOT BE SAVED (ERROR %d)" % [Run.BOSSES[run.sin_index]["name"], error]
+	end_label.text = tr("%s DEFEATED\nYOUR PROGRESS COULD NOT BE SAVED (ERROR %d)") % [tr(Run.BOSSES[run.sin_index]["name"]), error]
 	end_label.show()
 	save_failed.show()
 	for index: int in range(save_failed.get_child_count()):
@@ -710,11 +713,11 @@ func show_save_failed(error: Error) -> void:
 ## The two evolution paths for a weapon, as cards that deal in; 1 / 2 or a click picks one.
 func show_evolution(which: int, paths: Array) -> void:
 	pause_menu.hide()
-	($Evolution/Box/Heading as Label).text = "%s EVOLUTION" % ("SPEAR" if which == MountedPlayer.Weapon.SPEAR else "BOW")
+	($Evolution/Box/Heading as Label).text = tr("%s EVOLUTION") % (tr("SPEAR") if which == MountedPlayer.Weapon.SPEAR else tr("BOW"))
 	for index: int in range(evolution_cards.size()):
 		var card: Button = evolution_cards[index]
-		(card.get_node(^"Text/Title") as Label).text = "%d   %s" % [index + 1, String(paths[index]["name"]).to_upper()]
-		(card.get_node(^"Text/Detail") as Label).text = paths[index]["text"]
+		(card.get_node(^"Text/Title") as Label).text = "%d   %s" % [index + 1, tr(String(paths[index]["name"]).to_upper())]
+		(card.get_node(^"Text/Detail") as Label).text = tr(paths[index]["text"])
 	evolution_panel.show()
 	_pop_in(evolution_panel, 0.0)
 	for index: int in range(evolution_cards.size()):
@@ -749,23 +752,24 @@ func _update_side_weapons(player: MountedPlayer) -> void:
 	var lines: PackedStringArray = []
 	for kind: int in range(player.side_weapons.levels.size()):
 		if player.side_weapons.levels[kind] > 0:
-			lines.append(player.side_weapons.label(kind).to_upper())
+			lines.append(player.side_weapons.label(kind))
 	side_label.visible = not lines.is_empty() and not run.ended
-	side_label.text = "SIDE WEAPONS\n" + "\n".join(lines)
+	side_label.text = tr("SIDE WEAPONS") + "\n" + "\n".join(lines)
 
 
 ## Names a side-weapon find for a moment above the gauges.
 func announce_relic(kind: int) -> void:
 	var weapons: SideWeapons = run.player.side_weapons
-	announce(("NEW: %s" if weapons.levels[kind] == 1 else "UPGRADED: %s") % weapons.label(kind).to_upper())
+	announce((tr("NEW: %s") if weapons.levels[kind] == 1 else tr("UPGRADED: %s")) % weapons.label(kind))
 
 
 ## Shows a line above the ability bar for two seconds (a relic find, the run's map modifier),
 ## tinted (a warning in the burn colour). A newer line replaces an older one at once.
+## The run passes English lines; they are translated here, at display.
 func announce(text: String, tint: Color = Color.WHITE) -> void:
 	if announce_tween != null:
 		announce_tween.kill()
-	relic_label.text = text
+	relic_label.text = tr(text)
 	relic_label.self_modulate = tint
 	relic_label.show()
 	relic_label.pivot_offset = relic_label.size * 0.5
@@ -794,16 +798,16 @@ func show_end(victory: bool) -> void:
 	damage_numbers.clear()
 	var hosted: bool = world_view != null
 	if victory and run.sin_index == Run.SATAN:
-		end_label.text = "SATAN DEFEATED\nTHE WORLD IS SAVED"
+		end_label.text = tr("SATAN DEFEATED\nTHE WORLD IS SAVED")
 	elif victory:
-		end_label.text = "THE REALM OF %s IS SAVED" % Run.BOSSES[run.sin_index]["name"]
+		end_label.text = tr("THE REALM OF %s IS SAVED") % tr(Run.BOSSES[run.sin_index]["name"])
 	elif run.shrines_left > 0 and run.shrine_time_left <= 0.0:
-		end_label.text = "THE SHRINES OUTLASTED YOU"
+		end_label.text = tr("THE SHRINES OUTLASTED YOU")
 	else:
-		end_label.text = "YOU HAVE FALLEN"
+		end_label.text = tr("YOU HAVE FALLEN")
 	# A hosted win returns to the hub by itself; a defeat offers Retry and the hub.
 	if not hosted:
-		end_label.text += "\nR to start a new run"
+		end_label.text += "\n" + tr("R to start a new run")
 	end_label.show()
 	_pop_in(end_label, 0.0)
 	end_buttons.visible = hosted and not victory

@@ -6,6 +6,10 @@ const FLOOR_RECT: Rect2 = Rect2(-960.0, -600.0, 1920.0, 1200.0)
 @onready var geometry: StaticBody2D = $Geometry
 
 
+func _ready() -> void:
+	Settings.load_saved().apply_language()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"reset"):
 		get_viewport().set_input_as_handled()

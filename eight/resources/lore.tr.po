@@ -1,0 +1,28 @@
+msgid ""
+msgstr ""
+"Language: tr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "ODIN — Even the light bows here."
+msgstr "ODIN — Burada ışık bile eğilir."
+
+msgid "MIDAS — What will you pay to pass?"
+msgstr "MIDAS — Geçmek için ne vereceksin?"
+
+msgid "LILITH — Stay. The light can wait."
+msgstr "LILITH — Kal. Işık bekleyebilir."
+
+msgid "LOKI — Does that light know whose hand it serves?"
+msgstr "LOKI — O ışık kimin elinde olduğunu biliyor mu?"
+
+msgid "WENDIGO — Another light to swallow."
+msgstr "WENDIGO — Yutulacak bir ışık daha."
+
+msgid "CERBERUS — Three mouths. One gate."
+msgstr "KERBEROS — Üç ağız. Tek kapı."
+
+msgid "EDWARD — Lay down your spear. Rest."
+msgstr "EDWARD — Mızrağını bırak. Dinlen."
+
+msgid "SATAN — Seven seals brought you to me."
+msgstr "ŞEYTAN — Yedi mühür seni bana getirdi."

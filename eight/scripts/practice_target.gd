@@ -11,8 +11,14 @@ var health: int = 0
 
 
 func _ready() -> void:
+	status_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	health = max_health
 	_update_label()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and status_label != null:
+		_update_label()
 
 
 func take_hit(damage: int, _heavy: bool = false, _from: Vector2 = Vector2.INF) -> void:
@@ -27,9 +33,9 @@ func take_hit(damage: int, _heavy: bool = false, _from: Vector2 = Vector2.INF) -
 
 func _update_label() -> void:
 	if health > 0:
-		status_label.text = "PLACEHOLDER TARGET\n%d / %d" % [health, max_health]
+		status_label.text = tr("PLACEHOLDER TARGET\n%d / %d") % [health, max_health]
 	else:
-		status_label.text = "TARGET CLEARED\nR to reset"
+		status_label.text = tr("TARGET CLEARED\nR to reset")
 
 
 func _draw() -> void:

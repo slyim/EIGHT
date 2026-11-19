@@ -5,9 +5,21 @@ extends Control
 
 const STATS_REFRESH: float = 0.25
 const ITEMS_SHOWN: int = 6
-const ORB_EMPTY_TINT: Color = Color(0.3, 0.22, 0.34, 1.0)
-const ORB_FILL_TINT: Color = Color(0.85, 0.32, 0.3, 1.0)
+const ORB_EMPTY_TINT: Color = Color("14081a")
+const ORB_FILL_TINT: Color = Color("c4615c")
 const ORB_OUTLINE_TINT: Color = Color(0.0275, 0.0039, 0.0353, 1.0)
+## The heart's gold rim, its deep blood at the bottom, and its beat (beats per second; swell).
+const HEART_RIM: Color = Color(0.863, 0.804, 0.576, 1.0)
+const HEART_DEEP: Color = Color("6b2c40")
+## Recent damage drains out of the heart as a pale trail after this pause (seconds).
+const HEART_TRAIL: Color = Color(0.863, 0.804, 0.576, 0.85)
+const HEART_TRAIL_HOLD: float = 0.45
+## Liquid gauge colours (top of the liquid, bottom of the liquid).
+const XP_LIQUID: Array[Color] = [Color("729aa1"), Color("2e3850")]
+const BOSS_LIQUID: Array[Color] = [Color("c4615c"), Color("6b2c40")]
+const HEART_RATE: float = 1.1
+const HEART_LOW_RATE: float = 2.2
+const HEART_SWELL: float = 0.07
 ## Low health is flagged below this fraction of max health.
 const LOW_LIFE_FRACTION: float = 0.25
 const LOW_LIFE_TINT: Color = Color(1.0, 0.45, 0.42, 1.0)
@@ -54,6 +66,19 @@ var relic_label: Label
 ## The announcement's one pop-in, hold, and fade; a newer announcement replaces it whole.
 var announce_tween: Tween
 var stats_refresh_left: float = 0.0
+## F1 shows the controls line; hidden by default so the screen stays the game's.
+var help_shown: bool = false
+## Shown liquid levels ease toward the real values; slosh (0..1) swells the wave after a change.
+var heart_shown: float = -1.0
+var heart_trail: float = 1.0
+var heart_trail_hold: float = 0.0
+var heart_slosh: float = 0.0
+var xp_shown: float = 0.0
+var xp_slosh: float = 0.0
+var boss_shown: float = 1.0
+var boss_slosh: float = 0.0
+## Dims the world behind the level-up, evolution, and pause choices.
+var scrim: ColorRect
 ## Active weapon and its combo step, built from the flight gauge so it matches the other gauges.
 var weapon_bar: ProgressBar
 var weapon_label: Label
@@ -109,9 +134,20 @@ var perfect_left: float = 0.0
 
 
 func _ready() -> void:
+	UiMotion.watch(self)
 	for index: int in range(choice_buttons.size()):
 		choice_buttons[index].pressed.connect(_on_choice.bind(index))
 	health_orb.draw.connect(_draw_health_orb)
+	scrim = ColorRect.new()
+	scrim.name = &"Scrim"
+	scrim.color = Color(0.0275, 0.0039, 0.0353, 0.62)
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scrim.visible = false
+	add_child(scrim)
+	move_child(scrim, level_up_panel.get_index())
+	xp_bar.draw.connect(func() -> void: Liquid.draw_bar(xp_bar, Rect2(Vector2.ZERO, xp_bar.size).grow(-2.5), xp_shown, XP_LIQUID[0], XP_LIQUID[1], _now(), xp_slosh))
+	boss_bar.draw.connect(func() -> void: Liquid.draw_bar(boss_bar, Rect2(Vector2.ZERO, boss_bar.size).grow(-2.5), boss_shown, BOSS_LIQUID[0], BOSS_LIQUID[1], _now(), boss_slosh))
 	weapon_bar = flight_bar.duplicate() as ProgressBar
 	weapon_bar.name = &"WeaponBar"
 	flight_bar.get_parent().add_child(weapon_bar)
@@ -265,6 +301,14 @@ func _process(_delta: float) -> void:
 	shrine_markers.queue_redraw()
 	xp_bar.max_value = run.xp_needed()
 	xp_bar.value = run.xp
+	_update_liquids(_delta)
+	var modal: bool = level_up_panel.visible or evolution_panel.visible or pause_menu.visible
+	if modal and not scrim.visible:
+		scrim.visible = true
+		scrim.modulate.a = 0.0
+		scrim.create_tween().set_ignore_time_scale().tween_property(scrim, ^"modulate:a", 1.0, 0.15)
+	elif not modal:
+		scrim.visible = false
 	xp_label.text = tr("LEVEL %d    XP %d / %d") % [run.level, run.xp, run.xp_needed()]
 
 	var player: MountedPlayer = run.player
@@ -289,9 +333,9 @@ func _process(_delta: float) -> void:
 		burn_label.text = tr("HEAL IN %d") % ceili(Run.SHRINE_HEAL_TIME - run.healing_time)
 		burn_label.self_modulate = Color("bee5cf")
 	_update_side_weapons(player)
-	# Once the run ends the play gauges and controls step aside for the ending.
+	# Once the run ends the play gauges and the F1 controls step aside for the ending.
 	($Abilities as Control).visible = not run.ended
-	($Controls as Control).visible = not run.ended
+	($Controls as Control).visible = help_shown and not run.ended
 
 	items_label.visible = not run.items.is_empty()
 	if items_label.visible:
@@ -314,6 +358,12 @@ func _process(_delta: float) -> void:
 		boss_name_label.text = "%s  %d%%" % [boss.display_name(), ceili(100.0 * boss.health / boss.max_health)]
 		boss_bar.max_value = boss.max_health
 		boss_bar.value = boss.health
+		var boss_target: float = clampf(float(boss.health) / boss.max_health, 0.0, 1.0)
+		if absf(boss_target - boss_shown) > 0.001:
+			boss_slosh = 1.0
+		boss_shown = Liquid.approach(boss_shown, boss_target, _delta, 10.0)
+		boss_slosh = maxf(0.0, boss_slosh - _delta * 1.5)
+		boss_bar.queue_redraw()
 	else:
 		_update_boss_status()
 
@@ -514,35 +564,153 @@ func _place_perfect() -> void:
 	perfect_label.modulate.a = clampf(perfect_left / (PERFECT_TIME * 0.45), 0.0, 1.0)
 
 
+func _now() -> float:
+	return Time.get_ticks_msec() / 1000.0
+
+
+## Eases the shown liquid levels: damage drops the heart at once and leaves a pale trail that
+## drains after a beat; healing and experience pour in; every change sloshes the surface.
+func _update_liquids(delta: float) -> void:
+	var life: float = orb_fill_fraction()
+	if heart_shown < 0.0:
+		heart_shown = life
+		heart_trail = life
+	if life < heart_shown - 0.0001:
+		heart_trail = maxf(heart_trail, heart_shown)
+		heart_shown = life
+		heart_trail_hold = HEART_TRAIL_HOLD
+		heart_slosh = 1.0
+	elif life > heart_shown + 0.0001:
+		heart_shown = Liquid.approach(heart_shown, life, delta, 6.0)
+		heart_slosh = maxf(heart_slosh, 0.5)
+	heart_trail_hold -= delta
+	if heart_trail_hold <= 0.0:
+		heart_trail = Liquid.approach(heart_trail, heart_shown, delta, 5.0)
+	heart_trail = maxf(heart_trail, heart_shown)
+	heart_slosh = maxf(0.0, heart_slosh - delta * 1.2)
+	var xp: float = clampf(float(run.xp) / maxf(1.0, float(run.xp_needed())), 0.0, 1.0)
+	if xp < xp_shown - 0.01:
+		xp_shown = 0.0 # A level-up empties the gauge; it refills from the bottom.
+	if xp > xp_shown + 0.001:
+		xp_slosh = 1.0
+	xp_shown = Liquid.approach(xp_shown, xp, delta)
+	xp_slosh = maxf(0.0, xp_slosh - delta * 1.5)
+	xp_bar.queue_redraw()
+
+
 func _draw_health_orb() -> void:
-	# PLACEHOLDER life display: an orb filled from the bottom up in proportion to health.
+	# Life as a beating vector heart of liquid, set in a chamfered medallion.
 	if run == null:
 		return
-	var center: Vector2 = health_orb.size * 0.5
-	var radius: float = minf(health_orb.size.x, health_orb.size.y) * 0.5 - 2.0
-	_draw_orb_shape(health_orb, center, radius)
-	_draw_orb_fill(health_orb, center, radius, orb_fill_fraction())
+	var now: float = _now()
+	var size: Vector2 = health_orb.size
+	var socket: PackedVector2Array = OrnateBox.plate(Rect2(Vector2.ZERO, size).grow(-3.0), size.x * 0.28)
+	var socket_closed: PackedVector2Array = socket.duplicate()
+	socket_closed.append(socket[0])
+	health_orb.draw_colored_polygon(socket, Color("14081a"))
+	health_orb.draw_polyline(socket_closed, Color("070109"), 4.0, true)
+	health_orb.draw_polyline(socket_closed, Color("b7836b"), 2.0, true)
+	# Lub-dub: two quick swells per beat, twice as fast at low life.
+	var phase: float = fposmod(now * (HEART_LOW_RATE if _is_low_life() else HEART_RATE), 1.0)
+	var beat: float = maxf(_swell(phase, 0.0), 0.6 * _swell(phase, 0.2))
+	var heart: PackedVector2Array = heart_points(size * 0.5 + Vector2(0.0, 1.0), minf(size.x, size.y) * 0.36 * (1.0 + HEART_SWELL * beat))
+	_draw_orb_shape(health_orb, heart)
+	_draw_orb_fill(health_orb, heart, maxf(heart_shown, 0.0), now)
+	var closed: PackedVector2Array = heart.duplicate()
+	closed.append(heart[0])
+	var rim: Color = HEART_RIM.lerp(Color.WHITE, clampf(hurt_flash_left / HURT_FLASH_TIME, 0.0, 1.0))
+	health_orb.draw_polyline(closed, ORB_OUTLINE_TINT, 4.5, true)
+	health_orb.draw_polyline(closed, Color("b7836b"), 2.2, true)
+	# A bright edge along the top of both lobes.
+	health_orb.draw_polyline(heart.slice(40, 48) + heart.slice(0, 9), rim, 1.0, true)
 
 
-## The orb's container shape: empty interior and outline. Kept apart from the fill so the
-## circle can later be swapped for a heart without touching the fill logic.
-func _draw_orb_shape(canvas: Control, center: Vector2, radius: float) -> void:
-	canvas.draw_circle(center, radius, ORB_EMPTY_TINT)
-	canvas.draw_arc(center, radius, 0.0, TAU, 40, ORB_OUTLINE_TINT, 3.0, true)
+## A heart outline (the classic parametric curve) fitted to a half-width around center.
+static func heart_points(center: Vector2, half: float) -> PackedVector2Array:
+	var points: PackedVector2Array = []
+	var unit: float = half / 16.0
+	for step: int in range(48):
+		var t: float = TAU * step / 48.0
+		var x: float = 16.0 * pow(sin(t), 3.0)
+		var y: float = -(13.0 * cos(t) - 5.0 * cos(2.0 * t) - 2.0 * cos(3.0 * t) - cos(4.0 * t))
+		points.append(center + Vector2(x, y - 2.5) * unit)
+	return points
 
 
-## Fills the circular segment below the health fraction's chord, rising from the bottom.
-func _draw_orb_fill(canvas: Control, center: Vector2, radius: float, fraction: float) -> void:
+static func _swell(phase: float, at: float) -> float:
+	return exp(-pow((phase - at) / 0.07, 2.0))
+
+
+## The heart's empty chamber and its drop shadow.
+func _draw_orb_shape(canvas: Control, heart: PackedVector2Array) -> void:
+	var shadow: PackedVector2Array = []
+	for point: Vector2 in heart:
+		shadow.append(point + Vector2(0.0, 2.0))
+	canvas.draw_colored_polygon(shadow, Color(0.0, 0.0, 0.0, 0.5))
+	canvas.draw_colored_polygon(heart, ORB_EMPTY_TINT)
+
+
+## Fills the heart by area: first the pale trail of recent damage, then the blood, whose
+## surface waves (more right after a change) under a thin cream meniscus.
+func _draw_orb_fill(canvas: Control, heart: PackedVector2Array, fraction: float, now: float) -> void:
+	if fraction <= 0.0 and heart_trail <= 0.0:
+		return
+	var bounds: Rect2 = Rect2(heart[0], Vector2.ZERO)
+	for point: Vector2 in heart:
+		bounds = bounds.expand(point)
+	if heart_trail > fraction + 0.002:
+		Liquid.draw_pool(canvas, heart, bounds, fill_level(heart, bounds, heart_trail), HEART_TRAIL, HEART_TRAIL, now, 0.0, false)
 	if fraction <= 0.0:
 		return
-	# Chord position: at fraction f the fill surface sits at sin(1 - 2f) * radius from the
-	# center, and every angle in [start, PI - start] lies below that chord.
-	var start: float = asin(clampf(1.0 - 2.0 * fraction, -1.0, 1.0))
-	var points: PackedVector2Array = []
-	for step: int in range(25):
-		var angle: float = lerpf(start, PI - start, step / 24.0)
-		points.append(center + Vector2(cos(angle), sin(angle)) * radius)
-	canvas.draw_colored_polygon(points, ORB_FILL_TINT)
+	var level: float = fill_level(heart, bounds, fraction)
+	var top: Color = ORB_FILL_TINT.lerp(Color("97576c"), 0.5 + 0.5 * sin(now * TAU * HEART_LOW_RATE)) if _is_low_life() else ORB_FILL_TINT
+	Liquid.draw_pool(canvas, heart, bounds, level, top, HEART_DEEP, now, heart_slosh, fraction < 1.0)
+	if fraction < 1.0:
+		var crossing: PackedFloat32Array = _crossings(heart, level)
+		if crossing.size() >= 2:
+			canvas.draw_line(Vector2(crossing[0] + 1.0, level), Vector2(crossing[crossing.size() - 1] - 1.0, level), Color(0.902, 0.886, 0.62, 0.7), 1.2, true)
+	# A thin glint on the left lobe, like light on glass, once the blood reaches it.
+	var lobe: Vector2 = bounds.position + bounds.size * Vector2(0.28, 0.26)
+	if level < lobe.y + 2.0:
+		canvas.draw_arc(lobe, bounds.size.x * 0.14, deg_to_rad(195.0), deg_to_rad(255.0), 8, Color(0.792, 0.922, 0.878, 0.45), 1.5, true)
+
+
+## Where a horizontal line crosses the heart's outline, left to right.
+static func _crossings(shape: PackedVector2Array, y: float) -> PackedFloat32Array:
+	var xs: PackedFloat32Array = []
+	for index: int in range(shape.size()):
+		var a: Vector2 = shape[index]
+		var b: Vector2 = shape[(index + 1) % shape.size()]
+		if (a.y - y) * (b.y - y) <= 0.0 and not is_equal_approx(a.y, b.y):
+			xs.append(lerpf(a.x, b.x, (y - a.y) / (b.y - a.y)))
+	xs.sort()
+	return xs
+
+
+## The surface height at which the heart holds this fraction of its area, so the fill reads
+## true even though the heart narrows to a point at the bottom.
+static func fill_level(heart: PackedVector2Array, bounds: Rect2, fraction: float) -> float:
+	var whole: float = _area(heart)
+	var low: float = bounds.position.y
+	var high: float = bounds.end.y
+	for _step: int in range(14):
+		var level: float = (low + high) * 0.5
+		var below: PackedVector2Array = [Vector2(bounds.position.x - 1.0, level), Vector2(bounds.end.x + 1.0, level), Vector2(bounds.end.x + 1.0, bounds.end.y + 1.0), Vector2(bounds.position.x - 1.0, bounds.end.y + 1.0)]
+		var filled: float = 0.0
+		for part: PackedVector2Array in Geometry2D.intersect_polygons(heart, below):
+			filled += _area(part)
+		if filled / whole > fraction:
+			low = level
+		else:
+			high = level
+	return (low + high) * 0.5
+
+
+static func _area(points: PackedVector2Array) -> float:
+	var twice: float = 0.0
+	for index: int in range(points.size()):
+		twice += points[index].cross(points[(index + 1) % points.size()])
+	return absf(twice) * 0.5
 
 
 func orb_fill_fraction() -> float:
@@ -593,6 +761,10 @@ func _stats_text() -> String:
 func _unhandled_input(event: InputEvent) -> void:
 	if has_node(^"SettingsPanel"):
 		return # The settings panel has the keys while it is open.
+	if event.is_action_pressed(&"toggle_help"):
+		get_viewport().set_input_as_handled()
+		help_shown = not help_shown
+		return
 	if event.is_action_pressed(&"toggle_stats"):
 		get_viewport().set_input_as_handled()
 		stats_panel.visible = not stats_panel.visible
@@ -645,12 +817,7 @@ func show_level_up(options: Array[Dictionary], heading: String = "") -> void:
 ## Theatrical entrance: scale up from 85% with an overshoot while fading in. Runs while the
 ## tree is paused and ignores hit-stop slow-motion.
 func _pop_in(control: Control, delay: float) -> void:
-	control.pivot_offset = control.size * 0.5
-	control.scale = Vector2(0.85, 0.85)
-	control.modulate.a = 0.0
-	var tween: Tween = control.create_tween().set_parallel().set_ignore_time_scale()
-	tween.tween_property(control, ^"scale", Vector2.ONE, 0.22).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(control, ^"modulate:a", 1.0, 0.14).set_delay(delay)
+	UiMotion.pop_in(control, delay, 0.22)
 
 
 ## Opens or closes the pause menu. It never opens over a level-up choice or after the run ends,

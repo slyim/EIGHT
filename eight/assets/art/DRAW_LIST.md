@@ -13,7 +13,7 @@ The [asset library](../) contains the [art](./), [audio](../audio/) and [fonts](
 | `eight_logo_pixel.png` | HUD logo. Owner-supplied design with an explicitly approved AI-assisted pixel adaptation. |
 | `Sprite-0001.png` | Owner-supplied image. Imported, with its role and final status still for the owner to decide. |
 | 23 Aseprite sheets | Procedural temporary art. The drawing list below accounts for every sheet. |
-| Marcellus and Alegreya Sans | Selected, licensed interface fonts. Credits and license files are in the fonts folder. |
+| Cinzel Bold and Alegreya Sans | Selected, licensed interface fonts. Credits and license files are in the fonts folder. |
 | Godot project icon | Editor/template icon at `res://icon.svg`. A human-made application icon is a separate delivery. |
 
 ## Art direction

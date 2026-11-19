@@ -1,8 +1,20 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/hub.gd" id="1_hub"]
 [ext_resource type="Theme" path="res://resources/ui_theme.tres" id="2_theme"]
 [ext_resource type="Texture2D" path="res://assets/art/eight_logo_pixel.png" id="3_logo"]
+
+[sub_resource type="Gradient" id="Gradient_hub_glow"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0.4314, 0.2471, 0.3725, 0.55, 0.2275, 0.1294, 0.251, 0.45, 0.0275, 0.0039, 0.0353, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_hub_glow"]
+gradient = SubResource("Gradient_hub_glow")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.55)
+fill_to = Vector2(0.5, 1.15)
 
 [node name="Hub" type="Control"]
 layout_mode = 3
@@ -23,6 +35,17 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.0275, 0.0039, 0.0353, 1)
+
+[node name="Glow" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_hub_glow")
+expand_mode = 1
 
 [node name="Pentagram" type="Control" parent="."]
 layout_mode = 1
@@ -50,7 +73,7 @@ theme_override_constants/separation = 2
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 mouse_filter = 2
-texture_filter = 1
+texture_filter = 4
 texture = ExtResource("3_logo")
 expand_mode = 1
 stretch_mode = 5
@@ -107,19 +130,54 @@ focus_mode = 0
 theme_override_font_sizes/font_size = 18
 text = "SHOP  [B]"
 
+[node name="FeatherIcon" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 190.0
+offset_top = -56.0
+offset_right = 222.0
+offset_bottom = -24.0
+grow_vertical = 0
+mouse_filter = 2
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+
 [node name="Feathers" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 192.0
+offset_left = 228.0
 offset_top = -60.0
-offset_right = 432.0
+offset_right = 468.0
 offset_bottom = -20.0
 grow_vertical = 0
 theme_type_variation = &"HeadingLabel"
 theme_override_font_sizes/font_size = 18
 text = "FEATHERS  0"
+vertical_alignment = 1
+
+[node name="Version" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -44.0
+offset_right = 120.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 14
+text = "ALPHA  v%s"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Settings" type="Button" parent="."]

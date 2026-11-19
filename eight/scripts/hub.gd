@@ -38,12 +38,19 @@ var sealed_now: int = -1
 @onready var pentagram: Control = $Pentagram
 
 
+const FEATHER_ART: SpriteFrames = preload("res://assets/art/placeholder/placeholder_pickup_feather.aseprite")
+
+
 func _ready() -> void:
+	UiMotion.watch(self)
 	var settings: Settings = Settings.load_saved()
 	settings.apply_language()
 	settings.apply_display(get_window())
 	progress = Progress.load_saved()
 	($Feathers as Label).auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	($Version as Label).auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	# 16 px art at 32 UI units: two units per art pixel, the same pixel size as the world.
+	($FeatherIcon as TextureRect).texture = FEATHER_ART.get_frame_texture(&"idle", 0)
 	for index: int in range(Run.SATAN):
 		var button: Button = Button.new()
 		button.name = "Sin%d" % (index + 1)
@@ -133,6 +140,7 @@ func _tier_name(tier: int) -> String:
 
 func _refresh() -> void:
 	($Feathers as Label).text = tr("FEATHERS  %d") % progress.feathers
+	($Version as Label).text = tr("ALPHA  v%s") % ProjectSettings.get_setting(&"application/config/version", "0.1")
 	for index: int in range(sin_buttons.size()):
 		var beaten: String = tr("BEST %s") % _tier_name(progress.best[index]) if progress.best.has(index) else tr("ENTER  [%d]") % (index + 1)
 		sin_buttons[index].text = "%s  %s\n%s\n%s" % [NUMERALS[index], tr(Run.BOSSES[index]["name"]), _tier_name(tier_for(index)), beaten]
@@ -227,11 +235,7 @@ func summon_satan() -> void:
 
 
 func _pop_in(control: Control, delay: float) -> void:
-	control.scale = Vector2(0.85, 0.85)
-	control.modulate.a = 0.0
-	var tween: Tween = control.create_tween().set_parallel().set_ignore_time_scale()
-	tween.tween_property(control, ^"scale", Vector2.ONE, 0.24).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(control, ^"modulate:a", 1.0, 0.16).set_delay(delay)
+	UiMotion.pop_in(control, delay, 0.24)
 
 
 ## A line with a soft glow: wide faint strokes under a crisp one.

@@ -2,6 +2,7 @@ extends CenterContainer
 
 
 func _ready() -> void:
+	UiMotion.watch(self)
 	$Rows/Back.pressed.connect(Game.go_to_hub.bind(get_tree()))
 	$Rows/Back.grab_focus()
 

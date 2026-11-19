@@ -162,9 +162,6 @@ msgstr "KAPAT  [Esc]"
 
 # Run scene placeholder notice (updated by parent)
 
-msgid "Prototype visuals and sound"
-msgstr "Prototip görseller ve ses"
-
 # Prototype scene and practice target
 
 msgid "EIGHT / MOUNTED SPEAR TEST"
@@ -184,3 +181,15 @@ msgstr "YER TUTUCU HEDEF\n%d / %d"
 
 msgid "TARGET CLEARED\nR to reset"
 msgstr "HEDEF TEMİZLENDİ\nSıfırlamak için R"
+
+msgid "ALPHA  v%s"
+msgstr "ALFA  v%s"
+
+msgid "ATTACK KEY  %s"
+msgstr "SALDIRI TUŞU  %s"
+
+msgid "DASH KEY  %s"
+msgstr "ATILMA TUŞU  %s"
+
+msgid "PRESS A KEY..."
+msgstr "BİR TUŞA BAS..."

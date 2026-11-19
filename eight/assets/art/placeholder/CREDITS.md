@@ -15,7 +15,7 @@
 | `placeholder_vfx_slash` (combo finisher arc) | 128x128 | `_slash` |
 | `placeholder_enemy_husk`, `_imp`, `_brute` | 32x32 | `walk` |
 | `placeholder_boss_pride`, `_greed`, `_lust`, `_envy`, `_gluttony`, `_wrath`, `_sloth`, `_satan` | 64x64 | `idle`, `attack` |
-| `placeholder_pickup_xp`, `_life`, `_item` | 16x16 | `idle` |
+| `placeholder_pickup_xp`, `_life`, `_item`, `_feather` (the shop currency) | 16x16 | `idle` |
 | `placeholder_projectile_fire` | 16x16 | `fly` |
 | `placeholder_vfx_poof` | 32x32 | `_poof` (the `_` prefix makes it play once) |
 | `placeholder_env_floor` (corrupted plain) | 32x32 | `tiles` (each frame is a floor variant) |

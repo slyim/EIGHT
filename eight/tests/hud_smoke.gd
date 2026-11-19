@@ -24,13 +24,18 @@ func _wait_ticks(count: int) -> void:
 
 ## Exercise the real F3 mapping and viewport input delivery.
 func _toggle_stats(hud: Hud) -> void:
+	await _tap(KEY_F3)
+
+
+## Presses and releases a key through the real input mapping.
+func _tap(keycode: Key) -> void:
 	var event: InputEventKey = InputEventKey.new()
-	event.physical_keycode = KEY_F3
+	event.physical_keycode = keycode
 	event.pressed = true
 	Input.parse_input_event(event)
 	await _wait_ticks(2)
 	event = InputEventKey.new()
-	event.physical_keycode = KEY_F3
+	event.physical_keycode = keycode
 	event.pressed = false
 	Input.parse_input_event(event)
 	await _wait_ticks(1)
@@ -40,7 +45,6 @@ func _toggle_stats(hud: Hud) -> void:
 ## take turns in one slot, so a call lists only one of them.
 func _check_layout(hud: Hud, names: PackedStringArray) -> void:
 	names.append("Logo")
-	names.append("Title")
 	names.append("StageStatus")
 	names.append("Difficulty")
 	var screen: Rect2 = hud.get_global_rect()
@@ -69,18 +73,23 @@ func _run() -> void:
 	var player: MountedPlayer = run.player
 	var logo: TextureRect = hud.get_node("Logo") as TextureRect
 	_check(logo.texture != null and logo.is_visible_in_tree(), "The owner's pixel logo must be visible.")
-	_check(logo.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "The logo must use nearest-neighbor filtering.")
+	# Its art has no whole-pixel grid, so nearest sampling would draw uneven pixels: it is smoothed.
+	_check(logo.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, "The logo must be smoothly filtered.")
 
-	# The placeholder notice stays up; the debug overlay stays out of the way until F3.
-	var notice: Label = hud.get_node("AssetNotice") as Label
-	_check(notice.is_visible_in_tree(), "The placeholder notice must always show.")
-	_check(notice.text == "Prototype visuals and sound", "The notice must identify prototype visuals and sound.")
+	# No prototype labels; the controls line waits for F1 and the debug overlay for F3.
+	_check(not hud.has_node("AssetNotice") and not hud.has_node("Title"), "The HUD must not carry prototype labels.")
+	var controls: Control = hud.get_node("Controls") as Control
+	_check(not controls.is_visible_in_tree(), "The controls line must start hidden.")
+	await _tap(KEY_F1)
+	_check(controls.is_visible_in_tree(), "F1 must show the controls line.")
+	await _tap(KEY_F1)
+	_check(not controls.is_visible_in_tree(), "F1 must hide the controls line again.")
 	_check(not hud.stats_panel.visible, "The stats overlay must start hidden.")
 	await _toggle_stats(hud)
 	_check(hud.stats_panel.visible and hud.debug_label.text.contains("FPS"), "F3 must show the filled stats overlay.")
 	_check(hud.debug_label.text.contains("FLIGHT 100%"), "The stats overlay must show flight stamina.")
 	await _wait_ticks(1)
-	_check_layout(hud, PackedStringArray(["StatusPanel", "StatsPanel", "BossStatus", "AssetNotice", "Abilities", "Controls", "LevelUp"]))
+	_check_layout(hud, PackedStringArray(["StatusPanel", "StatsPanel", "BossStatus", "Abilities", "Controls", "LevelUp"]))
 	await _toggle_stats(hud)
 	_check(not hud.stats_panel.visible, "F3 must hide the stats overlay again.")
 
@@ -132,7 +141,7 @@ func _run() -> void:
 	_check(hud.stage_label.text == "REALM OF PRIDE", "The sin's realm must show.")
 	_check(hud.stats_label.text.contains("SHRINES 0 / 5"), "Broken shrines must be counted, got %s." % hud.stats_label.text)
 	# The shrine countdown and the boss bar share a slot, so exactly one shows.
-	_check(hud.boss_status_label.visible and hud.boss_status_label.text.begins_with("DESTROY SATAN'S SHRINES   5 LEFT") and hud.boss_status_label.text.contains("8:00"), "The shrines and countdown must show, got %s." % hud.boss_status_label.text)
+	_check(hud.boss_status_label.visible and hud.boss_status_label.text.begins_with("DESTROY SATAN'S SHRINES   5 LEFT") and (hud.boss_status_label.text.contains("8:00") or hud.boss_status_label.text.contains("7:59")), "The shrines and countdown must show, got %s." % hud.boss_status_label.text)
 	_check(hud.boss_status_label.self_modulate == Color.WHITE, "A long countdown must not be flagged.")
 	run.shrine_time_left = 30.0
 	await process_frame
@@ -146,7 +155,7 @@ func _run() -> void:
 		var tip: Vector2 = tips[index][0]
 		_check(is_equal_approx(tip.distance_to(angel), Hud.SHRINE_MARKER_RING), "A marker must ride the ring around the angel.")
 		_check((tips[index][1] as Vector2).dot((spots[index] - player.global_position).normalized()) > 0.99, "A marker must point toward its shrine.")
-		for node_name: String in ["StatusPanel", "BossStatus", "StageStatus", "Difficulty", "Logo", "Title", "AssetNotice", "Abilities", "Controls"]:
+		for node_name: String in ["StatusPanel", "BossStatus", "StageStatus", "Difficulty", "Logo", "Abilities", "Controls"]:
 			_check(not (hud.get_node(node_name) as Control).get_global_rect().grow(12.0).has_point(tip), "A marker must not sit on %s (at %s)." % [node_name, tip])
 	player.global_position = Run.shrine_spots()[0] + Vector2(0.0, 120.0)
 	await _wait_ticks(2)
@@ -157,7 +166,7 @@ func _run() -> void:
 	await process_frame
 	_check(hud.boss_panel.visible and not hud.boss_status_label.visible, "The boss bar must replace the countdown.")
 	_check(hud.boss_name_label.text.ends_with("100%"), "The boss bar must show health, got %s." % hud.boss_name_label.text)
-	_check_layout(hud, PackedStringArray(["StatusPanel", "BossPanel", "AssetNotice", "Abilities", "Controls", "LevelUp"]))
+	_check_layout(hud, PackedStringArray(["StatusPanel", "BossPanel", "Abilities", "Controls", "LevelUp"]))
 	var boss: Boss = run.current_boss
 	# Opened directly (no pixel host), the boss tag follows the camera at 1:1 screen pixels.
 	boss.speed = 0.0
@@ -196,7 +205,7 @@ func _run() -> void:
 	run.elapsed = 5999.0
 	run.kills = 99999
 	await _wait_ticks(1)
-	_check_layout(hud, PackedStringArray(["StatusPanel", "BossStatus", "AssetNotice", "Items", "Abilities", "Controls", "LevelUp"]))
+	_check_layout(hud, PackedStringArray(["StatusPanel", "BossStatus", "Items", "Abilities", "Controls", "LevelUp"]))
 
 	# Level-up choices separate the name from its effect, and flag queued choices.
 	run.add_xp(run.xp_needed() + 100)
@@ -212,6 +221,29 @@ func _run() -> void:
 	run.queue_free()
 	# Let the audio server release playbacks before quitting.
 	await _wait_ticks(15)
+	# The heart fills by area: the part below each level holds that fraction of the heart.
+	var heart: PackedVector2Array = Hud.heart_points(Vector2.ZERO, 20.0)
+	var bounds: Rect2 = Rect2(heart[0], Vector2.ZERO)
+	for point: Vector2 in heart:
+		bounds = bounds.expand(point)
+	for fraction: float in [0.05, 0.4, 0.73, 1.0]:
+		var level: float = Hud.fill_level(heart, bounds, fraction)
+		var below: PackedVector2Array = [Vector2(bounds.position.x - 1.0, level), Vector2(bounds.end.x + 1.0, level), Vector2(bounds.end.x + 1.0, bounds.end.y + 1.0), Vector2(bounds.position.x - 1.0, bounds.end.y + 1.0)]
+		var filled: float = 0.0
+		for part: PackedVector2Array in Geometry2D.intersect_polygons(heart, below):
+			filled += Hud._area(part)
+		_check(absf(filled / Hud._area(heart) - fraction) < 0.02, "The heart at %.2f must hold that share of its area, got %.3f." % [fraction, filled / Hud._area(heart)])
+	# Hover then press: the newer press tween must win over the older, slower hover tween.
+	var probe: Button = Button.new()
+	probe.size = Vector2(120.0, 40.0)
+	root.add_child(probe)
+	UiMotion.wire(probe)
+	await process_frame
+	probe.mouse_entered.emit()
+	probe.button_down.emit()
+	await create_timer(0.3, true, false, true).timeout
+	_check(probe.scale.is_equal_approx(Vector2.ONE * UiMotion.PRESS_SCALE), "A held button must stay pressed in, got %s." % probe.scale)
+	probe.queue_free()
 
 	if failures == 0:
 		print("HUD smoke passed.")

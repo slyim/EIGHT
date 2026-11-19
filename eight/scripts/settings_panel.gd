@@ -12,6 +12,7 @@ var settings: Settings
 ## The run to update live, if the panel was opened from one.
 var run: Run
 var last_save_error: Error = OK
+var capturing: StringName = &""
 
 @onready var quality: HSlider = $Panel/Box/Quality
 @onready var quality_label: Label = $Panel/Box/QualityName
@@ -22,6 +23,8 @@ var last_save_error: Error = OK
 @onready var damage_numbers: CheckButton = $Panel/Box/DamageNumbers
 @onready var shake: OptionButton = $Panel/Box/Shake
 @onready var hit_stop: CheckButton = $Panel/Box/HitStop
+@onready var attack_key: Button = $Panel/Box/AttackKey
+@onready var dash_key: Button = $Panel/Box/DashKey
 @onready var language: OptionButton = $Panel/Box/Language
 @onready var notice: Label = $Panel/Box/Notice
 
@@ -30,10 +33,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	# Opaque, so the screen behind does not show through the options.
 	var panel: PanelContainer = $Panel
-	var style: StyleBoxFlat = panel.get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
-	style.bg_color.a = 1.0
+	var style: OrnateBox = panel.get_theme_stylebox(&"panel").duplicate() as OrnateBox
+	style.fill_top.a = 1.0
+	style.fill_bottom.a = 1.0
 	panel.add_theme_stylebox_override(&"panel", style)
-	for control: Control in [quality_label, quality_note, fps_cap, shake, language, notice]:
+	for control: Control in [quality_label, quality_note, fps_cap, shake, attack_key, dash_key, language, notice]:
 		control.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	settings = Settings.load_saved()
 	for _cap: int in Settings.FPS_CAPS:
@@ -58,6 +62,8 @@ func _ready() -> void:
 	damage_numbers.toggled.connect(func(on: bool) -> void: _change(&"damage_numbers", on))
 	shake.item_selected.connect(func(index: int) -> void: _change(&"shake", index))
 	hit_stop.toggled.connect(func(on: bool) -> void: _change(&"hit_stop", on))
+	attack_key.pressed.connect(_capture_key.bind(&"attack_key"))
+	dash_key.pressed.connect(_capture_key.bind(&"dash_key"))
 	language.item_selected.connect(func(index: int) -> void: _change(&"language", Settings.LANGUAGES[index]))
 	($Panel/Box/Close as Button).pressed.connect(close)
 	_refresh_texts()
@@ -73,6 +79,7 @@ func _change(setting: StringName, value: Variant) -> void:
 	last_save_error = settings.save()
 	settings.apply_language()
 	settings.apply_display(get_window())
+	settings.apply_controls()
 	if is_instance_valid(run):
 		settings.apply_run(run)
 	_refresh_texts()
@@ -88,12 +95,41 @@ func _refresh_texts() -> void:
 		language.set_item_text(index, tr("LANGUAGE  %s") % Settings.LANGUAGE_NAMES[index])
 	quality_label.text = tr("QUALITY  %s") % tr(Settings.QUALITY_NAMES[settings.quality])
 	quality_note.text = tr(Settings.QUALITY_NOTES[settings.quality])
+	attack_key.text = tr("PRESS A KEY...") if capturing == &"attack_key" else tr("ATTACK KEY  %s") % _key_text(settings.attack_key)
+	dash_key.text = tr("PRESS A KEY...") if capturing == &"dash_key" else tr("DASH KEY  %s") % _key_text(settings.dash_key)
 	notice.text = "" if last_save_error == OK else tr("SETTINGS COULD NOT BE SAVED (ERROR %d)") % last_save_error
+
+
+func _key_text(key: Key) -> String:
+	if DisplayServer.get_name() == "headless":
+		return OS.get_keycode_string(key)
+	var keycode: Key = DisplayServer.keyboard_get_keycode_from_physical(key)
+	return OS.get_keycode_string(keycode if keycode != KEY_NONE else key)
+
+
+func _capture_key(setting: StringName) -> void:
+	capturing = setting
+	_refresh_texts()
 
 
 func close() -> void:
 	closed.emit()
 	queue_free()
+
+
+func _input(event: InputEvent) -> void:
+	if capturing.is_empty() or not event is InputEventKey:
+		return
+	var key_event: InputEventKey = event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return
+	get_viewport().set_input_as_handled()
+	var setting: StringName = capturing
+	capturing = &""
+	if key_event.physical_keycode == KEY_ESCAPE:
+		_refresh_texts()
+	else:
+		_change(setting, key_event.physical_keycode)
 
 
 func _unhandled_input(event: InputEvent) -> void:

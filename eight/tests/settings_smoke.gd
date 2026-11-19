@@ -83,6 +83,7 @@ func _run() -> void:
 	_check(settings.quality == Settings.Quality.HIGH and settings.vsync and settings.fps_cap == 3 and not settings.fullscreen, "Missing settings must be the defaults.")
 	_check(settings.damage_numbers and settings.shake == 2 and is_equal_approx(Settings.SHAKE_SCALES[settings.shake], 1.0) and settings.hit_stop, "Missing gameplay-feel settings must default to on / 100%.")
 	_check(settings.language == "en", "Missing language setting must default to English.")
+	_check(settings.attack_key == KEY_J and settings.dash_key == KEY_K, "Missing control settings must default to J and K.")
 	var file: ConfigFile = ConfigFile.new()
 	file.set_value("graphics", "quality", 9)
 	file.set_value("display", "vsync", "no")
@@ -92,11 +93,14 @@ func _run() -> void:
 	file.set_value("gameplay", "shake", 7)
 	file.set_value("gameplay", "hit_stop", 1)
 	file.set_value("general", "language", "fr")
+	file.set_value("controls", "attack_key", "J")
+	file.set_value("controls", "dash_key", -1)
 	file.save(TEST_SETTINGS)
 	settings = Settings.load_saved()
 	_check(settings.quality == Settings.Quality.HIGH and settings.vsync and settings.fps_cap == 3 and not settings.fullscreen, "Damaged settings must fall back to the defaults.")
 	_check(settings.damage_numbers and settings.shake == 2 and settings.hit_stop, "Damaged gameplay-feel settings must fall back to defaults.")
 	_check(settings.language == "en", "Unknown language must fall back to English.")
+	_check(settings.attack_key == KEY_J and settings.dash_key == KEY_K, "Damaged control settings must fall back to J and K.")
 	settings.quality = Settings.Quality.LOW
 	settings.vsync = false
 	settings.fps_cap = 1
@@ -109,6 +113,7 @@ func _run() -> void:
 	_check(reloaded.quality == Settings.Quality.LOW and not reloaded.vsync and reloaded.fps_cap == 1, "Settings must load back.")
 	_check(not reloaded.damage_numbers and reloaded.shake == 1 and not reloaded.hit_stop, "Gameplay-feel settings must load back.")
 	_check(reloaded.language == "tr", "Saved language must load back.")
+	_check(reloaded.attack_key == KEY_J and reloaded.dash_key == KEY_K, "Control defaults must survive a settings round trip.")
 	settings.language = "en"
 	settings.save()
 	reloaded.apply_display(root)
@@ -145,6 +150,37 @@ func _run() -> void:
 	_check(not panel.damage_numbers.button_pressed and panel.shake.selected == 1 and not panel.hit_stop.button_pressed, "The panel must show the saved gameplay-feel settings.")
 	_check(panel.shake.get_item_text(0) == "SCREEN SHAKE 0%" and panel.shake.get_item_text(1) == "SCREEN SHAKE 50%" and panel.shake.get_item_text(2) == "SCREEN SHAKE 100%", "Shake options must show 0%/50%/100%.")
 	_check(panel.language.selected == 0 and panel.language.get_item_text(0) == "LANGUAGE  English" and panel.language.get_item_text(1) == "LANGUAGE  Türkçe", "Language options must list English and Turkish.")
+	_check(panel.attack_key.text == "ATTACK KEY  J" and panel.dash_key.text == "DASH KEY  K", "Control buttons must show the default keys (got %s / %s)." % [panel.attack_key.text, panel.dash_key.text])
+	panel.dash_key.pressed.emit()
+	await _ticks(1)
+	_check(panel.capturing == &"dash_key" and panel.dash_key.text == "PRESS A KEY...", "Dash rebinding must wait for a physical key.")
+	await _key(KEY_ESCAPE)
+	_check(run.hud.has_node(^"SettingsPanel") and panel.capturing.is_empty() and panel.settings.dash_key == KEY_K and paused, "Esc must cancel capture without closing settings or changing the key.")
+	panel.dash_key.pressed.emit()
+	await _key(KEY_L)
+	await _ticks(1)
+	_check(Settings.load_saved().dash_key == KEY_L and panel.dash_key.text == "DASH KEY  L", "Dash rebinding must save and reload the new physical key.")
+	var old_dash: InputEventKey = InputEventKey.new()
+	old_dash.physical_keycode = KEY_K
+	_check(not InputMap.event_is_action(old_dash, &"dash"), "Rebinding must replace the old custom dash key.")
+	var shift: InputEventKey = InputEventKey.new()
+	shift.physical_keycode = KEY_SHIFT
+	_check(InputMap.event_is_action(shift, &"dash"), "Rebinding must preserve dash's Shift default.")
+	var left_click: InputEventMouseButton = InputEventMouseButton.new()
+	left_click.button_index = MOUSE_BUTTON_LEFT
+	var right_click: InputEventMouseButton = InputEventMouseButton.new()
+	right_click.button_index = MOUSE_BUTTON_RIGHT
+	_check(InputMap.event_is_action(left_click, &"attack") and InputMap.event_is_action(right_click, &"dash"), "Rebinding must preserve attack and dash mouse buttons.")
+	var rebound: InputEventKey = InputEventKey.new()
+	rebound.physical_keycode = KEY_L
+	rebound.pressed = true
+	Input.parse_input_event(rebound)
+	await _ticks(1)
+	_check(Input.is_action_pressed(&"dash"), "The dash action must respond to the rebound key.")
+	rebound = InputEventKey.new()
+	rebound.physical_keycode = KEY_L
+	Input.parse_input_event(rebound)
+	await _ticks(1)
 	panel.quality.value = Settings.Quality.HIGH
 	await _ticks(2)
 	_check(_effects(run)[4] and _effects(run)[2], "Raising quality must apply live to the run.")
@@ -178,11 +214,10 @@ func _run() -> void:
 	_check(TranslationServer.get_locale() == "tr" and Settings.load_saved().language == "tr", "Selecting Turkish from pause must save and apply live.")
 	_check(panel.quality_label.text == "KALİTE  YÜKSEK" and panel.language.get_item_text(1) == "DİL  Türkçe", "Settings panel must live-translate to Turkish (got %s / %s)." % [panel.quality_label.text, panel.language.get_item_text(1)])
 	_check(panel.shake.get_item_text(2) == "EKRAN SARSINTISI %100" and panel.fps_cap.get_item_text(3) == "KARE SINIRI  SINIRSIZ", "Settings option lists must live-translate to Turkish.")
+	_check(panel.attack_key.text == "SALDIRI TUŞU  J" and panel.dash_key.text == "ATILMA TUŞU  L", "Control buttons must live-translate to Turkish (got %s / %s)." % [panel.attack_key.text, panel.dash_key.text])
 	var tr_panel_rect: Rect2 = (panel.get_node(^"Panel") as Control).get_rect()
 	var tr_close_rect: Rect2 = (panel.get_node(^"Panel/Box/Close") as Control).get_global_rect()
 	_check(tr_panel_rect.position.y >= 0.0 and tr_panel_rect.end.y <= 720.0 and tr_close_rect.end.y <= tr_panel_rect.end.y, "Turkish settings panel must fit at 1280x720 (panel %s, close %s)." % [tr_panel_rect, tr_close_rect])
-	var asset_notice: Label = run.hud.get_node(^"AssetNotice") as Label
-	_check(asset_notice.atr(asset_notice.text) == "Prototip görseller ve ses", "Run placeholder notice must translate via menu catalog (got %s)." % asset_notice.atr(asset_notice.text))
 	var pause_heading: Label = run.hud.get_node(^"PauseMenu/Box/Heading") as Label
 	_check(pause_heading.atr(pause_heading.text) == "DURAKLATILDI", "Pause menu static text must translate live.")
 	var controls_label: Label = run.hud.get_node(^"Controls") as Label

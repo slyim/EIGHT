@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scripts/run.gd" id="1_run"]
 [ext_resource type="PackedScene" path="res://scenes/mounted_player.tscn" id="2_player"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/lights.gd" id="9_lights"]
 [ext_resource type="Shader" path="res://shaders/lava.gdshader" id="11_lava"]
 [ext_resource type="Theme" path="res://resources/ui_theme.tres" id="10_theme"]
+[ext_resource type="Script" path="res://scripts/ornate_box.gd" id="12_ornate"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 resource_local_to_scene = true
@@ -66,39 +67,59 @@ size = Vector2(4096, 48)
 size = Vector2(48, 4000)
 
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_background"]
-bg_color = Color(0.0275, 0.0039, 0.0353, 0.9)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_liquid"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_fill"]
-bg_color = Color(0.4471, 0.6039, 0.6314, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boss_fill"]
-bg_color = Color(0.6, 0.3176, 0.3294, 1)
+[sub_resource type="StyleBox" id="StyleBoxFlat_bar_background"]
+script = ExtResource("12_ornate")
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+fill_top = Color(0.02745, 0.003922, 0.03529, 0.92)
+fill_bottom = Color(0.07843, 0.03137, 0.102, 0.92)
+rim = Color(0.7176, 0.5137, 0.4196, 0.7)
+trim = Color(0, 0, 0, 0)
+stud = Color(0, 0, 0, 0)
+chamfer = 6.0
+rim_width = 1.5
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="SystemFont" id="SystemFont_mono"]
 font_names = PackedStringArray("Consolas", "Cascadia Mono", "Monospace")
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stats"]
-bg_color = Color(0.0275, 0.0039, 0.0353, 0.78)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.2275, 0.1294, 0.251, 1)
+[sub_resource type="StyleBox" id="StyleBoxFlat_stats"]
+script = ExtResource("12_ornate")
 content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
+fill_top = Color(0.1176, 0.09412, 0.1804, 0.84)
+fill_bottom = Color(0.02745, 0.003922, 0.03529, 0.88)
+rim = Color(0.7176, 0.5137, 0.4196, 0.75)
+trim = Color(0.8627, 0.8039, 0.5765, 0.18)
+stud = Color(0.8627, 0.8039, 0.5765, 0.85)
+chamfer = 10.0
+rim_width = 1.5
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_offset = Vector2(0, 4)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ability_fill"]
-bg_color = Color(0.2549, 0.4196, 0.4588, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notice"]
-bg_color = Color(0.09, 0.055, 0.10, 0.88)
-content_margin_left = 10.0
-content_margin_top = 4.0
-content_margin_right = 10.0
-content_margin_bottom = 4.0
+[sub_resource type="StyleBox" id="StyleBoxFlat_ability_fill"]
+script = ExtResource("12_ornate")
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+fill_top = Color(0.4471, 0.6039, 0.6314, 1)
+fill_bottom = Color(0.1843, 0.2902, 0.3529, 1)
+rim = Color(0, 0, 0, 0)
+trim = Color(0, 0, 0, 0)
+stud = Color(0, 0, 0, 0)
+chamfer = 4.0
+inset = 2.5
+rim_width = 1.5
+shadow_color = Color(0, 0, 0, 0)
+shadow_offset = Vector2(0, 0)
 
 
 
@@ -201,11 +222,14 @@ script = ExtResource("3_hud")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 20.0
+offset_bottom = 24.0
 grow_horizontal = 2
+offset_left = 12.0
+offset_top = 4.0
+offset_right = -12.0
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
-theme_override_styles/fill = SubResource("StyleBoxFlat_xp_fill")
+theme_override_styles/fill = SubResource("StyleBoxEmpty_liquid")
 max_value = 7.0
 show_percentage = false
 
@@ -224,26 +248,26 @@ vertical_alignment = 1
 
 [node name="StatusPanel" type="Panel" parent="HUD/Hud"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 28.0
-offset_right = 364.0
-offset_bottom = 106.0
+offset_left = 42.0
+offset_top = 30.0
+offset_right = 372.0
+offset_bottom = 104.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_stats")
 
 [node name="HealthOrb" type="Control" parent="HUD/Hud"]
 anchors_preset = 0
-offset_left = 26.0
-offset_top = 28.0
-offset_right = 66.0
-offset_bottom = 68.0
+offset_left = 10.0
+offset_top = 24.0
+offset_right = 74.0
+offset_bottom = 88.0
 mouse_filter = 2
 
 [node name="LifeLabel" type="Label" parent="HUD/Hud"]
 layout_mode = 0
-offset_left = 74.0
+offset_left = 84.0
 offset_top = 36.0
-offset_right = 354.0
+offset_right = 364.0
 offset_bottom = 64.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 18
@@ -253,10 +277,10 @@ vertical_alignment = 1
 
 [node name="Stats" type="Label" parent="HUD/Hud"]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 72.0
-offset_right = 352.0
-offset_bottom = 98.0
+offset_left = 84.0
+offset_top = 70.0
+offset_right = 364.0
+offset_bottom = 96.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 16
 vertical_alignment = 1
@@ -300,22 +324,6 @@ mouse_filter = 2
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
-[node name="Title" type="Label" parent="HUD/Hud"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -356.0
-offset_top = 128.0
-offset_right = -16.0
-offset_bottom = 148.0
-grow_horizontal = 0
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
-theme_override_font_sizes/font_size = 13
-text = "SURVIVAL RUN PROTOTYPE"
-horizontal_alignment = 2
-
 [node name="Logo" type="TextureRect" parent="HUD/Hud"]
 layout_mode = 1
 anchor_left = 1.0
@@ -326,29 +334,10 @@ offset_right = -16.0
 offset_bottom = 124.0
 grow_horizontal = 0
 mouse_filter = 2
-texture_filter = 1
+texture_filter = 4
 texture = ExtResource("5_logo")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="AssetNotice" type="Label" parent="HUD/Hud"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -356.0
-offset_top = 152.0
-offset_right = -16.0
-offset_bottom = 181.0
-grow_horizontal = 0
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.84, 0.78, 0.83, 1)
-theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_notice")
-text = "Prototype visuals and sound"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="Items" type="Label" parent="HUD/Hud"]
 visible = false
@@ -410,7 +399,7 @@ custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
-theme_override_styles/fill = SubResource("StyleBoxFlat_boss_fill")
+theme_override_styles/fill = SubResource("StyleBoxEmpty_liquid")
 show_percentage = false
 
 [node name="Abilities" type="HBoxContainer" parent="HUD/Hud"]
@@ -476,6 +465,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Controls" type="Label" parent="HUD/Hud"]
+visible = false
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -490,7 +480,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
 theme_override_font_sizes/font_size = 13
-text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   Esc pause   |   F3 stats   |   R restart   |   Hold E exit"
+text = "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   Esc pause   |   F3 stats   |   R restart   |   Hold E exit   |   F1 hide"
 horizontal_alignment = 1
 vertical_alignment = 1
 

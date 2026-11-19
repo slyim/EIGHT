@@ -239,6 +239,20 @@ func _run() -> void:
 	await _ticks(2)
 	_check(run.hud.vignette.visible, "Resuming must bring the low-life edge back.")
 
+	# 12. A dash strikes what it passes through once per dash, as hard as a spear thrust.
+	await _settle()
+	player.global_position = Vector2(-1800.0, 1000.0)
+	var dummy: Enemy = _still(run, 0, player.global_position + Vector2(60.0, 0.0))
+	await _ticks(2)
+	var dummy_health: int = dummy.health
+	player.dash_direction = Vector2.RIGHT
+	player.dash_struck.clear()
+	player.dash_time_left = player.dash_duration
+	await _ticks(int(player.dash_duration * 60.0) + 3)
+	_check(dummy.health == dummy_health - player.dealt(player.spear_damage), "A dash must strike once for a thrust's damage (%d -> %d)." % [dummy_health, dummy.health])
+	dummy.queue_free()
+	await _settle()
+
 	# The ascent clears a slow, so the tint does not ride up the beam.
 	await _ticks(20)
 	_check(player.apply_slow(0.5, 3.0) and player.slow_left > 0.0, "The angel must be slowed before the ascent.")

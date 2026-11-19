@@ -46,12 +46,16 @@ var shake: int = 2
 var hit_stop: bool = true
 ## Active locale code from LANGUAGES.
 var language: String = "en"
+## Rebindable physical keys; mouse buttons and dash's Shift default are fixed.
+var attack_key: Key = KEY_J
+var dash_key: Key = KEY_K
 
 
 static func load_saved() -> Settings:
 	var settings: Settings = Settings.new()
 	var file: ConfigFile = ConfigFile.new()
 	if file.load(path) != OK:
+		settings.apply_controls()
 		return settings
 	var stored: Variant = file.get_value("graphics", "quality", Quality.HIGH)
 	if stored is int and stored >= 0 and stored < QUALITY_NAMES.size():
@@ -72,6 +76,11 @@ static func load_saved() -> Settings:
 	settings.hit_stop = stored if stored is bool else true
 	stored = file.get_value("general", "language", "en")
 	settings.language = stored if stored is String and LANGUAGES.has(stored) else "en"
+	stored = file.get_value("controls", "attack_key", KEY_J)
+	settings.attack_key = stored if stored is int and stored > 0 else KEY_J
+	stored = file.get_value("controls", "dash_key", KEY_K)
+	settings.dash_key = stored if stored is int and stored > 0 else KEY_K
+	settings.apply_controls()
 	return settings
 
 
@@ -85,6 +94,8 @@ func save() -> Error:
 	file.set_value("gameplay", "shake", shake)
 	file.set_value("gameplay", "hit_stop", hit_stop)
 	file.set_value("general", "language", language)
+	file.set_value("controls", "attack_key", attack_key)
+	file.set_value("controls", "dash_key", dash_key)
 	return file.save(path)
 
 
@@ -93,6 +104,22 @@ func apply_language() -> void:
 	var locale: String = language if LANGUAGES.has(language) else "en"
 	if TranslationServer.get_locale() != locale:
 		TranslationServer.set_locale(locale)
+
+
+## Replaces only each action's custom key, preserving mouse buttons and dash's Shift default.
+func apply_controls() -> void:
+	_apply_control(&"attack", attack_key)
+	_apply_control(&"dash", dash_key)
+
+
+func _apply_control(action: StringName, key: Key) -> void:
+	for event: InputEvent in InputMap.action_get_events(action):
+		if event is InputEventKey and not (action == &"dash" and (event as InputEventKey).physical_keycode == KEY_SHIFT):
+			InputMap.action_erase_event(action, event)
+	var custom: InputEventKey = InputEventKey.new()
+	custom.physical_keycode = key
+	if not InputMap.action_has_event(action, custom):
+		InputMap.action_add_event(action, custom)
 
 
 ## The window: vsync, frame cap, and fullscreen (window mode is left alone when headless).

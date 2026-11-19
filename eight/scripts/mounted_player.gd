@@ -140,6 +140,8 @@ const SLOW_TINT: Color = Color(0.6, 0.7, 0.95, 1.0)
 @export_range(0.0, 20.0, 0.5) var finisher_shake: float = 7.0
 
 @export_group("Dash")
+## PLACEHOLDER reach of a dash hit around the angel (px; the body is 22).
+const DASH_HIT_RADIUS: float = 30.0
 @export_range(200.0, 1600.0, 10.0) var dash_speed: float = 760.0
 @export_range(0.05, 0.5, 0.01) var dash_duration: float = 0.16
 @export_range(0.1, 3.0, 0.05) var dash_cooldown: float = 0.55
@@ -237,6 +239,8 @@ var hit_stop_enabled: bool = true:
 			Engine.time_scale = 1.0
 ## The current dash can still earn a perfect dodge.
 var perfect_ready: bool = false
+## Targets the current dash has already struck: each takes one dash hit per dash.
+var dash_struck: Array[Object] = []
 ## Seconds left of the perfect-dodge attack speed buff.
 var perfect_left: float = 0.0
 var hurt_flash_left: float = 0.0
@@ -416,6 +420,7 @@ func _physics_process(delta: float) -> void:
 		dash_cooldown_left = dash_duration + dash_cooldown
 		perfect_ready = true
 		afterimage_left = 0.0
+		dash_struck.clear()
 		dashed.emit()
 
 	# A dash ignores any pull; either way the pull is spent each tick (it never builds up).
@@ -425,6 +430,8 @@ func _physics_process(delta: float) -> void:
 		velocity = movement * movement_speed * lerpf(1.0, flight_speed_multiplier, lift) * (slow_factor if slow_left > 0.0 and not is_airborne() else 1.0) + pull
 	pull = Vector2.ZERO
 	move_and_slide()
+	if dash_time_left > 0.0:
+		_resolve_dash_hits()
 	if not movement.is_zero_approx():
 		mount_direction = movement.normalized()
 
@@ -659,6 +666,28 @@ func _resolve_spear_hits() -> void:
 		thrust_hits_left -= 1
 		spear_cast.add_exception(collider as CollisionObject2D)
 		spear_cast.force_raycast_update()
+
+
+## A dash strikes everything it passes through once per dash, as hard as a spear thrust and
+## with the thrust's knockback (shields still block from the front). A light shake on the
+## first hit; no hit-stop, so the dash keeps its speed through a crowd.
+func _resolve_dash_hits() -> void:
+	var circle: CircleShape2D = CircleShape2D.new()
+	circle.radius = DASH_HIT_RADIUS
+	var query: PhysicsShapeQueryParameters2D = PhysicsShapeQueryParameters2D.new()
+	query.shape = circle
+	query.transform = Transform2D(0.0, global_position)
+	query.collision_mask = spear_cast.collision_mask & ~1
+	query.exclude = [get_rid()]
+	for result: Dictionary in get_world_2d().direct_space_state.intersect_shape(query, 64):
+		var collider: Object = result["collider"]
+		if collider == null or dash_struck.has(collider) or not collider.has_method(&"take_hit"):
+			continue
+		dash_struck.append(collider)
+		if dash_struck.size() == 1:
+			_shake(hit_shake)
+		collider.call(&"take_hit", dealt(spear_damage), false, global_position - dash_direction * DASH_HIT_RADIUS)
+		_push(collider, spear_knockback_scale)
 
 
 ## The finisher strikes every target inside its arc once, unless a wall or obstacle is in

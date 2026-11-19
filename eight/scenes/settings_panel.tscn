@@ -30,9 +30,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -260.0
-offset_top = -310.0
+offset_top = -358.0
 offset_right = 260.0
-offset_bottom = 310.0
+offset_bottom = 358.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"MenuPanel"
@@ -106,6 +106,20 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 18
 text = "HIT-STOP"
+
+[node name="AttackKey" type="Button" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "ATTACK KEY  J"
+
+[node name="DashKey" type="Button" parent="Panel/Box"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "DASH KEY  K"
 
 [node name="Language" type="OptionButton" parent="Panel/Box"]
 custom_minimum_size = Vector2(0, 40)

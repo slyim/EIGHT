@@ -161,14 +161,8 @@ msgstr "%s YENİLDİ\nİLERLEMEN KAYDEDİLEMEDİ (HATA %d)"
 
 # Run scene labels and buttons (translated by the labels themselves)
 
-msgid "SURVIVAL RUN PROTOTYPE"
-msgstr "HAYATTA KALMA KOŞUSU PROTOTİPİ"
-
-msgid "Prototype visuals and sound"
-msgstr "Prototip görseller ve ses"
-
-msgid "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   Esc pause   |   F3 stats   |   R restart   |   Hold E exit"
-msgstr "WASD / Oklar hareket   |   Fare nişan   |   Sol tık / J basılı saldırı   |   Q / tekerlek silah   |   Space basılı uç   |   Shift / Sağ tık atıl   |   Esc duraklat   |   F3 istatistik   |   R yeniden   |   E basılı çıkış"
+msgid "WASD / Arrows move   |   Mouse aim   |   Hold LMB / J attack   |   Q / wheel weapon   |   Hold Space fly   |   Shift / RMB dash   |   Esc pause   |   F3 stats   |   R restart   |   Hold E exit   |   F1 hide"
+msgstr "WASD / Oklar hareket   |   Fare nişan   |   Sol tık / J basılı saldırı   |   Q / tekerlek silah   |   Space basılı uç   |   Shift / Sağ tık atıl   |   Esc duraklat   |   F3 istatistik   |   R yeniden   |   E basılı çıkış   |   F1 gizle"
 
 msgid "PAUSED"
 msgstr "DURAKLATILDI"

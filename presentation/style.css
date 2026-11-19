@@ -192,3 +192,11 @@
 .parts-line b { color: var(--gold); }
 .realm-card.satan .rail em { font-size: 14px; }
 .realm-card.satan .rail li { grid-template-columns: 74px 1fr; }
+
+/* Closing: the playable link. */
+.play { margin-top: 34px; text-align: center; }
+.play-title { font: 700 30px "Cinzel", serif; color: var(--gold); text-shadow: 0 0 18px #e6e29e66; }
+.play-title svg { vertical-align: -4px; }
+.play-link { font-size: 30px; margin-top: 6px !important; }
+.play-link a { color: var(--mint); text-decoration: none; border-bottom: 1px solid #caebe055; }
+.play-note { font-size: 17px; color: var(--muted); margin-top: 10px !important; }

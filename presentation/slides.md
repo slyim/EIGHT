@@ -475,6 +475,10 @@ class: closing
 
 <img class="logo small" src="./images/eight_logo.png" alt="EIGHT" />
 
-<p class="question">Melek ışıkta mı kalmalı, yoksa ilerlemeli mi?</p>
+<div class="play">
+  <p class="play-title"><ph-game-controller-fill /> Şimdi oyna</p>
+  <p class="play-link"><a href="https://slyim.github.io/EIGHT/">slyim.github.io/EIGHT</a></p>
+  <p class="play-note">Tarayıcıda, klavye ve fareyle. Alfa 0.1</p>
+</div>
 
-<!-- Canlı gösterimde Kibir'e girip ilk muhafızın saldırı hazırlığını göster; tartışmayı jüriye bu soruyla aç. -->
+<!-- Canlı gösterimde Kibir'e girip ilk muhafızın saldırı hazırlığını göster. Jüri aynı sürümü bu bağlantıdan tarayıcıda oynayabilir. -->

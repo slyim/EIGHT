@@ -1,6 +1,6 @@
 ﻿# EIGHT sunumu
 
-[Sunumu PDF olarak aç](EIGHT-jury.pdf). Yirmi beş slayt, dört bölüm: Evren (sekiz kat, yedi günahın sesi, arınma), Oynanış (simge dili, pentagram, koşu, savaş, uyarılar, şifa, güçlenme, antlaşmalar, dükkân, zorluk, sürü), Diyarlar (her günah için bir infografik sayfa) ve Yol haritası.
+[Sunumu PDF olarak aç](EIGHT-jury.pdf). Son slayt oynanabilir sürümün bağlantısını verir: [slyim.github.io/EIGHT](https://slyim.github.io/EIGHT/). Yirmi beş slayt, dört bölüm: Evren (sekiz kat, yedi günahın sesi, arınma), Oynanış (simge dili, pentagram, koşu, savaş, uyarılar, şifa, güçlenme, antlaşmalar, dükkân, zorluk, sürü), Diyarlar (her günah için bir infografik sayfa) ve Yol haritası.
 
 Tasarım belgeleri: [Oyun Dinamikleri ve Sistem Tasarımı](docs/oyun-dinamikleri.pdf) · [Oyun Genel Akışı ve Oyun İçi Akış](docs/oyun-akisi.pdf). Sunum, bu belgelerdeki çekirdek döngüyü ve ışıkta iyileşmeyi oyundaki hâliyle gösterir. Tarot / Akıllı AI ve parkur "Sıradaki adım" slaytında henüz oyunda olmayan tasarımlar olarak yer alır; Q W E R yetenekleri tasarımdan çıkarıldı.
 

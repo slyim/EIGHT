@@ -267,7 +267,9 @@ func _run() -> void:
 	hub_panel.language.item_selected.emit(1)
 	await _ticks(2)
 	_check((hub.get_node(^"Feathers") as Label).text == "TÜY  0", "Hub feathers label must live-translate to Turkish (got %s)." % (hub.get_node(^"Feathers") as Label).text)
-	_check(hub.sin_buttons[0].text.contains("KİBİR") and hub.sin_buttons[0].text.contains("KEFARET") and hub.sin_buttons[0].text.contains("GİR  [1]"), "Hub sin buttons must live-translate (got %s)." % hub.sin_buttons[0].text)
+	_check(hub.sin_buttons[0].text.contains("KİBİR") and hub.sin_buttons[0].text.contains("KEFARET") and hub.sin_buttons[0].text.contains("GİR  [6]"), "Hub sin buttons must live-translate (got %s)." % hub.sin_buttons[0].text)
+	# The ring puts Wrath first and Pride sixth: numerals and key hints follow the ring, not the sin index.
+	_check(hub.sin_buttons[5].text.begins_with("I  GAZAP") and hub.sin_buttons[5].text.contains("GİR  [1]") and hub.sin_buttons[0].text.begins_with("VI  KİBİR"), "Wrath must be the first circle and Pride the sixth (got %s / %s)." % [hub.sin_buttons[5].text, hub.sin_buttons[0].text])
 	_check(hub.satan_button.text.contains("ŞEYTAN") and hub.satan_button.text.contains("YADİGAR"), "Hub Satan button must live-translate (got %s)." % hub.satan_button.text)
 	var hub_title: Label = hub.get_node(^"Header/Title") as Label
 	_check(hub_title.atr(hub_title.text) == "PENTAGRAM", "Hub static title must translate live.")

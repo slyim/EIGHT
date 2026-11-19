@@ -235,7 +235,7 @@ const BOSSES: Array[Dictionary] = [
 		"frames": preload("res://assets/art/placeholder/placeholder_boss_satan.aseprite"), "patterns": [Boss.Pattern.AIMED, Boss.Pattern.RAIN],
 		"phase_thresholds": [0.66, 0.33],
 		"phase_patterns": [[Boss.Pattern.AIMED, Boss.Pattern.RAIN],
-			[Boss.Pattern.GUARD, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.MIRROR, Boss.Pattern.LEAP, Boss.Pattern.CHARGE, Boss.Pattern.YAWN],
+			[Boss.Pattern.CHARGE, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.MIRROR, Boss.Pattern.LEAP, Boss.Pattern.GUARD, Boss.Pattern.YAWN],
 			[Boss.Pattern.BEAMS, Boss.Pattern.AIMED, Boss.Pattern.SUMMON]],
 		"phase_combos": [{}, {Boss.Pattern.GUARD: [Boss.Pattern.SLAM], Boss.Pattern.BLINK: [Boss.Pattern.CHARGE],
 			Boss.Pattern.SHOT: [Boss.Pattern.SHOT, Boss.Pattern.SHOT], Boss.Pattern.CHARGE: [Boss.Pattern.CHARGE, Boss.Pattern.SLAM],

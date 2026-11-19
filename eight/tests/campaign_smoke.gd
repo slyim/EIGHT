@@ -234,8 +234,8 @@ func _run() -> void:
 	# A failed save is shown, never mistaken for success; trying again once writable seals it.
 	_save([0, 1, 2, 3, 4, 5])
 	Progress.path = "user://missing_folder/nested/progress.cfg"
-	await _key(KEY_1)
-	_check(await _scene_becomes(Game), "Pressing 1 must enter Pride.")
+	await _key(KEY_6)
+	_check(await _scene_becomes(Game), "Pressing 6 must enter Pride, the sixth circle.")
 	game = current_scene as Game
 	await _ticks(5)
 	game.run._end_run(true)

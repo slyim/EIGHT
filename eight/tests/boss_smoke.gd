@@ -1054,7 +1054,7 @@ func _run() -> void:
 		order.append(boss.pending)
 	boss._cancel()
 	boss.recover_left = 0.0
-	_check(order == [Boss.Pattern.GUARD, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.SHOT, Boss.Pattern.LEAP, Boss.Pattern.CHARGE, Boss.Pattern.YAWN], "Satan must take the sins in pentagram order (%s)." % [order])
+	_check(order == [Boss.Pattern.CHARGE, Boss.Pattern.COINS, Boss.Pattern.BLINK, Boss.Pattern.SHOT, Boss.Pattern.LEAP, Boss.Pattern.GUARD, Boss.Pattern.YAWN], "Satan must take the sins in pentagram order (%s)." % [order])
 	# A third: the pentagram beams and the sins' creatures.
 	boss.take_hit(boss.health - roundi(boss.max_health * 0.33) + 1)
 	_check(boss.phase == 3 and not boss.cycles and boss.patterns.has(Boss.Pattern.BEAMS) and boss.patterns.has(Boss.Pattern.SUMMON), "At a third Satan must strike with beams (%s)." % [boss.patterns])
@@ -1151,10 +1151,10 @@ func _run() -> void:
 	boss.recover_left = 0.0
 	boss.attack_left = 0.0
 	await _ticks(2)
-	_check(boss.cycle_pairs and boss.pending == Boss.Pattern.GUARD and boss.pair_pending and boss.cycle_index == 1, "Damnation Satan must owe Pride's guard a partner (%s)." % [boss.combo_queue])
+	_check(boss.cycle_pairs and boss.pending == Boss.Pattern.CHARGE and boss.pair_pending and boss.cycle_index == 1, "Damnation Satan must owe Wrath's charge a partner (%s)." % [boss.combo_queue])
 	boss.combo_queue.clear()
 	boss._finish(Boss.Pattern.SLAM)
-	_check(boss.pending == Boss.Pattern.COINS and boss.cycle_index == 2 and boss.recover_left == 0.0 and not boss.pair_pending, "Damnation Satan must follow Pride's slam straight away with Greed's coins.")
+	_check(boss.pending == Boss.Pattern.COINS and boss.cycle_index == 2 and boss.recover_left == 0.0 and not boss.pair_pending, "Damnation Satan must follow Wrath's slam straight away with Greed's coins.")
 	# Lust's blink and charge, then Envy's mirror with its full three-shot volley against the bow.
 	boss._cancel()
 	boss.cycle_index = 3

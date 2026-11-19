@@ -34,12 +34,12 @@ section: Evren
 </div>
 <div class="rings">
   <div class="orbit">
-    <img style="--a:0" src="./images/sprites/boss_pride.png" alt="" />
+    <img style="--a:5" src="./images/sprites/boss_pride.png" alt="" />
     <img style="--a:1" src="./images/sprites/boss_greed.png" alt="" />
     <img style="--a:2" src="./images/sprites/boss_lust.png" alt="" />
     <img style="--a:3" src="./images/sprites/boss_envy.png" alt="" />
     <img style="--a:4" src="./images/sprites/boss_gluttony.png" alt="" />
-    <img style="--a:5" src="./images/sprites/boss_wrath.png" alt="" />
+    <img style="--a:0" src="./images/sprites/boss_wrath.png" alt="" />
     <img style="--a:6" src="./images/sprites/boss_sloth.png" alt="" />
     <img class="core" src="./images/sprites/boss_satan_head.png" alt="" />
   </div>
@@ -55,12 +55,12 @@ section: Evren
 # Yedi günah, yedi ses
 
 <div class="voices">
-  <figure style="--h:#b7836b"><img src="./images/sprites/boss_pride.png" alt="" /><div><b>Odin</b><small>Kibir</small><q>Burada ışık bile eğilir.</q></div></figure>
+  <figure style="--h:#995154"><img src="./images/sprites/boss_wrath.png" alt="" /><div><b>Kerberos</b><small>Gazap</small><q>Üç ağız. Tek kapı.</q></div></figure>
   <figure style="--h:#e6e29e"><img src="./images/sprites/boss_greed.png" alt="" /><div><b>Midas</b><small>Açgözlülük</small><q>Geçmek için ne vereceksin?</q></div></figure>
   <figure style="--h:#97576c"><img src="./images/sprites/boss_lust.png" alt="" /><div><b>Lilith</b><small>Şehvet</small><q>Kal. Işık bekleyebilir.</q></div></figure>
   <figure style="--h:#91b95b"><img src="./images/sprites/boss_envy.png" alt="" /><div><b>Loki</b><small>Kıskançlık</small><q>O ışık kimin elinde olduğunu biliyor mu?</q></div></figure>
   <figure style="--h:#dccd93"><img src="./images/sprites/boss_gluttony.png" alt="" /><div><b>Wendigo</b><small>Oburluk</small><q>Yutulacak bir ışık daha.</q></div></figure>
-  <figure style="--h:#995154"><img src="./images/sprites/boss_wrath.png" alt="" /><div><b>Kerberos</b><small>Gazap</small><q>Üç ağız. Tek kapı.</q></div></figure>
+  <figure style="--h:#b7836b"><img src="./images/sprites/boss_pride.png" alt="" /><div><b>Odin</b><small>Kibir</small><q>Burada ışık bile eğilir.</q></div></figure>
   <figure style="--h:#729aa1"><img src="./images/sprites/boss_sloth.png" alt="" /><div><b>Edward</b><small>Tembellik</small><q>Mızrağını bırak. Dinlen.</q></div></figure>
   <figure style="--h:#97576c"><img src="./images/sprites/boss_satan_head.png" alt="" /><div><b>Şeytan</b><small>Merkez</small><q>Yedi mühür seni bana getirdi.</q></div></figure>
 </div>
@@ -302,19 +302,20 @@ section: Diyarlar
 class: realm
 ---
 
-<img class="realm-bg" src="./images/realms/pride.png" alt="" />
-<div class="realm-card" style="--h:#b7836b">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_pride.png" alt="" /><div><h1>Odin</h1><p class="sin">Kibir · I. kat · <ph-heart-fill /> 100</p></div></div>
-<q>Burada ışık bile eğilir.</q>
+<img class="realm-bg" src="./images/realms/wrath.png" alt="" />
+<div class="realm-card" style="--h:#995154">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_wrath.png" alt="" /><div><h1>Kerberos</h1><p class="sin">Gazap · I. kat · <ph-heart-fill /> 200</p></div></div>
+<q>Üç ağız. Tek kapı.</q>
 <ol class="rail">
-<li><em>%100</em><div><b><ph-fire-fill /> Nişanlı yelpaze ve hücum</b><p>Yerdeki köz hattı hücumun ilk engele kadar yolunu gösterir.</p></div></li>
-<li><em>%50</em><div><b><ph-shield-fill /> Kalkan, ardından yere vuruş</b><p>1,5 saniye önünden gelen darbeyi keser; sonra 110 px'lik halka iner.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Çift hücum, yere vuruş</b><p>İki hücum arka arkaya; durduğu yerde 90 px'lik vuruş.</p></div></li>
+<li><em>%50</em><div><b><ph-fire-fill /> Öfke</b><p>%20 hızlanır; her hücumdan sonra bir mermi halkası.</p></div></li>
+<li><em>%20</em><div><b><ph-fire-fill /> Şok dalgası</b><p>Üç köz halkası 0,45 saniye arayla dışa yayılır.</p></div></li>
 </ol>
-<ul class="answers"><li><ph-footprints-fill /> Hattan yana çekil</li><li><ph-shield-slash-fill /> Bitirici vuruş kalkanı kırar</li><li><ph-wind-fill /> Halkanın üstünden uç</li></ul>
-<p class="horde-line"><ph-skull-fill /> Dengeli sürü, Hücumcu, Kalkanlı</p>
+<ul class="answers"><li><ph-footprints-fill /> Hücum hattından çekil</li><li><ph-wind-fill /> Halkaların üstünden uç</li><li><ph-caret-double-right-fill /> Aralarından atıl</li></ul>
+<p class="horde-line"><ph-skull-fill /> İfritler, iriler, Hücumcu, Bombacı</p>
 </div>
 
-<!-- Kibir önünden geçilmeyen bir duvar gibi dövüşür. Kalkanı kırılan Odin 1,2 saniye açık kalır. -->
+<!-- Gazap canı azaldıkça hızlanır. Bombacıları ona doğru çekmek, patlamalarını ona karşı kullanmaktır. -->
 
 ---
 section: Diyarlar
@@ -399,20 +400,19 @@ section: Diyarlar
 class: realm
 ---
 
-<img class="realm-bg" src="./images/realms/wrath.png" alt="" />
-<div class="realm-card" style="--h:#995154">
-<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_wrath.png" alt="" /><div><h1>Kerberos</h1><p class="sin">Gazap · VI. kat · <ph-heart-fill /> 200</p></div></div>
-<q>Üç ağız. Tek kapı.</q>
+<img class="realm-bg" src="./images/realms/pride.png" alt="" />
+<div class="realm-card" style="--h:#b7836b">
+<div class="realm-head"><img class="realm-sprite" src="./images/sprites/boss_pride.png" alt="" /><div><h1>Odin</h1><p class="sin">Kibir · VI. kat · <ph-heart-fill /> 100</p></div></div>
+<q>Burada ışık bile eğilir.</q>
 <ol class="rail">
-<li><em>%100</em><div><b><ph-fire-fill /> Çift hücum, yere vuruş</b><p>İki hücum arka arkaya; durduğu yerde 90 px'lik vuruş.</p></div></li>
-<li><em>%50</em><div><b><ph-fire-fill /> Öfke</b><p>%20 hızlanır; her hücumdan sonra bir mermi halkası.</p></div></li>
-<li><em>%20</em><div><b><ph-fire-fill /> Şok dalgası</b><p>Üç köz halkası 0,45 saniye arayla dışa yayılır.</p></div></li>
+<li><em>%100</em><div><b><ph-fire-fill /> Nişanlı yelpaze ve hücum</b><p>Yerdeki köz hattı hücumun ilk engele kadar yolunu gösterir.</p></div></li>
+<li><em>%50</em><div><b><ph-shield-fill /> Kalkan, ardından yere vuruş</b><p>1,5 saniye önünden gelen darbeyi keser; sonra 110 px'lik halka iner.</p></div></li>
 </ol>
-<ul class="answers"><li><ph-footprints-fill /> Hücum hattından çekil</li><li><ph-wind-fill /> Halkaların üstünden uç</li><li><ph-caret-double-right-fill /> Aralarından atıl</li></ul>
-<p class="horde-line"><ph-skull-fill /> İfritler, iriler, Hücumcu, Bombacı</p>
+<ul class="answers"><li><ph-footprints-fill /> Hattan yana çekil</li><li><ph-shield-slash-fill /> Bitirici vuruş kalkanı kırar</li><li><ph-wind-fill /> Halkanın üstünden uç</li></ul>
+<p class="horde-line"><ph-skull-fill /> Dengeli sürü, Hücumcu, Kalkanlı</p>
 </div>
 
-<!-- Gazap canı azaldıkça hızlanır. Bombacıları ona doğru çekmek, patlamalarını ona karşı kullanmaktır. -->
+<!-- Kibir önünden geçilmeyen bir duvar gibi dövüşür. Kalkanı kırılan Odin 1,2 saniye açık kalır. -->
 
 ---
 section: Diyarlar

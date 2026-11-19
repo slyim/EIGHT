@@ -13,6 +13,9 @@ static var just_sealed: int = -1
 static var picked: Dictionary = {}
 
 const NUMERALS: Array[String] = ["I", "II", "III", "IV", "V", "VI", "VII"]
+## Ring order, slot by slot (I at the top, then clockwise): the owner puts Wrath (Kerberos) first
+## and Pride sixth. Sin indices, saves, and scenes keep their own order.
+const RING_ORDER: Array[int] = [5, 1, 2, 3, 4, 0, 6]
 ## Ring radius in UI units (the UI scales with the window).
 const RING_RADIUS: float = 232.0
 const PEDESTAL_INSET: float = 78.0
@@ -95,7 +98,7 @@ func _ready() -> void:
 	_layout()
 	# Theatrical entrance: the nodes deal in around the ring, then a fresh seal ripples out.
 	for index: int in range(sin_buttons.size()):
-		_pop_in(sin_buttons[index], 0.1 + index * 0.06)
+		_pop_in(sin_buttons[index], 0.1 + RING_ORDER.find(index) * 0.06)
 	_pop_in(satan_button, 0.1 + sin_buttons.size() * 0.06)
 	if just_sealed >= 0 and just_sealed < Run.SATAN and progress.sealed.has(just_sealed):
 		sealed_now = just_sealed
@@ -142,8 +145,8 @@ func _refresh() -> void:
 	($Feathers as Label).text = tr("FEATHERS  %d") % progress.feathers
 	($Version as Label).text = tr("ALPHA  v%s") % ProjectSettings.get_setting(&"application/config/version", "0.1")
 	for index: int in range(sin_buttons.size()):
-		var beaten: String = tr("BEST %s") % _tier_name(progress.best[index]) if progress.best.has(index) else tr("ENTER  [%d]") % (index + 1)
-		sin_buttons[index].text = "%s  %s\n%s\n%s" % [NUMERALS[index], tr(Run.BOSSES[index]["name"]), _tier_name(tier_for(index)), beaten]
+		var beaten: String = tr("BEST %s") % _tier_name(progress.best[index]) if progress.best.has(index) else tr("ENTER  [%d]") % (RING_ORDER.find(index) + 1)
+		sin_buttons[index].text = "%s  %s\n%s\n%s" % [NUMERALS[RING_ORDER.find(index)], tr(Run.BOSSES[index]["name"]), _tier_name(tier_for(index)), beaten]
 	var relics: int = progress.sealed.size()
 	satan_button.disabled = not progress.satan_unlocked()
 	var tier_line: String = _tier_name(tier_for(Run.SATAN))
@@ -167,9 +170,9 @@ func ring_center() -> Vector2:
 	return size * 0.5 + Vector2(0.0, 52.0)
 
 
-## Where sin index sits on the ring, the first at the top, then clockwise.
+## Where sin index sits on the ring: its RING_ORDER slot, the first at the top, then clockwise.
 func sin_point(index: int, radius: float = RING_RADIUS) -> Vector2:
-	return ring_center() + Vector2.from_angle(-PI * 0.5 + TAU * index / Run.SATAN) * radius
+	return ring_center() + Vector2.from_angle(-PI * 0.5 + TAU * RING_ORDER.find(index) / Run.SATAN) * radius
 
 
 func _layout() -> void:
@@ -202,10 +205,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Shift with a node's key cycles its tier instead of entering it.
 	if key.shift_pressed and (index >= 0 and index < Run.SATAN or key.physical_keycode == KEY_S):
 		get_viewport().set_input_as_handled()
-		cycle_tier(index if key.physical_keycode != KEY_S else Run.SATAN)
+		cycle_tier(RING_ORDER[index] if key.physical_keycode != KEY_S else Run.SATAN)
 	elif index >= 0 and index < Run.SATAN:
 		get_viewport().set_input_as_handled()
-		enter_sin(index)
+		enter_sin(RING_ORDER[index])
 	elif key.physical_keycode == KEY_S:
 		get_viewport().set_input_as_handled()
 		summon_satan()

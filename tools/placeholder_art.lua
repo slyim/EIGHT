@@ -1222,115 +1222,240 @@ local function wrath(anim, f)
 	return compose(64, 64, ground_shadow(64, 64, 30, 58, 22, 4), g, after)
 end
 
--- Sloth = Edward (slumped heavy-lidded sleeper huddled in a blue blanket on a throne; blue).
+-- Sloth = Edward (huge heavy drowsy bear slumped with a blue blanket, yawning; blue).
 local function sloth(anim, f)
 	local atk = anim == "attack"
 	local bob = atk and pick({ -1, -2, 0, 2 }, f) or pick({ 0, 0, 1, 1 }, f)
-	local nod = atk and pick({ -1, -2, -1, 3 }, f) or pick({ 0, 1, 2, 1 }, f)
-	local yawn = atk and pick({ 1, 4, 6, 0 }, f) or 0
-	local THRONE = { "abyss", "night", "navy", "steel" }
-	local SKIN = { "steel", "clay", "sand" }
+	local breath = atk and pick({ 1, 2, 1, 0 }, f) or pick({ 0, 1, 1, 0 }, f)
+	local lean = atk and pick({ -1, -2, 1, 0 }, f) or 0
+	local nod = atk and pick({ -1, -2, -1, 2 }, f) or pick({ 0, 1, 2, 1 }, f)
+	local yawn = atk and pick({ 2, 5, 8, 1 }, f) or 0
+	local FUR_DARK = { "abyss", "night", "navy", "steel" }
+	local FUR = { "night", "navy", "steel", "sea" }
+	local FUR_LIGHT = { "navy", "steel", "sea", "mint" }
+	local BLANKET = { "abyss", "night", "navy", "steel" }
 	local g = canvas(64, 64)
-	-- High-backed gothic throne (3/4 view facing right)
-	g:poly({
-		{ 9, 57 }, { 9, 17 }, { 14, 12 }, { 26, 12 }, { 31, 17 }, { 31, 57 },
-	}, THRONE, -0.05)
-	g:line(14, 12, 26, 12, "sea")
-	g:line(12, 18, 12, 53, "navy")
-	g:line(28, 18, 28, 53, "steel")
-	-- Throne seat base & legs
-	g:poly({ { 11, 57 }, { 11, 44 }, { 47, 44 }, { 47, 57 } }, THRONE, -0.1)
-	g:rect(11, 51, 5, 6, "abyss")
-	g:rect(42, 51, 5, 6, "abyss")
-	-- Plump blue pillow behind Edward's hunched shoulders
-	g:ball(22, 31 + bob, 6.5, 5.5, { "navy", "steel", "sea" }, 0.1)
-	-- Slumped Edward wrapped cocoon-like in a thick blue quilted blanket
-	g:poly({
-		{ 14, 56 }, { 15, 33 + bob }, { 25, 28 + bob }, { 42, 30 + bob },
-		{ 48, 41 + bob }, { 50, 55 }, { 34, 57 }, { 19, 57 },
-	}, { "black", "abyss" })
-	g:poly({
-		{ 15, 56 }, { 16, 34 + bob }, { 25, 29 + bob }, { 41, 31 + bob },
-		{ 47, 41 + bob }, { 49, 55 }, { 34, 57 }, { 19, 57 },
-	}, COOL, -0.05)
-	-- Folded blanket rim & quilted stitch folds
-	g:line(24, 32 + bob, 40, 34 + bob, "mint")
-	g:line(24, 33 + bob, 40, 35 + bob, "sea")
-	g:line(22, 42 + bob, 42, 43 + bob, "navy")
-	g:line(20, 49, 44, 50, "navy")
-	g:line(28, 36 + bob, 26, 55, "navy")
-	g:line(37, 37 + bob, 38, 55, "navy")
-	-- Throne front-right armrest & Edward's limply dangling arm
-	g:poly({ { 32, 41 }, { 48, 41 }, { 48, 46 }, { 32, 46 } }, THRONE, 0.1)
-	local handx = 48 + (atk and pick({ 0, -2, 5, 2 }, f) or 0)
-	local handy = 45 + bob + (atk and pick({ -1, -3, -2, 2 }, f) or 0)
-	g:line(38, 37 + bob, handx, handy, "steel")
-	g:line(38, 38 + bob, handx, handy + 1, "sea")
-	g:ball(handx, handy + 1, 2.5, 2.2, SKIN, 0.1)
-	-- Sleepy slumped head & droopy blue nightcap with dark collar separator
-	local hx, hy = 35, 25 + bob + nod
-	g:oval(hx, hy, 6.5, 6.5, "black")
-	g:ball(hx, hy, 5.8, 5.8, SKIN, 0.12)
-	-- Droopy blue sleeping cap slouching back-left
-	g:poly({
-		{ hx - 5, hy - 2 }, { hx - 3, hy - 8 }, { hx + 5, hy - 6 },
-		{ hx + 6, hy - 2 }, { hx - 4, hy - 1 },
-	}, COOL, 0.1)
-	g:poly({
-		{ hx - 5, hy - 5 }, { hx - 12, hy - 2 }, { hx - 14, hy + 4 + bob },
-		{ hx - 10, hy + 4 + bob }, { hx - 8, hy }, { hx - 4, hy - 2 },
-	}, COOL, 0.05)
-	g:line(hx - 5, hy - 2, hx + 6, hy - 2, "mint")
-	g:ball(hx - 13, hy + 5 + bob, 2.3, 2.3, { "sea", "mint" }, 0.2)
-	-- Giant yawning mouth during attack
-	if yawn > 0 then
-		g:oval(hx + 2.5, hy + 3, 3.2, math.max(1.2, yawn * 0.6), "black")
-		if yawn >= 4 then g:oval(hx + 2.5, hy + 4, 2, 1.2, "mauve") end
-	end
-	-- Heavy drooping eyelids, slack mouth, floating blue Zs & yawn shockwaves
 	local after = canvas(64, 64)
-	-- Heavy-lidded eyes (droopy blue lids covering upper half of eyes)
-	after:rect(hx, hy - 1, 3, 2, "steel")
-	after:rect(hx + 4, hy - 1, 2, 2, "steel")
-	after:line(hx, hy - 1, hx + 2, hy - 1, "navy")
-	after:line(hx + 4, hy - 1, hx + 5, hy - 1, "navy")
-	if atk and f == 2 then
-		-- Eyes squeezed shut mid-yawn
-		after:line(hx, hy + 1, hx + 2, hy + 1, "black")
-		after:line(hx + 4, hy + 1, hx + 5, hy + 1, "black")
-		after:set(hx + 2, hy + 3, "cream") -- a tooth keeps the eye glow key in this frame
-	else
-		-- Thin drowsy eye slit peeking under heavy lid
-		after:set(hx + 1, hy + 1, "cream"); after:set(hx + 4, hy + 1, "cream")
-		after:set(hx + 2, hy + 1, "black")
+	local cx = 25 + lean
+
+	-- Helper for a chunky curved bear claw (avoids "cream" so only eyes/tooth glow).
+	local function claw(x, y, dx, dy)
+		g:line(x, y, x + dx, y + dy, "sea")
+		g:set(x + dx, y + dy, "mint")
 	end
+
+	-- Cozy slumped blue quilted nap blanket pooled behind Edward's heavy back & rump (left).
+	g:poly({
+		{ 7, 56 }, { 8, 41 + bob }, { 14, 32 + bob }, { 21, 33 + bob },
+		{ 20, 56 }, { 11, 57 },
+	}, BLANKET, -0.04)
+	g:line(9, 41 + bob, 14, 33 + bob, "sea")
+	g:line(10, 42 + bob, 15, 34 + bob, "mint")
+	g:line(9, 48, 16, 47, "night")
+	g:line(9, 53, 17, 52, "abyss")
+	g:line(13, 39 + bob, 12, 55, "abyss")
+
+	-- Far/right seated bear hind leg & planted clawed paw.
+	g:ball(cx + 15, 52, 6.2, 5.0, FUR_DARK, -0.05)
+	g:ball(cx + 19, 54, 5.2, 3.6, FUR, -0.05)
+	claw(cx + 23, 52, 2, 1)
+	claw(cx + 24, 54, 2, 1)
+	claw(cx + 22, 56, 2, 1)
+
+	-- Far/right heavy bear forelimb & big clawed paw resting forward-right (stretches on yawn).
+	local rpx = cx + 21 + (atk and pick({ -1, -2, 2, 1 }, f) or 0)
+	local rpy = 47 + bob + (atk and pick({ -3, -6, -4, 2 }, f) or 0)
+	g:poly({
+		{ cx + 10, 32 + bob }, { cx + 18, 35 + bob },
+		{ rpx + 2, rpy }, { rpx - 4, rpy + 2 }, { cx + 9, 42 + bob },
+	}, FUR_DARK, 0.0)
+	g:ball(rpx, rpy + 1, 5.0, 4.0, FUR, 0.06)
+	claw(rpx + 4, rpy - 1, 2, 1)
+	claw(rpx + 5, rpy + 1, 2, 1)
+	claw(rpx + 4, rpy + 3, 2, 1)
+
+	-- Massive heavy slumped bear body: broad haunches, giant round belly, hunched shoulders & thick neck.
+	g:ball(cx - 1, 46 + bob * 0.5, 14.5 + breath * 0.4, 11.2, FUR_DARK, -0.02)
+	g:ball(cx + 3, 44 + bob * 0.7, 14.2 + breath * 0.7, 11.8, FUR, 0.02)
+	g:ball(cx, 31 + bob, 13.0, 9.6, FUR, 0.08)
+	-- Thick furry bear neck smoothly bridging the humped shoulders into the head.
+	g:ball(cx + 5, 27 + bob, 9.8, 7.6, FUR, 0.06)
+
+	-- Subtle shaggy fur tufts breaking the outer back & shoulder hump silhouette.
+	g:poly({ { cx - 12, 33 + bob }, { cx - 15, 31 + bob }, { cx - 10, 28 + bob } }, FUR, 0.05)
+	g:poly({ { cx - 10, 29 + bob }, { cx - 13, 26 + bob }, { cx - 7, 25 + bob } }, FUR, 0.1)
+	g:poly({ { cx - 13, 41 + bob }, { cx - 16, 40 + bob }, { cx - 11, 37 + bob } }, FUR_DARK, 0.04)
+
+	-- Lighter plush shaggy chest & round bear belly fur patch with soft fur strokes.
+	g:ball(cx + 7, 43 + bob, 8.6 + breath * 0.5, 8.8, FUR_LIGHT, -0.08)
+	g:line(cx + 2, 37 + bob, cx + 4, 39 + bob, "navy")
+	g:line(cx + 10, 37 + bob, cx + 12, 39 + bob, "steel")
+	g:line(cx + 9, 46 + bob, cx + 12, 47 + bob, "steel")
+
+	-- Near/left heavy seated bear hind paw splayed forward with visible dark pad & pale claws.
+	local hx_paw, hy_paw = cx - 4, 54
+	g:ball(hx_paw, hy_paw, 5.8, 4.3, FUR_DARK, -0.08)
+	g:ball(hx_paw + 0.5, hy_paw - 0.3, 5.0, 3.6, FUR, 0.08)
+	g:oval(hx_paw + 1, hy_paw + 1, 2.3, 1.6, "abyss")
+	g:set(hx_paw - 1, hy_paw - 1, "abyss")
+	g:set(hx_paw + 1, hy_paw - 2, "abyss")
+	g:set(hx_paw + 3, hy_paw - 1, "abyss")
+	claw(hx_paw + 4, hy_paw - 2, 2, 0)
+	claw(hx_paw + 5, hy_paw, 2, 0)
+	claw(hx_paw + 4, hy_paw + 2, 2, 1)
+
+	-- Near/left massive chunky bear arm & big clawed paw draped lazily across his belly.
+	local lpx = cx + 6 + (atk and pick({ 0, 2, 4, 1 }, f) or 0)
+	local lpy = 47 + bob + (atk and pick({ -3, -6, -4, 2 }, f) or pick({ 0, 0, 1, 1 }, f))
+	-- Soft dark-navy underside shadow separates the arm cleanly from the belly (no harsh black slash).
+	g:poly({
+		{ cx - 10, 34 + bob }, { cx - 2, 35 + bob },
+		{ lpx + 2, lpy + 3 }, { lpx - 4, lpy + 4 }, { cx - 11, 45 + bob },
+	}, { "abyss", "night" })
+	g:ball(cx - 5, 36 + bob, 5.5, 5.5, FUR, 0.06)
+	g:poly({
+		{ cx - 9, 34 + bob }, { cx - 1, 35 + bob },
+		{ lpx + 1, lpy }, { lpx - 4, lpy + 2 }, { cx - 10, 43 + bob },
+	}, FUR, 0.1)
+	-- Shaggy elbow tuft
+	g:poly({ { cx - 9, 41 + bob }, { cx - 12, 43 + bob }, { cx - 7, 44 + bob } }, FUR, 0.05)
+	g:ball(lpx, lpy + 1, 5.3, 4.2, FUR, 0.14)
+	g:line(cx - 6, 36 + bob, lpx - 3, lpy - 1, "sea")
+	claw(lpx + 4, lpy - 1, 2, 0)
+	claw(lpx + 5, lpy + 1, 2, 1)
+	claw(lpx + 4, lpy + 3, 2, 1)
+	claw(lpx + 2, lpy + 4, 2, 1)
+
+	-- HUGE DROWSY BEAR HEAD (top-down 3/4 view facing RIGHT).
+	local hx = cx + 7
+	local hy = 21 + bob + nod
+	-- Soft dark under-chin / jaw shadow separating head from chest without ringing the neck.
+	g:oval(hx + 2, hy + 6, 8.2, 4.8, "abyss")
+
+	-- Small, unmistakable ROUND BEAR EARS protruding cleanly into empty space.
+	-- Back/left round ear
+	g:ball(hx - 7, hy - 8, 3.9, 3.9, FUR, 0.04)
+	g:oval(hx - 6.5, hy - 7.8, 1.8, 1.8, "abyss")
+	g:set(hx - 6.5, hy - 7.8, "night")
+	-- Front/right round ear
+	g:ball(hx + 2, hy - 9, 3.7, 3.7, FUR, 0.14)
+	g:oval(hx + 2.5, hy - 8.6, 1.6, 1.6, "abyss")
+	g:set(hx + 2.5, hy - 8.6, "night")
+
+	-- Broad shaggy bear cranium, puffy cheeks & jowl ruffs.
+	g:ball(hx - 1, hy, 9.6, 8.6, FUR, 0.08)
+	g:poly({ { hx - 9, hy + 1 }, { hx - 12, hy + 4 }, { hx - 7, hy + 6 } }, FUR, 0.04)
+	g:poly({ { hx - 7, hy + 5 }, { hx - 9, hy + 8 }, { hx - 2, hy + 8 } }, FUR, 0.02)
+	g:poly({ { hx - 2, hy + 7 }, { hx + 2, hy + 10 }, { hx + 5, hy + 7 } }, FUR, 0.06)
+	-- Heavy overhanging furry bear brow above the eyes
+	g:ball(hx + 2, hy - 4, 6.8, 3.6, FUR, 0.14)
+
+	-- Broad BEAR MUZZLE projecting forward-right BELOW the eyes, + GIANT YAWNING JAWS!
+	local tilt = yawn >= 5 and -1 or 0
 	if yawn == 0 then
-		after:line(hx + 1, hy + 4, hx + 3, hy + 4, "navy")
-		if f >= 2 then after:set(hx + 3, hy + 5, "sea") end
+		-- Prominent rounded bear snout projecting cleanly right & slightly down from the brow
+		g:ball(hx + 9, hy + 3.5, 5.8, 4.4, FUR_LIGHT, 0.05)
+		g:poly({
+			{ hx + 3, hy + 1 }, { hx + 13, hy + 1 }, { hx + 13, hy + 6 }, { hx + 4, hy + 7 },
+		}, FUR_LIGHT, 0.06)
+		-- Big dark wet bear nose at the snout tip (well clear of the far eye!)
+		g:oval(hx + 13.5, hy + 2.0, 2.4, 1.8, "black")
+		g:set(hx + 13.5, hy + 1.4, "sea")
+	else
+		-- Hinged giant yawning bear mouth!
+		local jaw_drop = yawn
+		-- Deep dark yawning maw cavity + wine throat + curled mauve/rose tongue
+		g:poly({
+			{ hx + 4, hy + 2 + tilt }, { hx + 15, hy + 2 + tilt },
+			{ hx + 14, hy + 5 + jaw_drop }, { hx + 4, hy + 6 + jaw_drop * 0.7 },
+		}, { "black", "abyss" })
+		if yawn >= 4 then
+			g:oval(hx + 10, hy + 4 + jaw_drop * 0.45, 3.8, math.max(1.6, jaw_drop * 0.34), "wine")
+			g:oval(hx + 11, hy + 4.5 + jaw_drop * 0.65, 3.2, math.max(1.3, jaw_drop * 0.25), "mauve")
+			g:line(hx + 9, hy + 4.5 + jaw_drop * 0.65, hx + 12, hy + 4.5 + jaw_drop * 0.65, "rose")
+		end
+		-- Upper bear snout tilted up
+		g:ball(hx + 9.5, hy + 1.5 + tilt, 5.4, 3.1, FUR_LIGHT, 0.08)
+		g:oval(hx + 14, hy + 0.5 + tilt, 2.4, 1.8, "black")
+		g:set(hx + 14, hy + tilt, "sea")
+		-- Hinged furry lower bear jaw dropping wide open
+		g:poly({
+			{ hx + 3, hy + 5 + jaw_drop * 0.55 }, { hx + 14, hy + 5 + jaw_drop },
+			{ hx + 12, hy + 8 + jaw_drop }, { hx + 2, hy + 8 + jaw_drop * 0.5 },
+		}, FUR_LIGHT, -0.05)
+		g:ball(hx + 6.5, hy + 7 + jaw_drop * 0.75, 4.3, 2.3, FUR, 0.05)
+		-- Upper & lower bear canine fangs
+		after:set(hx + 12, hy + 3 + tilt, "mint")
+		after:set(hx + 12, hy + 4 + tilt, "sea")
+		after:set(hx + 8, hy + 3 + tilt, "sea")
+		if yawn >= 5 then
+			after:set(hx + 11, hy + 4 + jaw_drop, "mint")
+			after:set(hx + 11, hy + 3 + jaw_drop, "sea")
+		end
 	end
-	-- Floating blue Zs in idle (and nap recoil f=3)
+
+	-- Heavy-lidded sleepy eyes (clearly seated on the brow ABOVE the snout!), mouth, Zs & yawn wave.
+	local lid_y = hy - 3 + (not atk and f == 2 and 1 or 0)
+	if atk and f == 2 then
+		-- Eyes squeezed tightly shut (> <) mid-giant-yawn
+		after:line(hx, hy - 2, hx + 2, hy - 1, "black")
+		after:line(hx, hy, hx + 2, hy - 1, "black")
+		after:line(hx + 7, hy - 2, hx + 5, hy - 1, "black")
+		after:line(hx + 7, hy, hx + 5, hy - 1, "black")
+		-- Bright tooth glint keeps the palette "cream" eye-glow key in this frame
+		after:set(hx + 12, hy + 3 + tilt, "cream")
+	else
+		-- Heavy drooping eyelids with dark lash-crease right over the drowsy "cream" eye glints
+		after:rect(hx, lid_y, 3, 2, "steel")
+		after:line(hx, lid_y + 1, hx + 2, lid_y + 1, "navy")
+		after:rect(hx + 5, lid_y, 3, 2, "steel")
+		after:line(hx + 5, lid_y + 1, hx + 7, lid_y + 1, "navy")
+		after:set(hx, lid_y + 2, "black")
+		after:set(hx + 1, lid_y + 2, "cream")
+		after:set(hx + 2, lid_y + 2, "black")
+		after:set(hx + 5, lid_y + 2, "black")
+		after:set(hx + 6, lid_y + 2, "cream")
+		after:set(hx + 7, lid_y + 2, "black")
+	end
+
+	if yawn == 0 then
+		-- Bear snout cleft, slack sleepy mouth & tiny drool bead
+		after:line(hx + 13, hy + 4, hx + 13, hy + 5, "black")
+		after:line(hx + 8, hy + 6, hx + 12, hy + 6, "night")
+		if f >= 2 then
+			after:set(hx + 11, hy + 7, "sea")
+			if f == 3 then after:set(hx + 11, hy + 8, "mint") end
+		end
+	end
+
+	-- Floating blue "Z"s in idle (and drowsy recoil f=3)
 	if not atk or f == 3 then
-		local z1y = 18 - (f % 4) * 2
-		after:line(46, z1y, 49, z1y, "mint")
-		after:line(49, z1y, 46, z1y + 3, "sea")
-		after:line(46, z1y + 3, 49, z1y + 3, "mint")
-		local z2y = 11 - ((f + 2) % 4) * 2
-		after:line(53, z2y, 55, z2y, "sea")
-		after:line(55, z2y, 53, z2y + 2, "steel")
-		after:line(53, z2y + 2, 55, z2y + 2, "sea")
+		local z1y = 16 - (f % 4) * 2
+		after:line(49, z1y, 52, z1y, "mint")
+		after:line(52, z1y, 49, z1y + 3, "sea")
+		after:line(49, z1y + 3, 52, z1y + 3, "mint")
+		local z2y = 9 - ((f + 2) % 4)
+		after:line(55, z2y, 57, z2y, "sea")
+		after:set(56, z2y + 1, "steel")
+		after:line(55, z2y + 2, 57, z2y + 2, "sea")
 	elseif f == 1 then
-		after:set(hx + 7, hy + 2, "sea"); after:set(hx + 8, hy + 4, "mint")
+		-- Sleepy breath mist gathering into the opening bear maw
+		after:set(hx + 17, hy + 3, "sea")
+		after:set(hx + 19, hy + 5, "mint")
+		after:set(hx + 18, hy + 7, "steel")
 	elseif f == 2 then
-		-- Expanding drowsy blue-mint yawn wave arcs to the right
-		for _, r in ipairs({ 8, 13, 18 }) do
-			for i = -4, 4 do
-				local a = i * 0.2
-				local wx = clamp(hx + 4 + math.cos(a) * r, 2, 61)
-				local wy = clamp(hy + 3 + math.sin(a) * r * 1.1, 4, 58)
-				after:set(wx, wy, r == 8 and "mint" or (r == 13 and "sea" or "steel"))
+		-- Smooth expanding drowsy blue-mint yawn shockwave arcs blasting to the right
+		for _, r in ipairs({ 6, 10, 14 }) do
+			local col = r == 6 and "mint" or (r == 10 and "sea" or "steel")
+			for i = -10, 10 do
+				local a = i * 0.085
+				local wx = clamp(hx + 13 + math.cos(a) * r, 2, 61)
+				local wy = clamp(hy + 5 + math.sin(a) * r * 1.15, 4, 58)
+				after:set(wx, wy, col)
 			end
 		end
 	end
+
 	return compose(64, 64, ground_shadow(64, 64, 31, 58, 22, 4), g, after)
 end
 

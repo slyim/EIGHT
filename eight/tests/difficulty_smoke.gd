@@ -297,7 +297,7 @@ func _run() -> void:
 	# Shift with the node's key cycles its tier from the keyboard, wrapping.
 	for expected: int in [1, 0, 1]:
 		var shifted: InputEventKey = InputEventKey.new()
-		shifted.physical_keycode = KEY_1
+		shifted.physical_keycode = KEY_6 # Pride sits sixth on the ring.
 		shifted.shift_pressed = true
 		shifted.pressed = true
 		Input.parse_input_event(shifted)
@@ -306,7 +306,7 @@ func _run() -> void:
 		shifted.pressed = false
 		Input.parse_input_event(shifted)
 		await _ticks(1)
-		_check(current_scene == hub and hub.tier_for(0) == expected, "Shift+1 must cycle Pride's tier (got %d)." % hub.tier_for(0))
+		_check(current_scene == hub and hub.tier_for(0) == expected, "Shift+6 must cycle Pride's tier (got %d)." % hub.tier_for(0))
 	hub.step_tier(0, -1)
 	up.pressed.emit()
 	hub.sin_buttons[0].pressed.emit()

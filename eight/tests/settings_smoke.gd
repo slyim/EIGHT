@@ -58,10 +58,10 @@ func _effects(run: Run) -> Array[bool]:
 	var environment: Environment = (run.get_node(^"WorldEnvironment") as WorldEnvironment).environment
 	var lamp: PointLight2D = run.player.get_node(^"Lamp") as PointLight2D
 	return [
-		environment.glow_enabled,
+		environment.glow_enabled and float(run.veil.get_shader_parameter(&"bloom_strength")) > 0.0,
 		lamp.shadow_enabled,
 		lamp.shadow_filter != PointLight2D.SHADOW_FILTER_NONE,
-		environment.get_glow_level(2) > 0.0,
+		environment.get_glow_level(2) > 0.0 and float(run.veil.get_shader_parameter(&"bloom_spread")) > 2.0,
 		float(run.veil.get_shader_parameter(&"haze_strength")) > 0.0,
 		float((run.lava.material as ShaderMaterial).get_shader_parameter(&"shimmer")) > 0.0,
 		float(Enemy.EYE_MATERIAL.get_shader_parameter(&"pulse")) > 0.0,

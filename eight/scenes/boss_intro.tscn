@@ -1,0 +1,91 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/boss_intro.gd" id="1_intro"]
+[ext_resource type="Theme" path="res://resources/ui_theme.tres" id="2_theme"]
+
+[node name="BossIntro" type="CanvasLayer"]
+script = ExtResource("1_intro")
+
+[node name="Slider" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+
+[node name="Scrim" type="ColorRect" parent="Slider"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 232.0
+offset_bottom = 488.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.0275, 0.0039, 0.0353, 0.9)
+
+[node name="RuleTop" type="ColorRect" parent="Slider"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 232.0
+offset_bottom = 234.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.902, 0.886, 0.6196, 0.65)
+
+[node name="RuleBottom" type="ColorRect" parent="Slider"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 486.0
+offset_bottom = 488.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.7176, 0.5137, 0.4196, 0.55)
+
+[node name="Portrait" type="TextureRect" parent="Slider"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 142.0
+offset_right = 442.0
+offset_bottom = 578.0
+mouse_filter = 2
+
+[node name="TextBlock" type="VBoxContainer" parent="Slider"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 454.0
+offset_top = 292.0
+offset_right = -52.0
+offset_bottom = 428.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="BossName" type="Label" parent="Slider/TextBlock"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Divider" type="ColorRect" parent="Slider/TextBlock"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.902, 0.886, 0.6196, 0.65)
+
+[node name="Realm" type="Label" parent="Slider/TextBlock"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_colors/font_color = Color(0.6, 0.7255, 0.7412, 1)
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 1

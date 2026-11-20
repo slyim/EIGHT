@@ -6,6 +6,8 @@ extends Control
 const STATS_REFRESH: float = 0.25
 const ITEMS_SHOWN: int = 6
 const ORB_EMPTY_TINT: Color = Color("14081a")
+## The empty heart's lit centre: dark rose glass.
+const ORB_EMPTY_GLOW: Color = Color("4a1f33")
 const ORB_FILL_TINT: Color = Color("c4615c")
 const ORB_OUTLINE_TINT: Color = Color(0.0275, 0.0039, 0.0353, 1.0)
 ## The heart's gold rim, its deep blood at the bottom, and its beat (beats per second; swell).
@@ -606,12 +608,14 @@ func _draw_health_orb() -> void:
 		return
 	var now: float = _now()
 	var size: Vector2 = health_orb.size
-	var socket: PackedVector2Array = OrnateBox.plate(Rect2(Vector2.ZERO, size).grow(-3.0), size.x * 0.28)
+	# The medallion: deep glass in a band of clay glass between lead cames, like the UI frames.
+	var socket_rect: Rect2 = Rect2(Vector2.ZERO, size).grow(-3.0)
+	var socket: PackedVector2Array = OrnateBox.plate(socket_rect, size.x * 0.28)
 	var socket_closed: PackedVector2Array = socket.duplicate()
 	socket_closed.append(socket[0])
 	health_orb.draw_colored_polygon(socket, Color("14081a"))
 	health_orb.draw_polyline(socket_closed, Color("070109"), 4.0, true)
-	health_orb.draw_polyline(socket_closed, Color("b7836b"), 2.0, true)
+	OrnateBox.glass_band(health_orb.get_canvas_item(), socket_rect, size.x * 0.28, maxf(3.0, size.x * 0.07), Color("b7836b"))
 	# Lub-dub: two quick swells per beat, twice as fast at low life.
 	var phase: float = fposmod(now * (HEART_LOW_RATE if _is_low_life() else HEART_RATE), 1.0)
 	var beat: float = maxf(_swell(phase, 0.0), 0.6 * _swell(phase, 0.2))
@@ -621,8 +625,9 @@ func _draw_health_orb() -> void:
 	var closed: PackedVector2Array = heart.duplicate()
 	closed.append(heart[0])
 	var rim: Color = HEART_RIM.lerp(Color.WHITE, clampf(hurt_flash_left / HURT_FLASH_TIME, 0.0, 1.0))
+	# Lead came around the heart; the bright edge below is light on its glass.
 	health_orb.draw_polyline(closed, ORB_OUTLINE_TINT, 4.5, true)
-	health_orb.draw_polyline(closed, Color("b7836b"), 2.2, true)
+	health_orb.draw_polyline(closed, OrnateBox.LEAD, 2.6, true)
 	# A bright edge along the top of both lobes.
 	health_orb.draw_polyline(heart.slice(40, 48) + heart.slice(0, 9), rim, 1.0, true)
 
@@ -649,7 +654,21 @@ func _draw_orb_shape(canvas: Control, heart: PackedVector2Array) -> void:
 	for point: Vector2 in heart:
 		shadow.append(point + Vector2(0.0, 2.0))
 	canvas.draw_colored_polygon(shadow, Color(0.0, 0.0, 0.0, 0.5))
-	canvas.draw_colored_polygon(heart, ORB_EMPTY_TINT)
+	# Empty, the chamber is deep rose glass lit from within: a fan from a brighter centre.
+	var centre: Vector2 = Vector2.ZERO
+	for point: Vector2 in heart:
+		centre += point
+	centre /= heart.size()
+	var fan: PackedVector2Array = heart.duplicate()
+	fan.append(centre)
+	var colors: PackedColorArray = []
+	colors.resize(heart.size())
+	colors.fill(ORB_EMPTY_TINT)
+	colors.append(ORB_EMPTY_GLOW)
+	var indices: PackedInt32Array = []
+	for index: int in range(heart.size()):
+		indices.append_array([index, (index + 1) % heart.size(), heart.size()])
+	RenderingServer.canvas_item_add_triangle_array(canvas.get_canvas_item(), indices, fan, colors)
 
 
 ## Fills the heart by area: first the pale trail of recent damage, then the blood, whose

@@ -18,7 +18,7 @@ msgstr "LOKI — O ışık kimin elinde olduğunu biliyor mu?"
 msgid "WENDIGO — Another light to swallow."
 msgstr "WENDIGO — Yutulacak bir ışık daha."
 
-msgid "CERBERUS — Three mouths. One gate."
+msgid "KERBEROS — Three mouths. One gate."
 msgstr "KERBEROS — Üç ağız. Tek kapı."
 
 msgid "EDWARD — Lay down your spear. Rest."

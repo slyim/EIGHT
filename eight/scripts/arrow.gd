@@ -37,6 +37,10 @@ var on_first_hit: Callable
 
 func _ready() -> void:
 	material = preload("res://shaders/weapon_light.tres")
+	set_meta(&"light_offset", Vector2(0.0, -height))
+	if is_in_group(&"side_shots"):
+		set_meta(&"light", Color(color, 0.30))
+		set_meta(&"light_radius", 72.0)
 	add_to_group(&"light")
 	global_rotation = direction.angle()
 

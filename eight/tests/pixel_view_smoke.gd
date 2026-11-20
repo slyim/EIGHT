@@ -1,5 +1,5 @@
 extends SceneTree
-## Pixel-perfect host: fixed 640x360 world buffer at whole-number scales with centered bars,
+## Pixel-perfect host: a window-filling world buffer at whole-number scales,
 ## native-resolution HUD, one art scale for every sprite, and mouse aim through the scaled
 ## view. Native Godot only; the look itself is verified in a window.
 
@@ -63,9 +63,10 @@ func _click(at: Vector2) -> void:
 ## HUD position of a world point computed from first principles, independent of Hud.world_to_hud.
 func _expected_hud(window: Vector2, run: Run, point: Vector2) -> Vector2:
 	var factor: int = maxi(1, floori(minf(window.x / 640.0, window.y / 360.0)))
-	var bars: Vector2 = ((window - Vector2(640, 360) * factor) * 0.5).floor()
-	var buffer_pixel: Vector2 = Vector2(320, 180) + (point - run.player.camera.get_screen_center_position()) * 0.5
-	return (bars + buffer_pixel * factor) / (factor * 0.5)
+	var buffer_size: Vector2 = (window / factor).ceil()
+	var overhang: Vector2 = ((window - buffer_size * factor) * 0.5).floor()
+	var buffer_pixel: Vector2 = buffer_size * 0.5 + (point - run.player.camera.get_screen_center_position()) * 0.5
+	return (overhang + buffer_pixel * factor) / (factor * 0.5)
 
 
 ## Resizes the real window; the host lays itself out on size_changed.
@@ -90,23 +91,27 @@ func _run() -> void:
 	await _wait_ticks(3)
 	var buffer: SubViewport = game.view.get_child(0) as SubViewport
 
-	# Whole-number scales, centered, with the buffer fixed at 640x360.
+	# Cover the window with whole pixels, including odd widths and ultrawide views.
 	var cases: Array[Array] = [
-		[Vector2(1280, 720), 2, Vector2(0, 0)],
-		[Vector2(1366, 768), 2, Vector2(43, 24)],
-		[Vector2(1440, 900), 2, Vector2(80, 90)],
-		[Vector2(1920, 1080), 3, Vector2(0, 0)],
-		[Vector2(2560, 1080), 3, Vector2(320, 0)],
-		[Vector2(3840, 2160), 6, Vector2(0, 0)],
+		[Vector2(1280, 720), 2, Vector2i(640, 360)],
+		[Vector2(1366, 768), 2, Vector2i(683, 384)],
+		[Vector2(1440, 900), 2, Vector2i(720, 450)],
+		[Vector2(1707, 959), 2, Vector2i(854, 480)],
+		[Vector2(1920, 1080), 3, Vector2i(640, 360)],
+		[Vector2(2560, 1300), 3, Vector2i(854, 434)],
+		[Vector2(3840, 2160), 6, Vector2i(640, 360)],
 	]
 	for case: Array in cases:
 		await _resize(case[0])
 		var ui: float = root.content_scale_factor
 		_check(is_equal_approx(ui, case[1] * 0.5), "%s must scale the UI by %.1f (got %.2f)." % [case[0], case[1] * 0.5, ui])
-		_check((game.view.size * ui).is_equal_approx(Vector2(Game.WORLD_SIZE) * float(case[1])), "%s world must be 640x360 x %d physical pixels (got %s)." % [case[0], case[1], game.view.size * ui])
-		_check((game.view.position * ui).is_equal_approx(case[2]), "%s world must be centered at %s (got %s)." % [case[0], case[2], game.view.position * ui])
-		_check(buffer.size == Game.WORLD_SIZE, "The world buffer must stay 640x360 (got %s)." % buffer.size)
+		var frame: Rect2 = Rect2(game.view.position * ui, game.view.size * ui)
+		_check(buffer.size == case[2], "%s needs a %s world buffer (got %s)." % [case[0], case[2], buffer.size])
+		_check(frame.size.is_equal_approx(Vector2(buffer.size) * float(case[1])), "%s world pixels must stay %dx." % [case[0], case[1]])
+		_check(frame.encloses(Rect2(Vector2.ZERO, case[0])), "%s: the world must cover the window." % [case[0]])
+		_check(frame.position.is_equal_approx(frame.position.round()), "%s: the world must start on a physical pixel." % [case[0]])
 		_check((run.hud.size * ui).is_equal_approx(case[0]), "%s: the scaled HUD must still cover the window (got %s)." % [case[0], run.hud.size * ui])
+		_check(run.hud.difficulty_label.position.y >= run.hud.stage_label.get_rect().end.y, "%s: the timer must sit below the realm label." % [case[0]])
 	await _resize(Vector2(1280, 720))
 
 	# Rendering settings: nearest sampling, HDR, the world's own glow, and 2 units per buffer pixel.
@@ -146,8 +151,8 @@ func _run() -> void:
 	flyer.queue_free()
 	await _wait_ticks(2)
 
-	# Mouse aim reaches the world through the scaled, centered view, with and without bars.
-	for window: Vector2 in [Vector2(1280, 720), Vector2(1366, 768), Vector2(1920, 1080)]:
+	# Mouse aim reaches the world through the scaled, centered view, including clipped edges.
+	for window: Vector2 in [Vector2(1280, 720), Vector2(1707, 959), Vector2(2560, 1300)]:
 		await _resize(window)
 		for direction: Vector2 in [Vector2.RIGHT, Vector2.UP, Vector2(-1.0, 1.0).normalized()]:
 			await _move_mouse(_to_window(game, run.player.global_position + direction * 200.0))
@@ -212,7 +217,7 @@ func _run() -> void:
 	_check(not paused and not run.hud.pause_menu.visible, "Choosing must resume with no pause menu left behind.")
 
 	# Boss and portal names are crisp HUD labels just above them, placed by an independent
-	# calculation: camera center -> buffer pixel -> whole-number scale -> bars -> UI scale.
+	# calculation: camera center -> buffer pixel -> whole-number scale -> overhang -> UI scale.
 	var boss: Boss = run.spawn_sin_boss()
 	boss.speed = 0.0
 	boss.global_position = run.player.global_position + Vector2(180.0, -40.0)
@@ -225,10 +230,10 @@ func _run() -> void:
 		var rect: Rect2 = tag.get_global_rect()
 		_check(tag.visible and tag.text == boss.boss_name and tag.get_viewport() == root, "At %s the boss tag must be a visible native HUD label." % window)
 		_check(absf(rect.get_center().x - expected.x) < 1.5 and absf(rect.end.y - expected.y) < 1.5, "At %s the boss tag must sit centered on %s (tag %s)." % [window, expected, rect])
-	# Off the world view (into the bars on ultrawide), the tag hides instead of floating.
-	boss.global_position = run.player.global_position + Vector2(-760.0, 0.0)
+	# Off the ultrawide world view, the tag hides.
+	boss.global_position = run.player.global_position + Vector2(-1060.0, 0.0)
 	await _wait_ticks(3)
-	_check(not tag.visible, "A boss outside the world view must not show a tag in the bars.")
+	_check(not tag.visible, "A boss outside the world view must not show a tag.")
 	await _resize(Vector2(1280, 720))
 	boss.global_position = run.player.global_position + Vector2(180.0, -40.0)
 	boss.take_hit(100000)
@@ -251,5 +256,5 @@ func _run() -> void:
 		fresh.queue_free()
 	await _wait_ticks(15)
 	if failures == 0:
-		print("PASS: whole-number scales and centered bars, fixed 640x360 buffer, nearest HDR world, native HUD, 2x sprites, aim through the view, pixel-snapped camera, keys/clicks/level-ups/pause menu/world tags/restart through the host.")
+		print("PASS: window-filling integer scale, nearest HDR world, native HUD, 2x sprites, aim, pixel-snapped camera, and hosted controls and world tags.")
 	quit(1 if failures > 0 else 0)

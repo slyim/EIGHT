@@ -142,6 +142,8 @@ func apply_run(run: Run) -> void:
 	lamp.shadow_filter = PointLight2D.SHADOW_FILTER_PCF13 if high else PointLight2D.SHADOW_FILTER_NONE
 	lamp.shadow_filter_smooth = SHADOW_SMOOTH
 	run.veil.set_shader_parameter(&"haze_strength", HAZE_ON if high else 0.0)
+	run.veil.set_shader_parameter(&"bloom_strength", 0.34 if medium else 0.0)
+	run.veil.set_shader_parameter(&"bloom_spread", 4.0 if high else 2.0)
 	(run.lava.material as ShaderMaterial).set_shader_parameter(&"shimmer", SHIMMER_ON if medium else 0.0)
 	# The sin eyes share one material across every enemy.
 	Enemy.EYE_MATERIAL.set_shader_parameter(&"pulse", PULSE_ON if medium else 0.0)

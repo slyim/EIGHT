@@ -3,9 +3,10 @@ extends Enemy
 ## PLACEHOLDER flying horde enemy: it hovers above the plain, keeps its preferred
 ## distance from the player instead of piling on, and fires an aimed shot after a
 ## short wind-up tell. Its shots reach an airborne player and pass over walls and
-## pillars (from_air), and its contact hurts from the air too. Art reuses the imp and
-## boss-projectile placeholder frames (tinted here and in the scene), so it is not an
-## enemy design; enemy shots use the shared red emission material.
+## pillars (from_air), and its contact hurts from the air too. Its generated winged-eye
+## art and boss-projectile frames are placeholders; enemy shots share the red emission material.
+
+const FLYER_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_enemy_flying_eye.aseprite")
 
 ## Seconds the aiming tell shows before the shot leaves.
 const WINDUP_TIME: float = 0.5
@@ -40,6 +41,11 @@ var lift: float = 0.0
 
 func _init() -> void:
 	flying = true
+
+
+func _ready() -> void:
+	frames = FLYER_FRAMES
+	super._ready()
 
 
 func _physics_process(delta: float) -> void:

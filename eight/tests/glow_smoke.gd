@@ -59,6 +59,14 @@ func _run() -> void:
 	run.effects.add_child(arrow)
 	arrow.set_physics_process(false)
 	check(arrow.material == preload("res://shaders/weapon_light.tres") and is_light(arrow), "Arrows must emit cool light")
+	var feather: Arrow = Arrow.new()
+	feather.color = SideWeapons.GOLD
+	feather.height = 26.0
+	feather.add_to_group(&"side_shots")
+	run.effects.add_child(feather)
+	feather.set_physics_process(false)
+	check(is_light(feather) and feather.get_meta(&"light") == Color(SideWeapons.GOLD, 0.30), "Seeking feathers must cast gold light")
+	check(feather.get_meta(&"light_offset") == Vector2(0.0, -26.0), "A raised feather's light must follow the drawn shot")
 	var portal: ExitPortal = Run.PORTAL_SCENE.instantiate()
 	run.add_child(portal)
 	check(is_light(portal), "The exit portal must be a light")

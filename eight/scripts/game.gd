@@ -1,8 +1,8 @@
 class_name Game
 extends Control
-## Pixel-perfect host for one sin's map. The world renders into a fixed 640x360 SubViewport
-## (one art pixel = 2 world units = 1 buffer pixel) shown at a whole-number scale, centered,
-## with bars in the leftover space. The run's HUD is moved to this native-resolution root so
+## Pixel-perfect host for one sin's map. The world renders into a SubViewport sized to cover
+## the window at a whole-number scale (one art pixel = 2 world units = 1 buffer pixel).
+## The run's HUD is moved to this native-resolution root so
 ## the UI stays crisp, and the root's content scale grows the UI with the world (half the
 ## world scale: 1x at 1280x720, 1.5x at 1920x1080, 2x at 2560x1440). A won map is saved and
 ## returns to the hub after the ascension.
@@ -127,8 +127,9 @@ func layout(window: Vector2) -> void:
 	var ui: float = ui_scale_for(window)
 	if not is_equal_approx(get_window().content_scale_factor, ui):
 		get_window().content_scale_factor = ui
-	var frame: Vector2 = Vector2(WORLD_SIZE * factor)
-	# Two UI units per buffer pixel at every scale, so the shrink stays 2.
-	view.stretch_shrink = 2
-	view.size = frame / ui
+	# Round up in buffer pixels, then clip any overhang at the window edges.
+	# Sizing in multiples of stretch_shrink avoids resampling a fractional buffer pixel.
+	var buffer_size: Vector2 = (window / factor).ceil()
+	var frame: Vector2 = buffer_size * factor
+	view.size = buffer_size * view.stretch_shrink
 	view.position = ((window - frame) * 0.5).floor() / ui

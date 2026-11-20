@@ -332,27 +332,12 @@ end
 ---------------------------------------------------------------------------
 local function light_spear(f)
 	local c = canvas(48, 16)
-	-- Sparse dithered radiance leaves the dark grip quiet at the left-hand pivot.
-	for y = 1, 14 do
-		for x = 7, 47 do
-			local near = (y >= 5 and y <= 11 and x <= 37) or (x >= 33 and y >= 1 and y <= 14)
-			if near and bayer(x + f, y) < 0.24 then c:set(x, y, x > 34 and "steel" or "navy") end
-		end
-	end
-	c:line(0, 8, 8, 8, "night"); c:line(0, 7, 7, 7, "steel")
-	for _, x in ipairs({ 2, 5, 8 }) do
-		c:set(x, 7, "sand"); c:set(x, 8, "clay")
-	end
-	c:line(8, 8, 36, 8, "cream")
-	c:line(9, 7, 35, 7, "mint"); c:line(9, 9, 35, 9, "sea")
-	-- A winged, leaf-shaped holy point rather than a mundane metal spearhead.
-	c:poly({ { 34, 8 }, { 40, 2 }, { 41, 6 }, { 47, 8 }, { 41, 10 }, { 40, 14 } }, { "steel", "sea", "mint", "cream" }, 0.15)
-	c:line(36, 8, 46, 8, "cream"); c:line(40, 4, 40, 12, "mint")
-	c:line(32, 4, 35, 6, "sand"); c:line(32, 12, 35, 10, "sand")
-	c:set(31, 3, "cream"); c:set(31, 13, "cream")
-	local s = 10 + f * 6
-	c:set(s, 8, "cream"); c:set(s, 6, "mint"); c:set(s - 1, 8, "mint")
-	c:set(46 - f % 2, 7, "cream"); c:set(45, 9 + f % 2, "mint")
+	-- One mint-white silhouette, matching the bow; no detached glints or square particles.
+	c:line(0, 8, 36, 8, "mint")
+	c:line(0, 7, 35, 7, "mint"); c:line(0, 9, 35, 9, "mint")
+	c:poly({ { 34, 8 }, { 40, 2 }, { 41, 6 }, { 47, 8 }, { 41, 10 }, { 40, 14 } }, { "mint" })
+	c:line(36, 8, 46, 8, "mint"); c:line(40, 4, 40, 12, "mint")
+	c:line(32, 4, 35, 6, "mint"); c:line(32, 12, 35, 10, "mint")
 	return c
 end
 
@@ -458,6 +443,34 @@ local function imp(f)
 	glow:set(20, 12 + h, "cream"); glow:set(21, 13 + h, "cream")
 	glow:set(22, 15 + h, "black"); glow:set(21, 15 + h, "sand")
 	return compose(32, 32, ground_shadow(32, 32, 16, 28, 5, 1.5), g, glow)
+end
+
+-- Flying shooter: one huge eye carried by two feathered wings, with dangling tendrils.
+-- Canvas, four-frame tag, palette and the cream glow key stay the same as the other horde art.
+local function flying_eye(f)
+	local h = pick({ 1, 0, -1, 0 }, f)
+	local flap = pick({ 3, 0, -3, 0 }, f)
+	local g = canvas(32, 32)
+	-- Feathered wings cup the eye rather than a humanoid body; alternating frames flap them.
+	g:poly({ { 12, 14 + h }, { 8, 7 + h }, { 3, 3 + h + flap }, { 0, 4 + h + flap }, { 2, 10 + h + flap }, { 4, 8 + h + flap }, { 5, 15 + h }, { 8, 12 + h }, { 9, 19 + h } }, { "night", "navy", "steel", "sea" }, 0.05)
+	g:poly({ { 22, 14 + h }, { 26, 7 + h }, { 30, 4 + h - flap }, { 31, 6 + h - flap }, { 30, 11 + h - flap }, { 28, 9 + h - flap }, { 27, 15 + h }, { 25, 12 + h }, { 24, 19 + h } }, { "night", "navy", "steel", "sea" }, 0.05)
+	g:line(11, 15 + h, 2, 5 + h + flap, "sea"); g:line(9, 17 + h, 4, 10 + h + flap, "steel")
+	g:line(23, 15 + h, 30, 6 + h - flap, "sea"); g:line(25, 17 + h, 28, 10 + h - flap, "steel")
+	-- Soft curling tendrils make the floating silhouette legible against the ground.
+	g:line(13, 21 + h, 11, 25 + h, "mauve"); g:line(11, 25 + h, 9, 27 + h, "rose")
+	g:line(17, 22 + h, 17, 28 + h, "mauve"); g:set(18, 28 + h, "rose")
+	g:line(21, 21 + h, 23, 25 + h, "mauve"); g:line(23, 25 + h, 25, 27 + h, "rose")
+	-- The eye itself fills the centre: fleshy lid, pale sclera and a large watchful iris.
+	g:ball(17, 16 + h, 8, 7, { "blood", "wine", "mauve", "rose" }, 0.0)
+	g:oval(17, 16 + h, 6, 4, "sand")
+	g:oval(17, 16 + h, 5, 3, "mint")
+	g:line(11, 13 + h, 15, 11 + h, "wine"); g:line(19, 11 + h, 23, 13 + h, "wine")
+	g:line(12, 20 + h, 16, 21 + h, "mauve"); g:line(18, 21 + h, 22, 20 + h, "mauve")
+	local glow = canvas(32, 32)
+	glow:oval(17, 16 + h, 3, 3, "cream")
+	glow:oval(17, 16 + h, 1, 2, "black")
+	glow:set(16, 14 + h, "mint")
+	return compose(32, 32, nil, g, glow)
 end
 
 local function brute(f)
@@ -2498,6 +2511,7 @@ build("spear_light", 48, 16, { { "idle", 4, 0.08, light_spear } })
 build("vfx_slash", 128, 128, { { "_slash", 5, 0.05, slash } })
 build("enemy_husk", 32, 32, { { "walk", 4, 0.14, husk } })
 build("enemy_imp", 32, 32, { { "walk", 4, 0.08, imp } })
+build("enemy_flying_eye", 32, 32, { { "walk", 4, 0.08, flying_eye } })
 build("enemy_brute", 32, 32, { { "walk", 4, 0.18, brute } })
 
 local bosses = {

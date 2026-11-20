@@ -72,7 +72,7 @@
 	content: ""; position: absolute; inset: 0; opacity: .1; pointer-events: none;
 	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-110 -110 220 220'%3E%3Cg fill='none' stroke='%23e3c98f' stroke-width='.7'%3E%3Ccircle r='100'/%3E%3Ccircle r='93'/%3E%3Cpath d='M0-93 54.7 75.2-88.5-28.7H88.5L-54.7 75.2Z'/%3E%3C/g%3E%3C/svg%3E") center / 540px no-repeat;
 }
-.logo { width: 340px; margin: 0 auto; image-rendering: auto !important; }
+.logo { width: 300px; margin: 0 auto; image-rendering: auto !important; }
 .logo.small { width: 250px; }
 .hero { width: 150px; margin: 4px auto 0; }
 .tagline { font: 700 26px "Cinzel", serif; color: var(--gold); margin-top: 10px !important; }
@@ -200,3 +200,43 @@
 .play-link { font-size: 30px; margin-top: 6px !important; }
 .play-link a { color: var(--mint); text-decoration: none; border-bottom: 1px solid #caebe055; }
 .play-note { font-size: 17px; color: var(--muted); margin-top: 10px !important; }
+
+/* Stained glass: the team's vector art, cut into leaded panes by the game's own shader
+   (eight/shaders/stained_glass.gdshader), set in arched windows of lead came. */
+.slidev-layout img.glass { image-rendering: auto; display: block; }
+.window { position: relative; display: grid; place-items: end center; padding: 26px 22px 14px; border-radius: 50% 50% 10px 10px / 34% 34% 10px 10px;
+	background:
+		radial-gradient(60% 50% at 50% 38%, color-mix(in srgb, var(--h) 38%, transparent) 0%, transparent 75%),
+		linear-gradient(180deg, #1e182ee6, #14081af2);
+	box-shadow: inset 0 0 0 5px #14081a, inset 0 0 0 7px color-mix(in srgb, var(--h) 70%, #e6e29e 30%), inset 0 0 0 10px #14081a,
+		0 0 34px color-mix(in srgb, var(--h) 45%, transparent), 0 18px 40px #000a; }
+.window img.glass { max-width: 100%; max-height: 100%; filter: drop-shadow(0 0 16px color-mix(in srgb, var(--h) 60%, transparent)); }
+.nave { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 30px; align-items: end; }
+.nave figure { margin: 0; text-align: center; }
+.nave .window { height: 250px; }
+.nave figure:nth-child(2) .window { height: 290px; }
+.nave figcaption { margin-top: 10px; }
+.nave figcaption b { display: block; font: 700 20px "Cinzel", serif; text-shadow: 0 0 14px #e6e29e33; }
+.nave figcaption small { font-size: 15px; color: var(--muted); }
+
+/* Cover: the angel beside her buffalo. */
+.rider { display: flex; align-items: flex-end; justify-content: center; gap: 6px; margin: 0 auto; height: 128px; }
+.rider .angel { height: 128px; filter: drop-shadow(0 0 14px #729aa188); }
+.rider .buffalo { height: 96px; filter: drop-shadow(0 0 14px #6e3f5f99); }
+.team { list-style: none; display: flex; justify-content: center; gap: 30px; margin: 16px 0 0; padding: 0; }
+.slidev-layout .team > li { list-style: none; margin: 0; }
+.team li { display: flex; align-items: baseline; gap: 8px; }
+.team b { font: 700 16px "Cinzel", serif; color: var(--ink); }
+.team small { font-size: 13px; color: var(--muted); letter-spacing: .04em; }
+.cover .byline { margin-top: 12px !important; }
+.credits { font: 700 16px "Cinzel", serif; color: var(--muted); margin-top: 28px !important; letter-spacing: .03em; }
+
+/* The angel: her window beside what she carries. */
+.hero-art { display: grid; grid-template-columns: 400px 1fr; gap: 44px; align-items: center; }
+.hero-art .window { height: 360px; }
+
+/* Icon tiles as small panes of leaded glass. */
+.tile { background: radial-gradient(circle at 34% 28%, #6e3f5f 0%, #3a2140 62%, #2a1830 100%);
+	box-shadow: inset 0 0 0 2px #14081a, inset 0 0 0 3px #b7836b55, 0 0 12px #6e3f5f55; }
+.tile.ember { background: radial-gradient(circle at 34% 28%, #6a2a2c 0%, #310e25 70%); }
+.tile.violet { background: radial-gradient(circle at 34% 28%, #44506e 0%, #2e3850 70%); }

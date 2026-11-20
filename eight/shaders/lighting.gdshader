@@ -1,13 +1,14 @@
 shader_type canvas_item;
 render_mode blend_mul, unshaded;
+#include "res://shaders/canvas_color.gdshaderinc"
 // PLACEHOLDER-tunable darkness. The Lighting group's children (the lights) arrive in
 // screen_texture; this pass multiplies the finished world by ambient + light. Light is read
 // once per art pixel and stepped into dithered bands, so it sits on the pixel-art grid.
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_nearest;
-uniform vec4 ambient : source_color = vec4(1.0, 1.05, 1.2, 1.0);
+uniform vec4 ambient : source_color = vec4(1.15, 1.12, 1.18, 1.0);
 uniform float art_pixel = 2.0;
 // 0 bands is a smooth gradient; dither is the checkered share of each band edge.
-uniform float bands : hint_range(0.0, 16.0, 1.0) = 8.0;
+uniform float bands : hint_range(0.0, 16.0, 1.0) = 12.0;
 uniform float dither : hint_range(0.0, 1.0) = 0.10;
 // Brightest light kept; overlapping lights saturate here instead of washing out to white.
 uniform float max_light : hint_range(0.5, 4.0) = 1.45;
@@ -32,5 +33,10 @@ void fragment() {
 		}
 		light *= t * t * max_light / level;
 	}
-	COLOR = vec4(ambient.rgb + light, 1.0);
+	vec3 multiplier = canvas_to_linear(ambient.rgb) + light;
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	// Multiplication blends in sRGB here. Convert the gain as a ratio, without an offset.
+	multiplier = pow(multiplier, vec3(1.0 / 2.2));
+#endif
+	COLOR = vec4(multiplier, 1.0);
 }

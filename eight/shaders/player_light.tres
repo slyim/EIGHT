@@ -10,5 +10,6 @@ shader_parameter/glow = Color(0.792, 0.922, 0.878, 1)
 shader_parameter/key2 = Color(0.902, 0.886, 0.62, 1)
 shader_parameter/glow2 = Color(1, 0.86, 0.5, 1)
 shader_parameter/energy = 2.0
+shader_parameter/reflected_light = 0.021
 metadata/light = Color(0.792, 0.922, 0.878, 0.18)
-metadata/light_radius = 110.0
+metadata/light_radius = 138.0

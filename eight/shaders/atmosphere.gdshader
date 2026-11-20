@@ -1,10 +1,13 @@
 shader_type canvas_item;
 render_mode unshaded, blend_disabled;
+#include "res://shaders/canvas_color.gdshaderinc"
 // PLACEHOLDER-tunable: one screen sample, a grade, a vignette, and world-anchored haze.
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_nearest;
 uniform float strength : hint_range(0.0, 1.0) = 1.0;
-uniform float vignette_strength : hint_range(0.0, 1.0) = 0.12;
+uniform float vignette_strength : hint_range(0.0, 1.0) = 0.46;
 uniform float grade_strength : hint_range(0.0, 1.0) = 0.05;
+uniform float bloom_strength : hint_range(0.0, 1.0) = 0.34;
+uniform float bloom_spread : hint_range(1.0, 6.0) = 4.0;
 // Haze: drifting fog patches pinned to the world (they do not slide with the camera), read
 // once per art pixel, stepped in time and dithered into a few levels like the lighting, so
 // it never shimmers below the pixel grid. 0 switches it off.
@@ -41,12 +44,29 @@ float bayer(vec2 cell) {
 	return (M[p.y * 4 + p.x] + 0.5) / 16.0;
 }
 
+vec3 highlights(vec2 uv) {
+	vec3 sample_color = canvas_to_linear(texture(screen_texture, uv).rgb);
+	float peak = max(max(sample_color.r, sample_color.g), sample_color.b);
+	return sample_color * smoothstep(0.72, 1.15, peak) / max(1.0, peak);
+}
+
 void fragment() {
-	vec3 scene = texture(screen_texture, SCREEN_UV).rgb;
-	float edge = smoothstep(0.18, 0.74, length(SCREEN_UV - 0.5));
+	vec3 scene = canvas_to_linear(texture(screen_texture, SCREEN_UV).rgb);
+	float edge = smoothstep(0.23, 0.70, length(SCREEN_UV - 0.5));
 	// Multiplicative grade preserves realm tints; bright gameplay signals keep their hue.
 	float shadow = 1.0 - smoothstep(0.10, 0.55, max(max(scene.r, scene.g), scene.b));
 	vec3 graded = scene * mix(vec3(1.0), vec3(0.93, 0.87, 1.0), grade_strength * strength * shadow);
+	graded += vec3(0.019, 0.016, 0.026) * strength * shadow;
+	// Short, additive bloom at buffer resolution, shared by desktop and WebGL.
+	if (bloom_strength > 0.0) {
+		vec2 near_px = SCREEN_PIXEL_SIZE;
+		vec2 far_px = near_px * bloom_spread;
+		vec3 halo = highlights(SCREEN_UV + vec2(near_px.x, 0.0)) + highlights(SCREEN_UV - vec2(near_px.x, 0.0));
+		halo += highlights(SCREEN_UV + vec2(0.0, near_px.y)) + highlights(SCREEN_UV - vec2(0.0, near_px.y));
+		halo += 0.45 * (highlights(SCREEN_UV + far_px) + highlights(SCREEN_UV - far_px));
+		halo += 0.45 * (highlights(SCREEN_UV + vec2(far_px.x, -far_px.y)) + highlights(SCREEN_UV - vec2(far_px.x, -far_px.y)));
+		graded += halo * (bloom_strength * 0.18);
+	}
 	// Lower quality settings switch the haze off; skip its noise entirely then.
 	if (haze_strength * strength > 0.0) {
 		vec2 cell = floor((world_origin + SCREEN_UV * world_size) / art_pixel);
@@ -61,5 +81,5 @@ void fragment() {
 		graded += vec3(0.24, 0.16, 0.36) * haze * haze_strength * strength * shadow;
 	}
 	graded *= 1.0 - edge * vignette_strength * strength;
-	COLOR = vec4(graded, 1.0);
+	COLOR = vec4(linear_to_canvas(graded), 1.0);
 }

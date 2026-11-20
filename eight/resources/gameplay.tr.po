@@ -231,6 +231,29 @@ msgstr "TEMBELLİK"
 msgid "SATAN"
 msgstr "ŞEYTAN"
 
+# Boss introduction names (the sins' speakers)
+
+msgid "ODIN"
+msgstr "ODIN"
+
+msgid "MIDAS"
+msgstr "MIDAS"
+
+msgid "LILITH"
+msgstr "LILITH"
+
+msgid "LOKI"
+msgstr "LOKI"
+
+msgid "WENDIGO"
+msgstr "WENDIGO"
+
+msgid "KERBEROS"
+msgstr "KERBEROS"
+
+msgid "EDWARD"
+msgstr "EDWARD"
+
 # Boss name tags (Run sets Boss.boss_name to the translated sin name; guards use this)
 
 msgid "%s GUARD"
@@ -535,3 +558,6 @@ msgstr "ŞİFA: %d sn"
 
 msgid "%s %.1fs"
 msgstr "%s %.1f sn"
+
+msgid "THE EIGHTH CIRCLE"
+msgstr "SEKİZİNCİ KAT"

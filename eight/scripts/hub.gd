@@ -37,6 +37,8 @@ var seal_wave: float = 0.0:
 		seal_wave = value
 		pentagram.queue_redraw()
 var sealed_now: int = -1
+var preview_map: int = -1
+var portrait_tween: Tween
 
 @onready var pentagram: Control = $Pentagram
 
@@ -54,23 +56,34 @@ func _ready() -> void:
 	($Version as Label).auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	# 16 px art at 32 UI units: two units per art pixel, the same pixel size as the world.
 	($FeatherIcon as TextureRect).texture = FEATHER_ART.get_frame_texture(&"idle", 0)
+	GlassArt.dress($Rider/Angel)
+	GlassArt.dress($Mount/Buffalo)
+	GlassArt.dress($PortraitPanel/Box/Art)
 	for index: int in range(Run.SATAN):
 		var button: Button = Button.new()
 		button.name = "Sin%d" % (index + 1)
-		button.focus_mode = Control.FOCUS_NONE
+		button.focus_mode = Control.FOCUS_ALL
 		button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		button.custom_minimum_size = Vector2(136.0, 62.0)
 		button.add_theme_font_size_override(&"font_size", 16)
 		button.pressed.connect(enter_sin.bind(index))
+		button.mouse_entered.connect(preview_boss.bind(index))
+		button.focus_entered.connect(preview_boss.bind(index))
+		button.mouse_exited.connect(preview_exited.bind(index))
+		button.focus_exited.connect(preview_exited.bind(index))
 		add_child(button)
 		sin_buttons.append(button)
 	satan_button = Button.new()
 	satan_button.name = &"Satan"
-	satan_button.focus_mode = Control.FOCUS_NONE
+	satan_button.focus_mode = Control.FOCUS_ALL
 	satan_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	satan_button.custom_minimum_size = Vector2(190.0, 70.0)
 	satan_button.add_theme_font_size_override(&"font_size", 20)
 	satan_button.pressed.connect(summon_satan)
+	satan_button.mouse_entered.connect(preview_boss.bind(Run.SATAN))
+	satan_button.focus_entered.connect(preview_boss.bind(Run.SATAN))
+	satan_button.mouse_exited.connect(preview_exited.bind(Run.SATAN))
+	satan_button.focus_exited.connect(preview_exited.bind(Run.SATAN))
 	add_child(satan_button)
 	for map: int in range(Run.SATAN + 1):
 		var pair: Array[Button] = []
@@ -90,6 +103,7 @@ func _ready() -> void:
 	($Quit as Button).pressed.connect(get_tree().quit)
 	($Shop as Button).pressed.connect(open_shop)
 	($Settings as Button).pressed.connect(open_settings)
+	($About as Button).pressed.connect(open_about)
 	pentagram.draw.connect(_draw_pentagram)
 	_refresh()
 	resized.connect(_layout)
@@ -110,6 +124,8 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED and progress != null and satan_button != null:
 		_refresh()
+		if preview_map >= 0:
+			($PortraitPanel/Box/PortraitTitle as Label).text = tr(GlassArt.BOSS_NAMES[preview_map])
 
 
 ## The UI scale follows the window like the game's (half the world's whole-number scale).
@@ -195,9 +211,52 @@ func _layout() -> void:
 	pentagram.queue_redraw()
 
 
+func preview_boss(map: int) -> void:
+	if not GlassArt.has_boss_art(map):
+		hide_boss_preview()
+		return
+	var panel: PanelContainer = $PortraitPanel
+	var changed: bool = preview_map != map or not panel.visible
+	preview_map = map
+	if not changed:
+		return
+	if portrait_tween != null and portrait_tween.is_valid():
+		portrait_tween.kill()
+	($PortraitPanel/Box/Art as TextureRect).texture = load(GlassArt.BOSS_ART[map]) as Texture2D
+	($PortraitPanel/Box/PortraitTitle as Label).text = tr(GlassArt.BOSS_NAMES[map])
+	var home_x: float = size.x - 16.0 - panel.size.x
+	panel.position.x = home_x + 28.0
+	panel.modulate.a = 0.0
+	panel.show()
+	portrait_tween = panel.create_tween().set_ignore_time_scale()
+	portrait_tween.set_parallel(true)
+	portrait_tween.tween_property(panel, ^"modulate:a", 1.0, 0.22)
+	portrait_tween.tween_property(panel, ^"position:x", home_x, 0.28).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+func preview_exited(map: int) -> void:
+	var button: Button = satan_button if map == Run.SATAN else sin_buttons[map]
+	if preview_map == map and not button.is_hovered() and not button.has_focus():
+		hide_boss_preview()
+
+
+func hide_boss_preview() -> void:
+	var panel: PanelContainer = $PortraitPanel
+	preview_map = -1
+	if not panel.visible:
+		return
+	if portrait_tween != null and portrait_tween.is_valid():
+		portrait_tween.kill()
+	portrait_tween = panel.create_tween().set_ignore_time_scale()
+	portrait_tween.set_parallel(true)
+	portrait_tween.tween_property(panel, ^"modulate:a", 0.0, 0.16)
+	portrait_tween.tween_property(panel, ^"position:x", size.x - 16.0 - panel.size.x + 28.0, 0.18)
+	portrait_tween.chain().tween_callback(panel.hide)
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if has_node(^"SettingsPanel"):
-		return # The settings panel has the keys while it is open.
+	if has_node(^"SettingsPanel") or has_node(^"AboutPanel"):
+		return # The open panel has the keys; the realm shortcuts stay closed.
 	var key: InputEventKey = event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return
@@ -219,6 +278,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func open_settings() -> SettingsPanel:
 	var panel: SettingsPanel = (load("res://scenes/settings_panel.tscn") as PackedScene).instantiate() as SettingsPanel
+	add_child(panel)
+	return panel
+
+
+func open_about() -> AboutPanel:
+	if has_node(^"AboutPanel"):
+		return $AboutPanel as AboutPanel
+	hide_boss_preview()
+	var panel: AboutPanel = (load("res://scenes/about_panel.tscn") as PackedScene).instantiate() as AboutPanel
 	add_child(panel)
 	return panel
 

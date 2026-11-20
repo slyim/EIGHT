@@ -11,9 +11,10 @@
 | File | Canvas | Animations (Aseprite tags) |
 | --- | --- | --- |
 | `placeholder_player` (purple-robed angel on a black ox; no baked shadow, the game draws it) | 32x32 | `idle`, `run`, `dash`, `jump`, `descend` |
-| `placeholder_spear_light` (light trident, pivot at the left edge) | 48x16 | `idle` |
+| `placeholder_spear_light` (white light trident, pivot at the left edge; no detached particles) | 48x16 | `idle` |
 | `placeholder_vfx_slash` (combo finisher arc) | 128x128 | `_slash` |
 | `placeholder_enemy_husk`, `_imp`, `_brute` | 32x32 | `walk` |
+| `placeholder_enemy_flying_eye` (winged eye creature for the flying shooter; no baked shadow) | 32x32 | `walk` |
 | `placeholder_boss_pride`, `_greed`, `_lust`, `_envy`, `_gluttony`, `_wrath`, `_sloth`, `_satan` | 64x64 | `idle`, `attack` |
 | `placeholder_boss_satan_head` (Satan's giant head) | 96x96 | `idle`, `attack` |
 | `placeholder_boss_satan_hand` (each of Satan's two hands; faces right, mirrored for the left) | 48x48 | `idle`, `attack` |

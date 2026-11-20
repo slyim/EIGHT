@@ -1,9 +1,9 @@
 # Audio credits
 
-**Status: the game's sound effects and music loop for alpha 0.1, approved by the EIGHT project owner on 2026-11-19.**
+**Status: PLACEHOLDER AUDIO for alpha 0.1.**
 
 - Files: all `placeholder_*.wav` sound effects and `placeholder_music_loop.ogg`.
-- Source: synthesized from code by `tools/placeholder_audio.py` (AI-written, Python standard library; the music is encoded with ffmpeg) for EIGHT. No samples, sound packs, or generative-audio services were used.
+- Source: generated for EIGHT by `tools/placeholder_audio.py`, an AI-assisted Python standard-library synthesizer. The 72-second stereo music loop is encoded to Ogg Vorbis with ffmpeg. The generator uses oscillators and filtered noise with no external samples or recordings.
 - Rights: created for this repository; no third-party license applies.
-- Generated, not recorded: the `placeholder_` file prefix is kept only so existing references stay valid.
+- Authorship: code-generated audio. Replace with human-created sound effects and music for production.
 - Replacing: keep the file names (or update the `SFX` table in `eight/scripts/run.gd` and the `Music` node in `eight/scenes/run.tscn`).

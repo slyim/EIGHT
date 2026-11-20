@@ -15,6 +15,7 @@ const ARENA_RECT: Rect2 = Rect2(-2000.0, -2000.0, 4000.0, 4000.0)
 const ENEMY_SCENE: PackedScene = preload("res://scenes/enemy.tscn")
 const PORTAL_SCENE: PackedScene = preload("res://scenes/exit_portal.tscn")
 const BOSS_SCENE: PackedScene = preload("res://scenes/boss.tscn")
+const BOSS_INTRO_SCENE: PackedScene = preload("res://scenes/boss_intro.tscn")
 const FLOOR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_floor.aseprite")
 const BREAKABLE_SCENE: PackedScene = preload("res://scenes/breakable.tscn")
 const DECOR_FRAMES: SpriteFrames = preload("res://assets/art/placeholder/placeholder_env_decor.aseprite")
@@ -408,7 +409,7 @@ const REALM_GREETINGS: Array[String] = [
 	"LILITH — Stay. The light can wait.",
 	"LOKI — Does that light know whose hand it serves?",
 	"WENDIGO — Another light to swallow.",
-	"CERBERUS — Three mouths. One gate.",
+	"KERBEROS — Three mouths. One gate.",
 	"EDWARD — Lay down your spear. Rest.",
 	"SATAN — Seven seals brought you to me.",
 ]
@@ -461,6 +462,7 @@ var heal_world: float = 0.0:
 		queue_redraw()
 var exit_portal: ExitPortal
 var current_boss: Boss
+var boss_intro: BossIntro
 ## All three Satan parts (dead ones become invalid); the HUD sums the survivors' health.
 var satan_parts: Array[Boss] = []
 var satan_max_health: int = 0
@@ -1243,8 +1245,33 @@ func spawn_sin_boss() -> Boss:
 	current_boss = boss
 	if sin_index == SATAN:
 		_spawn_satan_hands(boss)
+	_show_boss_intro(boss)
 	play_sfx(&"boss_spawn", 0.0)
 	return boss
+
+
+## Hades-style arrival card: only the arriving boss (including Satan's hands) waits; the
+## player, horde, clocks, and input keep running. intro_enabled also covers the realm descent.
+func _show_boss_intro(boss: Boss) -> void:
+	if not intro_enabled:
+		return
+	var held: Array[Boss] = []
+	held.assign(satan_parts if sin_index == SATAN else [boss])
+	var processing: Array[bool] = []
+	for part: Boss in held:
+		processing.append(part.is_physics_processing())
+		part.set_physics_process(false)
+	boss_intro = BOSS_INTRO_SCENE.instantiate() as BossIntro
+	boss_intro.map = sin_index
+	boss_intro.finished.connect(_on_boss_intro_finished.bind(held, processing))
+	add_child(boss_intro)
+
+
+func _on_boss_intro_finished(held: Array[Boss], processing: Array[bool]) -> void:
+	for index: int in range(held.size()):
+		if is_instance_valid(held[index]):
+			held[index].set_physics_process(processing[index])
+	boss_intro = null
 
 
 ## Satan's hands fight on their own staggered clocks, leashed to the stationary head.

@@ -12,9 +12,11 @@ class: cover
 
 <img class="logo" src="./images/eight_logo.png" alt="EIGHT" />
 
-<img class="hero" src="./images/sprites/player.png" alt="Kara öküzüne binmiş, mor pelerinli melek" />
+<div class="rider"><img class="glass angel" src="./images/glass/angel.png" alt="Gizli yüzlü melek, vitray" /><img class="glass buffalo" src="./images/glass/buffalo.png" alt="Meleğin kara öküzü, vitray" /></div>
 
 <p class="tagline">Bir melek. Yedi günah. Tek bir yol.</p>
+
+<ul class="team"><li><b>Mustafa Yıldız</b><small>2308A008</small></li><li><b>Lila Aydın</b><small>2308A025</small></li><li><b>Ahmet Altuğ Aktaş</b><small>2308A061</small></li></ul>
 
 <p class="byline">Yıldız Teknik Üniversitesi · Oyun Tasarımı · Alfa 0.1</p>
 
@@ -52,6 +54,24 @@ section: Evren
 section: Evren
 ---
 
+# Gizli yüzlü melek
+
+<div class="hero-art">
+<div class="window" style="--h:#729aa1"><img class="glass" src="./images/glass/angel_armory.png" alt="Melek, ışık mızrakları, yay ve üç ok; vitray" /></div>
+<ul class="facts">
+<li><span class="tile"><ph-person-simple-fill /></span><div><b>Melek</b><p>Tanrı'nın aşağı gönderdiği haleli, mor pelerinli melek.</p></div></li>
+<li><span class="tile"><ph-cow-fill /></span><div><b>Kara öküz</b><p>Bineği. Atılmada öküz hücum eder; değdiği her düşmana mızrak hasarı verir.</p></div></li>
+<li><span class="tile"><ph-sword-fill /></span><div><b>Işık mızrağı ve yay</b><p>Yakında üç vuruşluk mızrak, uzakta üç atışlık yay.</p></div></li>
+<li><span class="tile"><ph-pen-nib-fill /></span><div><b>Vitray</b><p>Ahmet Altuğ Aktaş'ın vektör çizimleri; oyun her renk alanını içten aydınlanan bir cam gibi gölgeler.</p></div></li>
+</ul>
+</div>
+
+<!-- Vektör karakter çizimleri ekibimizden Ahmet'in. Oyunda boss girişlerinde ve ana menüde aynı vitray görünümüyle yer alıyorlar. -->
+
+---
+section: Evren
+---
+
 # Yedi günah, yedi ses
 
 <div class="voices">
@@ -66,6 +86,20 @@ section: Evren
 </div>
 
 <!-- Her diyara girerken o diyarın sahibi meleğe seslenir. Her günahın sözü, dövüşünün de özetidir. -->
+
+---
+section: Evren
+---
+
+# Vitrayda günahlar
+
+<div class="nave">
+  <figure><div class="window" style="--h:#995154"><img class="glass" src="./images/glass/kerberos.png" alt="Kerberos ve baltası, vitray" /></div><figcaption><b>Kerberos</b><small>Gazap · I. kat</small></figcaption></figure>
+  <figure><div class="window" style="--h:#97576c"><img class="glass" src="./images/glass/satan.png" alt="Şeytan: kafa ve iki el, vitray" /></div><figcaption><b>Şeytan</b><small>Sekizinci kat · üç parça</small></figcaption></figure>
+  <figure><div class="window" style="--h:#91b95b"><img class="glass" src="./images/glass/lilith.png" alt="Lilith ve asası, vitray" /></div><figcaption><b>Lilith</b><small>Şehvet · III. kat</small></figcaption></figure>
+</div>
+
+<!-- Çizimler Ahmet'in. Oyun dünyası piksel; karakterlerin vektör çizimleri boss girişlerinde ve ana menüde vitray olarak çıkıyor. -->
 
 ---
 section: Evren
@@ -480,5 +514,7 @@ class: closing
   <p class="play-link"><a href="https://slyim.github.io/EIGHT/">slyim.github.io/EIGHT</a></p>
   <p class="play-note">Tarayıcıda, klavye ve fareyle. Alfa 0.1</p>
 </div>
+
+<p class="credits">Mustafa Yıldız · Lila Aydın · Ahmet Altuğ Aktaş</p>
 
 <!-- Canlı gösterimde Kibir'e girip ilk muhafızın saldırı hazırlığını göster. Jüri aynı sürümü bu bağlantıdan tarayıcıda oynayabilir. -->

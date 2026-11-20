@@ -150,7 +150,7 @@ func _place_orb_lights() -> void:
 		add_child(light)
 		orb_lights.append(light)
 	for index: int in range(points.size()):
-		orb_lights[index].global_position = points[index]
+		orb_lights[index].global_position = points[index] - Vector2(0.0, MountedPlayer.SPEAR_HEIGHT + player.height)
 
 
 func _strike_halos() -> void:

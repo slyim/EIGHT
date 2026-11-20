@@ -308,6 +308,7 @@ vertical_alignment = 1
 
 [node name="StageStatus" type="Label" parent="HUD/Hud"]
 layout_mode = 1
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -250.0
@@ -320,6 +321,7 @@ horizontal_alignment = 1
 
 [node name="Difficulty" type="Label" parent="HUD/Hud"]
 layout_mode = 1
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -250.0

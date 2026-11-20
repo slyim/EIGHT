@@ -1,0 +1,13 @@
+Copyright (c) 2026 Mustafa Yıldız, Lila Aydın, Ahmet Altuğ Aktaş.
+All Rights Reserved.
+
+No permission is granted to copy, modify, distribute, or reuse this software,
+artwork, audio, or presentation materials without prior written permission from
+the authors.
+
+Third-party components retain their own licenses:
+- Godot Engine: MIT License
+- Aseprite Wizard by Vinicius Gerevini: MIT License (eight/addons/AsepriteWizard/LICENSE)
+- Phosphor Icons: MIT License (eight/assets/ui/icons/LICENSE.txt)
+- Cinzel Bold, Alegreya Sans, Texturina, Source Sans 3: SIL Open Font License 1.1
+  (bundled OFL files under eight/assets/fonts/ and presentation/fonts/)

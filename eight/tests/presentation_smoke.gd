@@ -143,6 +143,9 @@ func _run() -> void:
 	_check((about.get_node(^"Panel/Box/Heading") as Label).text == "ABOUT", "About must open from the hub.")
 	_check((about.get_node(^"Panel/Box/Version") as Label).text.contains(str(ProjectSettings.get_setting(&"application/config/version"))), "About must read the project version.")
 	_check((about.get_node(^"Panel/Box/Scroll/Credits/Team") as Label).text.contains("2308A061") and (about.get_node(^"Panel/Box/Scroll/Credits/Team") as Label).text.contains("Yıldız Teknik Üniversitesi"), "About must include the full team and university.")
+	var art_en: String = (about.get_node(^"Panel/Box/Scroll/Credits/Art") as Label).text
+	var logo_en: String = (about.get_node(^"Panel/Box/Scroll/Credits/Logo") as Label).text
+	_check(art_en.contains("Mustafa Yıldız") and logo_en.contains("All Rights Reserved") and not logo_en.contains("AI"), "About must credit the authors and All Rights Reserved without AI-assisted wording.")
 	_check(about.get_global_rect().encloses((about.get_node(^"Panel") as Control).get_global_rect()), "About must fit at 1280x720.")
 	await _key(KEY_1)
 	_check(current_scene == hub, "Realm keys must not work behind About.")
@@ -150,6 +153,8 @@ func _run() -> void:
 	await _ticks(2)
 	_check((about.get_node(^"Panel/Box/Heading") as Label).text == "HAKKINDA", "About must translate to HAKKINDA with the correct capital I.")
 	_check((about.get_node(^"Panel/Box/Scroll/Credits/TeamHeading") as Label).text == "EKİP", "TEAM must translate with the correct dotted İ.")
+	var logo_tr: String = (about.get_node(^"Panel/Box/Scroll/Credits/Logo") as Label).text
+	_check(logo_tr.contains("Tüm hakları saklıdır") and not logo_tr.contains("yapay zekâ"), "Turkish About must translate the license and omit AI-assisted wording.")
 	await _key(KEY_ESCAPE)
 	await _ticks(2)
 	_check(not hub.has_node(^"AboutPanel") and current_scene == hub, "Esc must close About and return to the hub.")

@@ -1,6 +1,6 @@
 # EIGHT
 
-Game development project for YTU, built with Godot. Most programming will be AI-assisted; game direction and asset creation remain human-led.
+Game development project for Yıldız Teknik Üniversitesi, built with Godot by Mustafa Yıldız, Lila Aydın, and Ahmet Altuğ Aktaş.
 
 ## Play in your browser
 
@@ -91,7 +91,7 @@ The first map is a heavily corrupted plain. The run opens with the angel, fully 
 
 The HUD shows life and experience numerically as well as with a beating liquid heart and a liquid experience gauge (a wavy front, rising bubbles; it empties on a level-up and refills), the shrines left and the shrine countdown (flagged in its last minute), active boss health, or the portal prompt at the top centre, plus the sin's realm, shrines broken, and the persistent `TIME mm:ss  <TIER>  THREAT n` line (`THREAT` is the old time-based difficulty number), and the dash readiness and flight stamina gauges at the bottom (flight greys out below the take-off minimum), next to a weapon gauge showing the active weapon and its combo step, with a status callout above the gauges that shows `BURNING` over lava or `SLOWED` while slowed (burning wins). Hits draw crisp HUD damage numbers (`eight/scripts/damage_numbers.gd`, PLACEHOLDER visuals and timings) that stack per enemy while alive, show gold for finishers and evolved strikes (no crits), and can be turned off in Settings; a crimson screen-edge vignette (PLACEHOLDER) flashes when hurt and pulses at 25% life or less, and a perfect dodge pops up a gold `PERFECT` callout above the angel. The **stats overlay** starts hidden; press F3 to open it at the top left. It shows FPS and frame time, CPU and physics time, draw calls, node count, and memory; live enemy count, boss health, boss projectiles, and pickups on the ground; kills and level; and the hero's current damage, attack rate, reach, pierce, speed, pickup radius, combo step, dash readiness, and flight stamina.
 
-The owner's EIGHT logo appears at the top right as a transparent pixel-art adaptation of the supplied `Eight.pdf`, recolored in the game's mint, steel, and purple palette. This specific AI-assisted adaptation was requested by the owner; its provenance and generation prompt are recorded in `eight/assets/art/CREDITS.md` and `eight_logo_pixel.md`. The original design and other authored assets are preserved.
+The EIGHT logo appears at the top right as a transparent pixel-art adaptation of `Eight.pdf`, recolored in the game's mint, steel, and purple palette (provenance recorded in `eight/assets/art/CREDITS.md` and `eight_logo_pixel.md`). The original design and other authored assets are preserved.
 
 The map is deliberately calm: the floor is low-contrast and every prop (thorns, ooze pools, bones, red crystals, growths, rocks, dead grass, mushrooms) is static, so only enemies, pickups, and attacks move, apart from the lava pools' slow shimmer. Dead trees are no longer floor props: trees are breakable obstacles, larger and lighter than the props, so anything tree-shaped blocks.
 
@@ -134,7 +134,7 @@ A top-down 2D game about an unnamed angel, fully robed in purple and riding a bl
 
 ## Asset workflow
 
-Production creative assets must be **human-created**. Clearly identified temporary placeholders, including audio, are permitted for prototyping; their temporary status, source, and redistribution rights must be documented. AI-assisted code is allowed.
+Production creative assets must be **human-created**. Clearly identified temporary placeholders, including audio, are permitted for prototyping; their temporary status, source, and redistribution rights must be documented.
 
 Add assets under `eight/assets/`; see its README for organization, attribution, and placeholder-labeling requirements. Common binary art, model, audio, and video formats use Git LFS automatically. LFS has storage and bandwidth quotas: avoid committing renders, exports, or duplicate source files.
 
@@ -270,7 +270,7 @@ The UI is crisp vector UI drawn by Godot from one shared theme, `eight/resources
 - **Motion:** level-up panels and the pause menu pop in with a short overshoot, and the three level-up cards deal in one after another. UI tweens run while the tree is paused and ignore hit-stop slow-motion.
 - **World tags:** the boss name and the portal's `EXIT [HOLD E]` prompt are HUD labels that follow their world position (`Hud.world_to_hud`) and hide when their anchor leaves the world view.
 - **Stained-glass portraits:** Ahmet Altuğ Aktaş's vector angel stands left of the pentagram and her buffalo right of it. Hovering or keyboard-focusing Wrath, Lust, Envy, Sloth or Satan fades and slides in the matching boss illustration; every boss arrival gets a 1.8-second non-modal title card, with Kerberos, Lilith, Loki, Edward and Satan portraits where art exists and text-only cards for the other sins (Midas, Wendigo, Odin). New art goes in `GlassArt.BOSS_ART` (`eight/scripts/glass_art.gd`). Only the arriving boss waits: the player, horde, clocks and input continue. Smooth linear sampling keeps the team's vector art separate from the nearest-neighbour pixel world.
-- **About:** the hub's ABOUT / HAKKINDA panel reports the project version and team and summarises the art, audio, font, icon, Godot and Aseprite Wizard credits. It scrolls when the translated copy needs more room; Esc or CLOSE returns to the hub.
+- **About:** the hub's ABOUT / HAKKINDA panel reports the project version, team, license, and art, audio, font, icon, Godot and Aseprite Wizard credits. It scrolls when the translated copy needs more room; Esc or CLOSE returns to the hub.
 
 ## Settings
 
@@ -331,3 +331,7 @@ Sources: [Game design document](https://docs.google.com/document/d/13K-lRnG-OssZ
 
 For a Penance playtest, record the build, realm, language, weapon and shop ranks before handing over the controls. Let the player discover the guide and first shrine without prompting. Record time to first shrine, deaths, damage source, missed attack cues and time spent choosing an upgrade. Afterwards ask, “What was the goal, what hit you, and what would you try next?” Compare a repeat run under the same conditions. Automated smoke tests cover mechanics; these observations measure player understanding.
 A broken shrine leaves a marked 96-unit healing ring. A wounded angel who stays inside continuously for 10 seconds recovers 25% of maximum life (rounded up) once per shrine. Moving and fighting inside are allowed. Leaving resets progress, and a full-life angel preserves the charge. Enemies and the remaining shrine clock keep running.
+
+## License
+
+Copyright (c) 2026 Mustafa Yıldız, Lila Aydın, Ahmet Altuğ Aktaş. **All Rights Reserved** — see [LICENSE](LICENSE). Third-party engine, importer, icon, and font components remain under their own MIT and SIL Open Font License 1.1 terms.

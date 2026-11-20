@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EIGHT — Jüri paftası</title>
+  <style>
+    @font-face {
+      font-family: "Texturina";
+      src: url("../fonts/Texturina.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Source Sans 3";
+      src: url("../fonts/SourceSans3.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 200 900;
+      font-display: block;
+    }
+    @page { size: 420mm 594mm; margin: 0; }
+    :root {
+      --blood: #E5103A;
+      --bone-dim: #D5CABD;
+      --bg: #070506;
+      --panel: #0D080A;
+      --oxblood: #18090E;
+      --oxblood-2: #241016;
+      --bone: #F0E6D7;
+      --muted: #D5CABD;
+      --ash: #ACA1A4;
+      --red: #E5103A;
+      --line: #4A3039;
+      --ember: #F08A4B;
+      --violet: #B993E6;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 420mm; height: 594mm; overflow: hidden; }
+    body { background: var(--bg); color: var(--bone); font-family: "Source Sans 3", sans-serif; }
+    .poster {
+      width: 420mm;
+      height: 594mm;
+      padding: 48px;
+      display: grid;
+      grid-template-rows: 168px 320px 455px 400px 220px 296px 81px;
+      gap: 35px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .poster > * { min-width: 0; min-height: 0; }
+    h1, h2, h3, p, figure { margin: 0; }
+    img { display: block; }
+    .section-title {
+      margin: 0 0 12px;
+      color: var(--bone);
+      font-family: "Texturina", serif;
+      font-size: 29px;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .masthead {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      align-items: center;
+      gap: 34px;
+      padding: 4px 0 24px;
+      border-bottom: 1px solid var(--red);
+    }
+    .masthead .logo { width: 270px; height: 135px; object-fit: contain; object-position: left center; }
+    .identity { padding-left: 12px; }
+    .tagline {
+      font-family: "Texturina", serif;
+      font-size: 35px;
+      font-weight: 600;
+      line-height: 1.22;
+      letter-spacing: -0.012em;
+    }
+    .byline { margin-top: 18px; color: var(--muted); font-size: 17px; line-height: 1.35; }
+
+    .concept-characters { display: grid; grid-template-columns: 340px 1fr; gap: 36px; }
+    .lore { padding-top: 2px; }
+    .lore p { color: var(--muted); font-size: 18px; line-height: 1.42; margin-bottom: 16px; }
+    .lore p:last-child { margin-bottom: 0; }
+    .characters { min-width: 0; }
+    .character-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; height: 237px; }
+    .character { display: grid; grid-template-rows: 202px 29px; gap: 4px; min-width: 0; }
+    .character img { width: 100%; height: 202px; object-fit: contain; object-position: center bottom; }
+    .character figcaption { align-self: center; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.15; }
+    .art-credit { margin-top: 7px; text-align: right; color: var(--ash); font-size: 13px; line-height: 1.2; }
+
+    .flows { display: grid; grid-template-rows: 325px 106px; gap: 24px; }
+    .diagram-pair { display: grid; grid-template-columns: 1.18fr 1fr; gap: 32px; min-height: 0; }
+    .diagram { min-width: 0; }
+    .gameflow-diagram { display: block; width: 100%; height: 280px; overflow: visible; }
+    .gameflow-diagram .flow-labels { fill: var(--bone); font-size: 22px; font-family: 'Source Sans 3', sans-serif; }
+    .gameflow-diagram .secondary { fill: var(--ash); font-size: 20px; }
+    .gameflow-diagram .progress-lines { fill: none; stroke: var(--blood); stroke-width: 2; marker-end: url(#flow-progress); }
+    .gameflow-diagram .return-lines { fill: none; stroke: var(--ash); stroke-width: 1.5; stroke-dasharray: 5 5; marker-end: url(#flow-return); }
+    .core-loop-diagram { display: block; width: 100%; height: 280px; }
+    .core-loop-diagram .loop-lines { fill: none; stroke: var(--blood); stroke-width: 2; marker-end: url(#loop-arrow); }
+    .core-loop-diagram .loop-labels { fill: var(--bone); font: 600 27px 'Source Sans 3', sans-serif; }
+    .core-loop-diagram .loop-centre { fill: var(--bone-dim); font-size: 24px; font-weight: 400; }
+    .gameplay { display: grid; grid-template-columns: 165px 1fr; gap: 28px; }
+    .gameplay .section-title { margin-top: 4px; }
+    .play-content { display: grid; grid-template-rows: 32px 54px; gap: 12px; }
+    .kit-line { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .kit-line b { display: block; color: var(--bone); font-size: 14px; font-weight: 600; line-height: 1.1; }
+    .kit-line span { display: block; margin-top: 3px; color: var(--ash); font-size: 13px; line-height: 1.1; }
+    .telegraphs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .telegraph { padding-top: 8px; border-top: 1px solid; }
+    .telegraph.ground { border-color: var(--ember); }
+    .telegraph.air { border-color: var(--violet); }
+    .telegraph b { font-size: 14px; font-weight: 600; }
+    .telegraph.ground b { color: var(--ember); }
+    .telegraph.air b { color: var(--violet); }
+    .telegraph p { margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.3; }
+
+    .pixel-section { display: grid; grid-template-rows: 36px 104px 137px 99px; row-gap: 8px; }
+    .pixel-section > .section-title { margin: 0; }
+    .sprite-row { display: grid; grid-template-columns: 128px 1fr; gap: 16px; min-width: 0; align-items: center; }
+    .sprite-label b { display: block; color: var(--muted); font-size: 15px; font-weight: 600; line-height: 1.15; }
+    .sprite-label span { display: block; margin-top: 6px; color: var(--ash); font-size: 12px; line-height: 1.2; }
+    .player-animations { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+    .animation { flex: none; }
+    .frames { display: flex; height: 64px; flex: none; }
+    .frame { position: relative; overflow: hidden; flex: none; image-rendering: pixelated; }
+    .frame > img { position: absolute; left: 0; top: 0; max-width: none; max-height: none; image-rendering: pixelated; }
+    .animation figcaption, .mini figcaption { margin-top: 5px; color: var(--ash); font-size: 11px; line-height: 1.1; text-align: center; white-space: nowrap; }
+    .boss-strip { display: flex; align-items: flex-end; gap: 10px; min-width: 0; }
+    .boss-strip .frames { height: 96px; align-items: flex-end; }
+    .mini { flex: none; }
+    .horde-pickups { display: flex; align-items: flex-end; gap: 16px; min-width: 0; }
+    .sprite-set { display: flex; align-items: flex-end; gap: 10px; flex: none; }
+    .set-label { align-self: center; width: 62px; flex: none; color: var(--muted); font-size: 14px; font-weight: 600; }
+    .set-label small { display: block; margin-top: 5px; color: var(--ash); font-size: 11px; font-weight: 400; line-height: 1.15; }
+
+    .realms .section-title { margin-bottom: 14px; }
+    .realm-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+    .realm { min-width: 0; }
+    .realm img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--line); }
+    .realm figcaption { margin-top: 9px; }
+    .realm b { display: block; color: var(--bone); font-size: 15px; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+    .realm span { display: block; margin-top: 4px; color: var(--ash); font-size: 13px; line-height: 1.15; }
+
+    .utility { display: grid; grid-template-columns: minmax(0, 1fr) 430px; gap: 36px; }
+    .ui-gallery { display: grid; grid-template-columns: 1.1fr 1.35fr 1fr; gap: 22px; height: 246px; align-items: center; }
+    .ui-shot { min-width: 0; text-align: center; }
+    .ui-shot img { width: 100%; height: 192px; object-fit: contain; }
+    .ui-shot.status img { height: 110px; }
+    .ui-shot figcaption { margin-top: 11px; color: var(--ash); font-size: 12px; line-height: 1.15; }
+    .palette-tech { display: grid; grid-template-rows: 36px 137px 1fr; row-gap: 8px; }
+    .palette-tech .section-title { margin: 0; }
+    .palette { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; align-content: start; }
+    .swatch { min-width: 0; }
+    .swatch-color { height: 25px; border: 1px solid #4A3039; }
+    .swatch small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1; text-align: center; }
+    .tech-stack { align-self: end; }
+    .tech { border-top: 1px solid var(--red); padding-top: 13px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+    .tech b, .references b { color: var(--bone); font-weight: 600; }
+    .references { margin-top: 10px; color: var(--ash); font-size: 12px; line-height: 1.35; }
+
+    .colophon { display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center; border-top: 1px solid var(--red); padding-top: 17px; }
+    .play-note { color: var(--ash); font-size: 13px; line-height: 1.15; }
+    .play-link { margin-top: 5px; font-size: 22px; font-weight: 600; line-height: 1.15; }
+    .play-link a { color: var(--bone); text-decoration: none; }
+    .team { display: flex; gap: 28px; }
+    .person { white-space: nowrap; }
+    .person b { display: block; color: var(--bone); font-size: 15px; font-weight: 600; line-height: 1.15; }
+    .person span { display: block; margin-top: 5px; color: var(--ash); font-size: 13px; line-height: 1.15; }
+  </style>
+</head>
+<body>
+  <main class="poster" aria-label="EIGHT oyunu jüri paftası">
+    <header class="masthead" id="header">
+      <img class="logo" src="../images/eight_logo.png" alt="EIGHT">
+      <div class="identity">
+        <h1 class="tagline">Bir melek. Yedi günah. Tek bir yol.</h1>
+        <p class="byline">Yıldız Teknik Üniversitesi · Oyun Tasarımı · Alfa 0.1</p>
+      </div>
+    </header>
+
+    <section class="concept-characters" id="concept-characters" aria-label="Evren ve karakterler">
+      <div class="lore">
+        <h2 class="section-title">Evren</h2>
+        <p>Cehennem yedi kattır; her katta bir günah hüküm sürer. Sekizinci kat merkezdedir ve orada Şeytan bekler.</p>
+        <p>Tanrı, ışıktan bir mızrakla bir meleği gönderir: mor pelerinli melek, kara öküzünün sırtında aşağı iner.</p>
+        <p>Şeytan her kata beş sunak dikmiştir. Sunaklar ayakta kaldıkça diyar çürür.</p>
+      </div>
+      <div class="characters">
+        <h2 class="section-title">Karakterler</h2>
+        <div class="character-grid">
+          <figure class="character"><img src="../images/glass/angel.png" alt="Mor pelerinli, haleli melek vitrayı"><figcaption>Melek</figcaption></figure>
+          <figure class="character"><img src="../images/glass/buffalo.png" alt="Kara öküz vitrayı"><figcaption>Kara öküz</figcaption></figure>
+          <figure class="character"><img src="../images/glass/kerberos.png" alt="Kerberos ve baltası vitrayı"><figcaption>Kerberos</figcaption></figure>
+          <figure class="character"><img src="../images/glass/lilith.png" alt="Lilith ve asası vitrayı"><figcaption>Lilith</figcaption></figure>
+          <figure class="character"><img src="../images/glass/loki.png" alt="Loki vitrayı"><figcaption>Loki</figcaption></figure>
+          <figure class="character"><img src="../images/glass/edward.png" alt="Edward vitrayı"><figcaption>Edward</figcaption></figure>
+          <figure class="character"><img src="../images/glass/satan.png" alt="Şeytan, baş ve iki el vitrayı"><figcaption>Şeytan</figcaption></figure>
+        </div>
+        <p class="art-credit">Vektör çizimler: Ahmet Altuğ Aktaş</p>
+      </div>
+    </section>
+
+    <section class="flows" id="flows" aria-label="Gameflow, Core Loop ve Gameplay">
+      <div class="diagram-pair">
+        <div class="diagram">
+          <h2 class="section-title">Gameflow</h2>
+          <svg class="gameflow-diagram" viewBox="0 0 852 338" role="img" aria-label="Pentagram, diyar seçimi, koşu, diyarın sahibi, geçit ve mühür; yedi mühürle Şeytan. Yenilgide tüylerin yarısıyla merkeze dönüş.">
+            <defs>
+              <marker id="flow-progress" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--blood)" stroke-width="1.5" /></marker>
+              <marker id="flow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--ash)" stroke-width="1.5" /></marker>
+            </defs>
+            <g class="progress-lines"><path d="M115 55H149" /><path d="M270 55H301" /><path d="M414 55H444" /><path d="M603 55H640" /><path d="M723 55H738" /><path d="M790 86V230" /></g>
+            <g class="flow-labels" text-anchor="middle">
+              <text x="59" y="61">Pentagram</text>
+              <text x="212" y="61">Diyar seç</text><text class="secondary" x="212" y="91">+ zorluk</text>
+              <text x="358" y="61">Koşu</text><text class="secondary" x="358" y="91">5 sunak · 8:00</text>
+              <text x="524" y="61">Diyarın sahibi</text>
+              <text x="679" y="61">Mühür</text><text class="secondary" x="679" y="91">Geçitten çık</text>
+              <text x="790" y="61">7 mühür?</text><text class="secondary" x="819" y="175">Evet</text><text x="790" y="260">Şeytan</text>
+            </g>
+            <g class="return-lines"><path d="M790 30V0H59V30" /><path d="M358 107V208H59V105" /><path d="M22 74V288H106" marker-start="url(#flow-return)" /></g>
+            <g class="flow-labels secondary"><text x="441" y="22">Hayır · merkeze dön</text><text x="92" y="200">Yenilgi · tüylerin yarısı</text><text x="119" y="295">Dükkân</text><text x="510" y="303">Ritüel → kafa + iki el → zafer</text></g>
+          </svg>
+        </div>
+        <div class="diagram">
+          <h2 class="section-title">Core Loop</h2>
+          <svg class="core-loop-diagram" viewBox="0 0 852 338" role="img" aria-label="Savaş ve kaçın, ruh topla, Level Up, güç seç ve tekrar savaş.">
+            <defs><marker id="loop-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--blood)" stroke-width="1.5" /></marker></defs>
+            <g class="loop-lines">
+              <path d="M322 48H534" />
+              <path d="M720 65Q775 65 775 120V228Q775 283 720 283" />
+              <path d="M534 283H322" />
+              <path d="M132 283Q77 283 77 228V103Q77 48 132 48" />
+            </g>
+            <g class="loop-labels" text-anchor="middle">
+              <text x="226" y="56">Savaş ve kaçın</text>
+              <text x="630" y="56">Ruh topla</text>
+              <text x="630" y="291">Level Up</text>
+              <text x="226" y="291">Güç seç</text>
+              <text class="loop-centre" x="426" y="175">Güçlenirken beş sunağa ulaş.</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="gameplay">
+        <h2 class="section-title">Gameplay</h2>
+        <div class="play-content">
+          <div class="kit-line">
+            <div><b>Mızrak + yay</b><span>üçlü kombo</span></div>
+            <div><b>Atılma</b><span>kısa dokunulmazlık</span></div>
+            <div><b>Uçuş</b><span>dayanıklılık harcar</span></div>
+            <div><b>Uyarı → saldırı → açık</b><span>her hamlede aynı ritim</span></div>
+          </div>
+          <div class="telegraphs">
+            <div class="telegraph ground"><b>Yer saldırısı</b><p>Köz rengi hatlar ve halkalar: üstünden uç ya da içinden atıl.</p></div>
+            <div class="telegraph air"><b>Hava saldırısı</b><p>Mor işaretler: uçmak kurtarmaz; alandan çık ya da içinden atıl.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pixel-section" id="pixel-art" aria-label="Sprites ve Pixel Art">
+      <h2 class="section-title">Sprites / Pixel Art</h2>
+      <div class="sprite-row">
+        <div class="sprite-label"><b>Melek</b><span>32 px · 2× ölçek<br>animasyon kareleri</span></div>
+        <div class="player-animations" id="player-animations"></div>
+      </div>
+      <div class="sprite-row">
+        <div class="sprite-label"><b>Diyarın sahipleri</b><span>duruş + saldırı<br>özgün piksel ölçeği</span></div>
+        <div class="boss-strip" id="boss-strip"></div>
+      </div>
+      <div class="sprite-row">
+        <div class="sprite-label"><b>Sürü ve düşüşler</b><span>canlı varlıklar 2×<br>eşyalar 4× ölçek</span></div>
+        <div class="horde-pickups">
+          <div class="sprite-set" id="horde-strip"></div>
+          <div class="set-label">Düşüşler<small>ruh · can<br>eşya · tüy</small></div>
+          <div class="sprite-set" id="pickup-strip"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="realms" id="realms" aria-label="Realms">
+      <h2 class="section-title">Realms</h2>
+      <div class="realm-grid">
+        <figure class="realm"><img src="../images/realms/wrath.png" alt="Gazap diyarı"><figcaption><b>I · Kerberos</b><span>Gazap</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/greed.png" alt="Açgözlülük diyarı"><figcaption><b>II · Midas</b><span>Açgözlülük</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/lust.png" alt="Şehvet diyarı"><figcaption><b>III · Lilith</b><span>Şehvet</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/envy.png" alt="Kıskançlık diyarı"><figcaption><b>IV · Loki</b><span>Kıskançlık</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/gluttony.png" alt="Oburluk diyarı"><figcaption><b>V · Wendigo</b><span>Oburluk</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/pride.png" alt="Kibir diyarı"><figcaption><b>VI · Odin</b><span>Kibir</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/sloth.png" alt="Tembellik diyarı"><figcaption><b>VII · Edward</b><span>Tembellik</span></figcaption></figure>
+        <figure class="realm"><img src="../images/realms/satan.png" alt="Şeytan'ın diyarı"><figcaption><b>VIII · Şeytan</b><span>Merkez</span></figcaption></figure>
+      </div>
+    </section>
+
+    <section class="utility" id="ui-palette-tech" aria-label="UI, Palette ve teknoloji">
+      <div>
+        <h2 class="section-title">UI</h2>
+        <div class="ui-gallery">
+          <figure class="ui-shot"><img src="../images/ui/pentagram.png" alt="Pentagram ana menüsü"><figcaption>Pentagram · yedi diyar ve merkez</figcaption></figure>
+          <figure class="ui-shot"><img src="../images/ui/levelup.png" alt="Üç seçenekli seviye atlama ekranı"><figcaption>Seviye · üç seçenek</figcaption></figure>
+          <figure class="ui-shot status"><img src="../images/ui/status.png" alt="Sıvı kalp ve koşu sayaçları"><figcaption>Sıvı kalp · koşu sayaçları</figcaption></figure>
+        </div>
+      </div>
+      <div class="palette-tech">
+        <h2 class="section-title">Palette</h2>
+        <div class="palette" id="palette" aria-label="Oyunun 21 renkli paleti"></div>
+        <div class="tech-stack">
+          <p class="tech"><b>Godot 4.7.2</b> · GDScript · Aseprite (pixel art)<br>Web build · tarayıcıda klavye ve fare</p>
+          <p class="references"><b>References</b> · Hyper Light Drifter · Vampire Survivors · 20 Minutes Till Dawn</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="colophon" id="footer">
+      <div>
+        <p class="play-note">Şimdi oyna</p>
+        <p class="play-link"><a href="https://slyim.github.io/EIGHT/">slyim.github.io/EIGHT</a></p>
+      </div>
+      <div class="team" aria-label="Team">
+        <div class="person"><b>Mustafa Yıldız</b><span>2308A008</span></div>
+        <div class="person"><b>Lila Aydın</b><span>2308A025</span></div>
+        <div class="person"><b>Ahmet Altuğ Aktaş</b><span>2308A061</span></div>
+      </div>
+    </footer>
+  </main>
+  <script>
+    function makeStrip(targetId, entries, className = "mini") {
+      const target = document.getElementById(targetId);
+      for (const entry of entries) {
+        const figure = document.createElement("figure");
+        figure.className = className;
+        const frames = document.createElement("div");
+        frames.className = "frames";
+        for (const index of entry.frames) {
+          const frame = document.createElement("div");
+          frame.className = "frame";
+          const size = entry.native * entry.scale;
+          frame.style.width = `${size}px`;
+          frame.style.height = `${size}px`;
+          const image = document.createElement("img");
+          image.src = `./img/${entry.sheet}_all_4x.png`;
+          image.alt = `${entry.label}, ${index + 1}. kare`;
+          image.style.width = `${entry.count * size}px`;
+          image.style.height = `${size}px`;
+          image.style.transform = `translateX(${-index * size}px)`;
+          frame.appendChild(image);
+          frames.appendChild(frame);
+        }
+        const caption = document.createElement("figcaption");
+        caption.textContent = entry.label;
+        figure.append(frames, caption);
+        target.appendChild(figure);
+      }
+    }
+
+    makeStrip("player-animations", [
+      { sheet: "player", label: "Duruş", native: 32, scale: 2, count: 16, frames: [0, 1, 2, 3] },
+      { sheet: "player", label: "Koşu", native: 32, scale: 2, count: 16, frames: [4, 5, 6, 7] },
+      { sheet: "player", label: "Atılma", native: 32, scale: 2, count: 16, frames: [8, 9] },
+      { sheet: "player", label: "Havalanma", native: 32, scale: 2, count: 16, frames: [10, 11] },
+      { sheet: "player", label: "İniş", native: 32, scale: 2, count: 16, frames: [12, 13, 14, 15] }
+    ], "animation");
+
+    makeStrip("boss-strip", [
+      { sheet: "boss_wrath", label: "Kerberos", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_greed", label: "Midas", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_lust", label: "Lilith", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_envy", label: "Loki", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_gluttony", label: "Wendigo", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_pride", label: "Odin", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_sloth", label: "Edward", native: 64, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_satan_head", label: "Şeytan · baş", native: 96, scale: 1, count: 8, frames: [0, 4] },
+      { sheet: "boss_satan_hand", label: "Şeytan · el", native: 48, scale: 1, count: 8, frames: [0, 4] }
+    ]);
+
+    makeStrip("horde-strip", [
+      { sheet: "enemy_husk", label: "Kabuk", native: 32, scale: 2, count: 4, frames: [0, 1] },
+      { sheet: "enemy_imp", label: "İfrit", native: 32, scale: 2, count: 4, frames: [0, 1] },
+      { sheet: "enemy_brute", label: "İri", native: 32, scale: 2, count: 4, frames: [0, 1] },
+      { sheet: "enemy_flying_eye", label: "Uçan göz", native: 32, scale: 2, count: 4, frames: [0, 1] }
+    ]);
+
+    makeStrip("pickup-strip", [
+      { sheet: "pickup_xp", label: "Ruh", native: 16, scale: 4, count: 4, frames: [0, 1] },
+      { sheet: "pickup_life", label: "Can", native: 16, scale: 4, count: 4, frames: [0, 1] },
+      { sheet: "pickup_item", label: "Eşya", native: 16, scale: 4, count: 4, frames: [0, 1] },
+      { sheet: "pickup_feather", label: "Tüy", native: 16, scale: 4, count: 4, frames: [0, 1] }
+    ]);
+
+    const colours = [
+      ["mint", "CAEBE0"], ["sea", "729AA1"], ["steel", "446077"], ["navy", "2E3850"],
+      ["night", "1E182E"], ["abyss", "14081A"], ["black", "070109"], ["deep", "091820"],
+      ["teal", "123735"], ["pine", "2F6B4E"], ["leaf", "4B974F"], ["lime", "91B95B"],
+      ["cream", "E6E29E"], ["sand", "DCCD93"], ["clay", "B7836B"], ["rust", "995154"],
+      ["wine", "6B2C40"], ["blood", "310E25"], ["plum", "3A2140"], ["mauve", "6E3F5F"],
+      ["rose", "97576C"]
+    ];
+    const palette = document.getElementById("palette");
+    for (const [name, hex] of colours) {
+      const swatch = document.createElement("div");
+      swatch.className = "swatch";
+      swatch.title = name;
+      swatch.innerHTML = `<div class="swatch-color" style="background:#${hex}"></div><small>${hex}</small>`;
+      palette.appendChild(swatch);
+    }
+  </script>
+</body>
+</html>

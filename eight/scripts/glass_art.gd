@@ -4,8 +4,8 @@ extends RefCounted
 
 const SHADER: Shader = preload("res://shaders/stained_glass.gdshader")
 const BOSS_ART: Array[String] = [
-	"", "", "res://assets/art/vector/lilith.png", "", "",
-	"res://assets/art/vector/kerberos.png", "", "res://assets/art/vector/satan.png",
+	"", "", "res://assets/art/vector/lilith.png", "res://assets/art/vector/loki.png", "",
+	"res://assets/art/vector/kerberos.png", "res://assets/art/vector/edward.png", "res://assets/art/vector/satan.png",
 ]
 const BOSS_NAMES: Array[String] = ["ODIN", "MIDAS", "LILITH", "LOKI", "WENDIGO", "KERBEROS", "EDWARD", "SATAN"]
 

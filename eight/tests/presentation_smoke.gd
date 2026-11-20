@@ -131,6 +131,10 @@ func _run() -> void:
 	hub.preview_boss(2)
 	await _ticks(20)
 	_check((hub.get_node(^"PortraitPanel/Box/Art") as TextureRect).texture.resource_path.ends_with("lilith.png"), "Lust must show the Lilith illustration.")
+	for pair: Array in [[3, "loki.png", "Envy", "Loki"], [6, "edward.png", "Sloth", "Edward"]]:
+		hub.preview_boss(pair[0])
+		await _ticks(20)
+		_check((hub.get_node(^"PortraitPanel/Box/Art") as TextureRect).texture.resource_path.ends_with(pair[1]), "%s must show the %s illustration." % [pair[2], pair[3]])
 	hub.hide_boss_preview()
 
 	# About is a real, fitted, translatable panel; hub shortcuts stay held until Esc closes it.
@@ -161,6 +165,7 @@ func _run() -> void:
 	_check(wrath.boss_intro != null and not kerberos.is_physics_processing(), "The arriving boss must wait for its card.")
 	_check(wrath.find_children("*", "BossIntro", true, false).size() == 1, "Guards must not produce extra introduction cards.")
 	var card: BossIntro = wrath.boss_intro
+	_check(card.get_parent() == wrath.hud.get_parent(), "The card must sit beside the HUD layer, which Game lifts to native resolution, not inside the low-resolution world view.")
 	_check((card.get_node(^"Slider/TextBlock/BossName") as Label).text == "KERBEROS" and (card.get_node(^"Slider/TextBlock/Realm") as Label).text == "WRATH", "The card must carry the character and realm names.")
 	_check((card.get_node(^"Slider/Portrait") as TextureRect).visible, "Kerberos must have his portrait.")
 	_check(((card.get_node(^"Slider/Portrait") as TextureRect).material as ShaderMaterial).shader == GlassArt.SHADER, "Boss portraits must use stained glass.")

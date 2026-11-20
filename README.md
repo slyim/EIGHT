@@ -6,6 +6,8 @@ Game development project for YTU, built with Godot. Most programming will be AI-
 
 [Play EIGHT on GitHub Pages](https://slyim.github.io/EIGHT/). Use a desktop browser with WebGL 2 and a keyboard and mouse.
 
+Jury materials: **[Presentation (30 slides, PDF)](presentation/EIGHT-jury.pdf)** · **[A2 Pafta (PDF)](presentation/pafta/Pafta.pdf)** · **[Presentation sources & preview](presentation/README.md)**.
+
 GitHub Actions exports the Web preset and publishes it to Pages on each push to `main`. The browser build uses Godot's Compatibility renderer. The run shaders account for its color space and share the desktop build's color grade and local bloom.
 
 ## Open the project
@@ -126,6 +128,7 @@ A top-down 2D game about an unnamed angel, fully robed in purple and riding a bl
 - `eight/shaders/` — the light palette, darkness, light falloff and atmosphere shaders, and their materials.
 - `eight/tests/` — native Godot behavior checks, with no test framework.
 - `eight/addons/AsepriteWizard/` — third-party Aseprite importer (MIT, license included).
+- `presentation/` — Slidev jury deck (`EIGHT-jury.pdf`), A2 poster (`pafta/Pafta.pdf`), and design docs.
 - `tools/` — placeholder art and audio generators.
 - `AGENTS.md` — instructions for AI coding agents.
 
@@ -266,7 +269,7 @@ The UI is crisp vector UI drawn by Godot from one shared theme, `eight/resources
 - **Pause:** Esc opens a pause menu (Resume, Restart run) and pauses the world; Esc or Resume closes it. It never opens over a level-up choice or after the run ends, closing it never unpauses a pending level-up, and a level-up that arrives while it is open replaces it.
 - **Motion:** level-up panels and the pause menu pop in with a short overshoot, and the three level-up cards deal in one after another. UI tweens run while the tree is paused and ignore hit-stop slow-motion.
 - **World tags:** the boss name and the portal's `EXIT [HOLD E]` prompt are HUD labels that follow their world position (`Hud.world_to_hud`) and hide when their anchor leaves the world view.
-- **Stained-glass portraits:** Ahmet Altuğ Aktaş's vector angel and buffalo appear as the rider beside the pentagram. Hovering or keyboard-focusing Wrath, Lust or Satan fades and slides in the matching boss illustration; every boss arrival gets a 1.8-second non-modal title card, with Kerberos, Lilith and Satan portraits where art exists and text-only cards for the other sins. Only the arriving boss waits: the player, horde, clocks and input continue. Smooth linear sampling keeps the team's vector art separate from the nearest-neighbour pixel world.
+- **Stained-glass portraits:** Ahmet Altuğ Aktaş's vector angel stands left of the pentagram and her buffalo right of it. Hovering or keyboard-focusing Wrath, Lust, Envy, Sloth or Satan fades and slides in the matching boss illustration; every boss arrival gets a 1.8-second non-modal title card, with Kerberos, Lilith, Loki, Edward and Satan portraits where art exists and text-only cards for the other sins (Midas, Wendigo, Odin). New art goes in `GlassArt.BOSS_ART` (`eight/scripts/glass_art.gd`). Only the arriving boss waits: the player, horde, clocks and input continue. Smooth linear sampling keeps the team's vector art separate from the nearest-neighbour pixel world.
 - **About:** the hub's ABOUT / HAKKINDA panel reports the project version and team and summarises the art, audio, font, icon, Godot and Aseprite Wizard credits. It scrolls when the translated copy needs more room; Esc or CLOSE returns to the hub.
 
 ## Settings

@@ -1264,7 +1264,9 @@ func _show_boss_intro(boss: Boss) -> void:
 	boss_intro = BOSS_INTRO_SCENE.instantiate() as BossIntro
 	boss_intro.map = sin_index
 	boss_intro.finished.connect(_on_boss_intro_finished.bind(held, processing))
-	add_child(boss_intro)
+	# Beside the HUD, not inside the run: Game lifts the HUD layer out of the low-resolution
+	# world view, and the card must render at native resolution like it.
+	hud.get_parent().add_child(boss_intro)
 
 
 func _on_boss_intro_finished(held: Array[Boss], processing: Array[bool]) -> void:
